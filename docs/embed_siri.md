@@ -11,19 +11,24 @@ https://tools.odpch.ch/siri-sx-poc/embed.html
 
 ## Query Parameters
 
+All parameters are optional, the default values are used instead.
+
 | Param | Values | Default | Description |
 |-|-|-|-|
 | lang | `de`, `en`, `fr`, `it`  | `de` | Messages textual content language |
 | text_size | `small`, `medium`, `large`  | `large` | Messages textual content text size |
 | owner_refs | String |  | Comma separated strings of the `OwnerRef` |
+| active | `1` |  | Show only active messages (based on `ValidityPeriod`) |
 | app_stage | `TEST`, `INT`  | `TEST` | Backend API configuration, `TEST` for `siri-sx_test`, `INT` for `siri-sx_int` API endpoints |
 
 ## Example Integration
 
-- [link1 on TEST](https://tools.odpch.ch/siri-sx-poc/embed.html?app_stage=TEST&lang=fr&owner_refs=100626&text_size=medium) - messages in **french**, with text context size **medium**, for `OwnerRef` 100626
+- [link1 on TEST](https://tools.odpch.ch/siri-sx-poc/embed.html?app_stage=TEST&lang=fr&text_size=medium) - messages in **french** language, with text context size **medium**
+- [link2 on TEST](https://tools.odpch.ch/siri-sx-poc/embed.html?app_stage=TEST&lang=fr&owner_refs=100626&text_size=medium) - messages in **french**, with text context size **medium**, for `OwnerRef` 100626
 
 ---
 
 ## Document Revisions
 
+- 2022-07-20 - added `active` query parameter
 - 2022-07-18 - created first version
