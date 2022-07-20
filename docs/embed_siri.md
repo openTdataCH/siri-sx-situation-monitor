@@ -1,4 +1,4 @@
-# Embed Siri Response
+# Embed SIRI SX Response
 
 This page explains how to integrate SIRI request and consume the response in an web IFRAME.
 
