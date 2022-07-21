@@ -32,5 +32,6 @@ All parameters are optional, the default values are used instead.
 
 ## Document Revisions
 
+- 2022-07-21 - documented sorting, added `debug` param
 - 2022-07-20 - added `active` query parameter
 - 2022-07-18 - created first version
