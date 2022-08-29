@@ -23,15 +23,32 @@ All parameters are optional, the default values are used instead.
 | app_stage | `TEST`, `INT`  | `TEST` | Backend API configuration, `TEST` for `siri-sx_test`, `INT` for `siri-sx_int` API endpoints |
 | debug | `1`  |  | Debug flag to show more information about the messages and also provide a GUI to customise the parameters |
 
-## Example Integration
+## Build Integration URL
+
+The parameters above are configurable via the [URL builder](https://tools.odpch.ch/siri-sx-poc/embed.html?debug=1) tool
+
+![iframe_url_builder.jpg](./iframe_url_builder.jpg)
+
+Link: https://tools.odpch.ch/siri-sx-poc/embed.html?debug=1
+
+Changing the dropdown and input values will reload the content of the messages so the user can have a direct feedback of how the integration will look like. 
+
+Click the `TEST (new window)` button to open in a new window the integration and check if the content is rendered as expected.
+
+Examples:
 
 - [link1 on TEST](https://tools.odpch.ch/siri-sx-poc/embed.html?app_stage=TEST&lang=fr&text_size=medium) - messages in **french** language, with text context size **medium**
 - [link2 on TEST](https://tools.odpch.ch/siri-sx-poc/embed.html?app_stage=TEST&lang=fr&owner_refs=100602&text_size=medium) - messages in **french**, with text context size **medium**, for `OwnerRef` 100602
 
+The URL can be then embeded in a HTML IFRAME as in the following example:
+```
+<iframe width="100%" height="500" src="https://tools.odpch.ch/siri-sx-poc/embed.html?app_stage=TEST&lang=fr&text_size=medium"></iframe>
+```
 ---
 
 ## Document Revisions
 
+- 2022-07-29 - documented the [URL builder](https://tools.odpch.ch/siri-sx-poc/embed.html?debug=1) tool
 - 2022-07-21 - documented sorting, added `debug` param
 - 2022-07-20 - added `active` query parameter
 - 2022-07-18 - created first version
