@@ -42,7 +42,9 @@ Examples:
 
 The URL can be then embeded in a HTML IFRAME as in the following example:
 ```
-<iframe width="100%" height="500" src="https://tools.odpch.ch/siri-sx-poc/embed.html?app_stage=TEST&lang=fr&text_size=medium"></iframe>
+<iframe 
+    width="100%" height="500" 
+    src="https://tools.odpch.ch/siri-sx-poc/embed.html?app_stage=TEST&lang=fr&text_size=medium"></iframe>
 ```
 ---
 
