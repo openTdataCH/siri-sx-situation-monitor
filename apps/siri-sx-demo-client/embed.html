@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>SIRI SX IFRAME</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+        
+        <link href="assets/css/page.css?v=6" rel="stylesheet" />
+    </head>
+
+    <body>
+        <div class="container-fluid">
+            <div id="filter-container" class="row d-none debug-container">
+                <div class="col">
+                    <div class="d-flex align-items-center search-form mb-2">
+                        <div>Stage</div>
+                        <div>
+                            <select class="form-select" id="filter_stage">
+                                <option value="INT">INT</option>
+                                <option value="TEST">TEST</option>
+                            </select>
+                        </div>
+                        <div>Lang</div>
+                        <div>
+                            <select class="form-select" id="filter_lang">
+                                <option value="de" selected>de</option>
+                                <option value="fr">fr</option>
+                                <option value="it">it</option>
+                                <option value="en">en</option>
+                            </select>
+                        </div>
+                        <div>Owner refs</div>
+                        <div>
+                            <input type="text" id="filter_owner_refs" value="" />
+                        </div>
+                        <div>Size</div>
+                        <div>
+                            <select class="form-select" id="filter_text_size">
+                                <option value="small">small</option>
+                                <option value="medium">medium</option>
+                                <option value="large" selected>large</option>
+                            </select>
+                        </div>
+                        <div>Active</div>
+                        <div>
+                            <select class="form-select" id="filter_active">
+                                <option value="all">all</option>
+                                <option value="active">active</option>
+                            </select>
+                        </div>
+                        <div>
+                            <a id="filter_url_builder" class="btn btn-primary" href="embed.html" target="_blank">TEST (new window)</a>
+                        </div>
+                    </div>
+
+                    <div>Response Source: <span id="response_source"></span></div>
+                </div>
+
+                <hr class="mt-2 mb-2"/>
+            </div>
+
+            <div class="row">
+                <div class="col" id="loading_status">
+                    <div class="d-flex align-items-center search-form">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Loading ...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col" id="siri_sx_container"></div>
+            </div>
+
+            <div class="d-none">
+                <div id="template_situation_element_card">
+                    <div class="card card card-situation mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">[SITUATION_HEADER]</h5>
+                            <p class="card-text">[SITUATION_CONTENT]</p>
+                            <div>
+                                [DEBUG_INFO]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="template_situation_debug_info">
+                    <div class="debug-text text-muted">
+                        <div>Debug Info</div>
+                        <ul>
+                            <li>IDX: [ROW_IDX] / [ROWS_NO]</li>
+                            <li>ID: [SITUATION_ID]</li>
+                            <li>Creation Time: [CREATION_TIME]</li>
+                            <li>Action Owner: [ACTION_OWNER]</li>
+                            <li>Duration: [SITUATION_SUBTITLE]</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="template_situation_element_card2">
+                    <div class="card mb-2" id="card_level1_[CARD_LEVEL1_ID]">
+                        <div class="card-header d-flex">
+                            <div class="flex-grow-1">
+                                <span class="h5 align-middle">[SITUATION_HEADER]</span>
+                            </div>
+                            <div style="margin-right: 8px;">
+                                <span class="badge bg-info text-dark">[ALERT_CAUSE]</span>
+                            </div>
+                            <div style="margin-right: 8px;">
+                                <span class="badge bg-warning text-dark">[PARTICIPANT_REF]</span>
+                            </div>
+                            <div>
+                                <a class="content-collapse not-collapsed align-middle" href="#card_level1_body_[CARD_LEVEL1_ID]" data-bs-toggle="collapse" aria-expanded="true" aria-controls="card_level1_body_[CARD_LEVEL1_ID]">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <i class="bi bi-dash-circle"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="collapse show" id="card_level1_body_[CARD_LEVEL1_ID]">
+                            <div class="card-body">
+                                <ul>
+                                    <li><strong>ID</strong>: [SITUATION_NUMBER]</li>
+                                    <li><strong>Created</strong>: [SITUATION_CREATE_DATE]</li>
+                                    <li><strong>Source</strong>: [SOURCE_NAME] ([SOURCE_TYPE])</li>
+                                    <li><strong>Alert Cause</strong>: [ALERT_CAUSE]</li>
+                                    <li><strong>Participant</strong>: [PARTICIPANT_REF]</li>
+                                    <li><strong>Planned</strong>: [SITUATION_PLANNED]</li>
+                                    <li><strong>Priority</strong>: [PRIORITY]</li>
+                                    <li>
+                                        <strong>Valid</strong>
+                                        <ul>
+                                            <li><strong>From</strong>: [VALID_FROM_DATE]</li>
+                                            <li><strong>To</strong>: [VALID_TO_DATE]</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                <div class="row">
+                                    [PUBLISHING_ACTIONS_CONTAINER]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="template_publishing_action">
+                    <div class="col-6">
+                        <div class="card mb-2">
+                            <div class="card-header d-flex">
+                                <div class="flex-grow-1">
+                                    <span class="h5 align-middle">[OWNER_REF]</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-warning text-dark">[SCOPE_TYPE]</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li><strong>Owner</strong>: [OWNER_REF]</li>
+                                    <li><strong>Scope Type</strong>: [SCOPE_TYPE]</li>
+                                    <li><strong>Perspectives</strong>: [PERSPECTIVES]</li>
+                                </ul>
+                                <div>Textual Content (Large, DE)</div>
+                                [TEXTUAL_CONTENT_CONTAINER]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+        <script>
+            window.APP_VARS = {
+                'page_type': 'embed'
+            };
+        </script>
+        <script src="assets/js/dist/bundle.js?v=6" charset="utf-8"></script>
+    </body>
+</html>
