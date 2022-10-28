@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "commonJS",
+        "target": "es2015",
+        "sourceMap": true,
+        "strict": true,
+        "outDir": "./assets/js/build",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "resolveJsonModule": true
+    },
+    "include": [
+        "./ts/**/*.ts"
+    ]
+}
