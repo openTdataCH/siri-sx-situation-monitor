@@ -1,7 +1,7 @@
 import { DateHelpers } from "../helpers/date-helpers"
 import Logger from "../helpers/logger"
 import { XPathHelpers } from "../helpers/xpath"
-import { MapTextualContent, PublishingAction, TextualContent, TextualContentSizeEnum, TextualPropertyContent, TimeInterval } from "./pt_all.interface"
+import { MapTextualContent, PublishingAction, TextualContent, TextualContentSizeEnum, TextualPropertyContent, TimeInterval, LangEnum } from "./pt_all.interface"
 import PtSituationSource from "./pt_situation_source"
 
 export default class PtSituationElement {
