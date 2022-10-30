@@ -4,7 +4,7 @@
         "target": "es2015",
         "sourceMap": true,
         "strict": true,
-        "outDir": "./assets/js/build",
+        "outDir": "./tmp/js-build",
         "moduleResolution": "node",
         "esModuleInterop": true,
         "resolveJsonModule": true

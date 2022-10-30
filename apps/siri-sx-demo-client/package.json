@@ -12,6 +12,6 @@
         "tscw": "tsc --watch",
         "clean": "rm -rf js/dist",
         "clean_node": "rm -rf node_modules",
-        "buildw": "watchify ./assets/js/build/main.js -o ./assets/js/dist/bundle.js"
+        "buildw": "watchify ./tmp/js-build/main.js -o ./assets/js-dist/bundle.js"
     }
 }
