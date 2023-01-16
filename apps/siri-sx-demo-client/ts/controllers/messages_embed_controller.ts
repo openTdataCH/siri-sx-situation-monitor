@@ -42,7 +42,7 @@ export default class Messages_Embed_Controller {
 
         this.has_debug_mode = false;
         
-        this.filter_app_stage = 'TEST';
+        this.filter_app_stage = 'PROD';
         this.filter_owner_refs = null;
         this.filter_lang = 'de';
         this.filter_text_size = 'large';
