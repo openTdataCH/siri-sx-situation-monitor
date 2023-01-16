@@ -1,4 +1,4 @@
-export type App_Stage = 'TEST' | 'INT'
+export type App_Stage = 'PROD' | 'INT' | 'TEST'
 
 interface App_Stage_Data {
     stage: App_Stage
@@ -12,15 +12,20 @@ interface AppConfig {
 
 export const APP_CONFIG: AppConfig = {
     map_stages: {
-        'TEST': {
-            stage: 'TEST',
-            api_url: 'https://odpch-api.clients.liip.ch/siri-sx_test',
-            bearer_key: '57c5dadd5e6307000100005eaafedab248ab4a0bb48e7dfb3d5df696',
+        'PROD': {
+            stage: 'PROD',
+            api_url: 'https://api.opentransportdata.swiss/siri-sx',
+            bearer_key: '57c5dbbbf1fe4d0001000018d335e64dd98e45919a81f62f051262b5',
         },
         'INT': {
             stage: 'INT',
             api_url: 'https://odpch-api.clients.liip.ch/siri-sx_int',
             bearer_key: '57c5dadd5e6307000100005ed14310e6a3664bd981d5ae2703689890',
-        }
+        },
+        'TEST': {
+            stage: 'TEST',
+            api_url: 'https://odpch-api.clients.liip.ch/siri-sx_test',
+            bearer_key: '57c5dadd5e6307000100005eaafedab248ab4a0bb48e7dfb3d5df696',
+        },
     }
 }
