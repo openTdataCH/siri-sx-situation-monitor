@@ -314,6 +314,94 @@ export default class Messages_Embed_Controller {
         return container_HTML;
     }
 
+    _compute_entireLine_affect_HTML(affectData: PublishingActionAffect) {
+        let rowHTML = this.map_html_templates.content_entire_line_affect.slice();
+
+        const lineAffect = affectData.affect as LineNetwork
+        rowHTML = rowHTML.replace('[OPERATOR_REF]', lineAffect.operator.operatorRef);
+        rowHTML = rowHTML.replace('[LINE_INFO]', lineAffect.publishedLineName + ' - ' + lineAffect.lineRef);
+
+        return rowHTML;
+    }
+
+    _compute_stopPlace_affect_HTML(stopAffect: StopPlace) {
+        let rowHTML = this.map_html_templates.content_stop_place_affect.slice();
+
+        rowHTML = rowHTML.replace('[STOP_NAME]', stopAffect.placeName);
+        rowHTML = rowHTML.replace('[STOP_REF]', stopAffect.stopPlaceRef);
+
+        const stopRefExtID = stopAffect.stopPlaceRef;
+
+        const ojpURL = 'https://opentdatach.github.io/ojp-demo-app/board?stage=test&stop_id=' + stopRefExtID;
+        rowHTML = rowHTML.replace('[OJP_SIRI_SX_URL]', ojpURL);
+        
+        return rowHTML;
+    }
+
+    _compute_partialLine_affect_HTML(affectData: PublishingActionAffect) {
+        let rowHTML = this.map_html_templates.content_partial_line_affect.slice();
+
+        const lineAffect = affectData.affect as AffectedLineNetworkWithStops
+        rowHTML = rowHTML.replace('[OPERATOR_REF]', lineAffect.lineNetwork.operator.operatorRef);
+        rowHTML = rowHTML.replace('[LINE_INFO]', lineAffect.lineNetwork.publishedLineName + ' - ' + lineAffect.lineNetwork.lineRef);
+        rowHTML = rowHTML.replace('[LINE_DIRECTION]', lineAffect.directionRef);
+
+        const stopPlace_HTML_rows: string[] = [];
+        lineAffect.stopPlaces.forEach(stopPlace => {
+            const stopPlace_HTML_row = this._compute_stopPlace_affect_HTML(stopPlace);
+            stopPlace_HTML_rows.push(stopPlace_HTML_row);
+        });
+        rowHTML = rowHTML.replace('[LINE_STOPS]', stopPlace_HTML_rows.join(''));
+
+        return rowHTML;
+    }
+
+    _compute_vehicleJourney_affect_HTML(affectData: PublishingActionAffect) {
+        let rowHTML = this.map_html_templates.content_vehicle_journey_affect.slice();
+
+        const vehicleJourneyAffect = affectData.affect as AffectedVehicleJourney;
+
+        const stopCallIDs: string[] = [];
+        vehicleJourneyAffect.callStopsRef.forEach(stopRef => {
+            stopCallIDs.push(stopRef);
+        });
+        rowHTML = rowHTML.replace('[STOP_REFS_S]', stopCallIDs.join(', '));
+
+        const vehicleJourneyAffectRows: string[] = (() => {
+            const rows: string[] = [];
+            
+            const journeyRefS = '<li>JourneyRef: ' + vehicleJourneyAffect.framedVehicleJourneyRef.datedVehicleJourneyRef + ' - ' + vehicleJourneyAffect.framedVehicleJourneyRef.dataFrameRef + '</li>';
+            rows.push(journeyRefS);
+
+            const operatorRefS = '<li>Operator: ' + vehicleJourneyAffect.operator.operatorRef + '</li>';
+            rows.push(operatorRefS);
+
+            if (vehicleJourneyAffect.lineRef) {
+                const lineRefS = '<li>LineRef: ' + vehicleJourneyAffect.lineRef + '</li>';
+                rows.push(lineRefS);
+            }
+
+            if ((vehicleJourneyAffect.origin !== null) && (vehicleJourneyAffect.destination !== null)) {
+                const fromS = vehicleJourneyAffect.origin.placeName + '(' + vehicleJourneyAffect.origin.stopPlaceRef + ')';
+                const toS = vehicleJourneyAffect.destination.placeName + '(' + vehicleJourneyAffect.destination.stopPlaceRef + ')';
+
+                const fromToS = '<li>From-To: ' + fromS + ' - ' + toS + '</li>';
+                rows.push(fromToS);
+            }
+
+            if (vehicleJourneyAffect.callStopsRef.length > 0) {
+                const callStopsRefS = '<li>CallStopRefs: ' + vehicleJourneyAffect.callStopsRef.join(', ') + '</li>';
+                rows.push(callStopsRefS);
+            }
+            
+            return rows;
+        })();
+        
+        rowHTML = rowHTML.replace('[AFFECT_VEHICLE_JOURNEY]', vehicleJourneyAffectRows.join(''));
+
+        return rowHTML;
+    }
+
     _compute_publishing_action_content(publishingAction: PublishingAction): string {
         const textualContent = publishingAction.passengerInformation.mapTextualContent[this.filter_text_size];
         if (textualContent === undefined) {
