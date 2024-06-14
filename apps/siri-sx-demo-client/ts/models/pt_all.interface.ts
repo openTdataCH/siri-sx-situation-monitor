@@ -1,8 +1,9 @@
 export type TextualContentSizeEnum = 'small' | 'medium' | 'large'
 export type LangEnum = 'de' | 'fr' | 'it' | 'en'
+export type ScopeType = 'line' | 'stopPlace' | 'vehicleJourney'
 
 export interface PublishingAction {
-    scopeType: string // TODO - use an enum?
+    scopeType: ScopeType
     passengerInformation: PassengerInformationAction
 }
 
