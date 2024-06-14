@@ -31,9 +31,12 @@ export default class Messages_Render_Controller {
     _compute_situation_element_card_HTML(situationElement: PtSituationElement, collapse_level1_id: string) {
         let card_HTML = this.map_html_templates.card_situation_element.slice();
 
+        const firstValidityPeriod = situationElement.validityPeriods[0];
         const situationDateS = DateHelpers.formatDate(situationElement.creationTime);
-        const situationIntervalFromS = DateHelpers.formatDayHHMM(situationElement.validityPeriod.startDate);
-        const situationIntervalToS = DateHelpers.formatDayHHMM(situationElement.validityPeriod.endDate);
+        const situationIntervalFromS = DateHelpers.formatValidityPeriodDuration(firstValidityPeriod);
+        
+        const lastValidityPeriod = situationElement.validityPeriods[situationElement.validityPeriods.length - 1];
+        const situationIntervalToS = DateHelpers.formatValidityPeriodDuration(lastValidityPeriod);
         const situationIntervalS = situationIntervalFromS + ' - ' + situationIntervalToS;
 
         const situation_header: string = (() => {

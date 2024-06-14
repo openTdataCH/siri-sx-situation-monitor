@@ -1,3 +1,5 @@
+import { TimeInterval } from "../models/pt_all.interface";
+
 export class DateHelpers {
   // 2021-06-03 21:38:04
   public static formatDate(d: Date) {
@@ -49,5 +51,22 @@ export class DateHelpers {
     }
 
     return date;
+  }
+
+  public static formatValidityPeriodDuration(validityPeriod: TimeInterval) {
+    const fromS = DateHelpers.formatDayHHMM(validityPeriod.startDate);
+    const toS = DateHelpers.formatDayHHMM(validityPeriod.endDate);
+
+    const fromDayS = fromS.substring(0, 10);
+    const toDayS = toS.substring(0, 10);
+
+    if (fromDayS === toDayS) {
+        const fromHHMM = fromS.substring(11, 16);
+        const toHHMM = toS.substring(11, 16);
+
+        return fromDayS + ' ' + fromHHMM + ' - ' + toHHMM;
+    } else {
+        return fromS + ' - ' + toS;
+    }
   }
 }

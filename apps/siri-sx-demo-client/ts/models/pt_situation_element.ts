@@ -12,7 +12,7 @@ export default class PtSituationElement {
     public version: number 
     public source: PtSituationSource
     public progress: string
-    public validityPeriod: TimeInterval
+    public validityPeriods: TimeInterval[]
     public alertCause: string
     public priority: number
     public publishingActions: PublishingAction[]
@@ -28,7 +28,7 @@ export default class PtSituationElement {
         version: number, 
         source: PtSituationSource, 
         progress: string, 
-        validityPeriod: TimeInterval, 
+        validityPeriods: TimeInterval[], 
         alertCause: string, 
         priority: number, 
         publishingActions: PublishingAction[],
@@ -41,8 +41,7 @@ export default class PtSituationElement {
         this.version = version
         this.source = source
         this.progress = progress
-        // TODO - this can be a list
-        this.validityPeriod = validityPeriod
+        this.validityPeriods = validityPeriods
         this.alertCause = alertCause
         this.priority = priority
         this.publishingActions = publishingActions
@@ -76,19 +75,28 @@ export default class PtSituationElement {
         const situationSource = PtSituationSource.initFromSituationNode(node);
 
         const situationProgress = XPathHelpers.queryText('siri:Progress', node);
-        
-        const validityPeriodStartDateS = XPathHelpers.queryText('siri:ValidityPeriod/siri:StartTime', node);
-        const validityPeriodEndDateS = XPathHelpers.queryText('siri:ValidityPeriod/siri:EndTime', node);
-        if (!(validityPeriodStartDateS && validityPeriodEndDateS)) {
-            Logger.logMessage('ERROR - ValidityPeriod is null', 'PtSituationElement.initFromSituationNode');
-            Logger.logMessage('ValidityPeriod/StartTime' + validityPeriodStartDateS, 'PtSituationElement.initFromSituationNode');
-            Logger.logMessage('ValidityPeriod/EndTime' + validityPeriodEndDateS, 'PtSituationElement.initFromSituationNode');
-            return null;
+
+        const validityPeriods: TimeInterval[] = [];
+        const validityPeriodNodes = XPathHelpers.queryNodes('siri:ValidityPeriod', node);
+        validityPeriodNodes.forEach(validityPeriodNode => {
+            const validityPeriodStartDateS = XPathHelpers.queryText('siri:StartTime', validityPeriodNode);
+            const validityPeriodEndDateS = XPathHelpers.queryText('siri:EndTime', validityPeriodNode);
+            if (!(validityPeriodStartDateS && validityPeriodEndDateS)) {
+                return;
+            }
+            const validityPeriod: TimeInterval = {
+                startDate: new Date(validityPeriodStartDateS),
+                endDate: new Date(validityPeriodEndDateS)
+            };
+            validityPeriods.push(validityPeriod);
+        });
+
+        if (validityPeriods.length === 0) {
+            console.error('initFromSituationNode: EMPTY <ValidityPeriod>')
+            console.log(situationNumber);
+            console.log(node);
+            return null;            
         }
-        const validityPeriod: TimeInterval = {
-            startDate: new Date(validityPeriodStartDateS),
-            endDate: new Date(validityPeriodEndDateS)
-        };
 
         const alertCause = XPathHelpers.queryText('siri:AlertCause', node);
         
@@ -112,7 +120,7 @@ export default class PtSituationElement {
         const publishingActions = PtSituationElement.computePublishingActionsFromSituationNode(node);
 
         const situationElement = new PtSituationElement(
-            situationNumber, creationTime, countryRef, participantRef, version, situationSource, situationProgress, validityPeriod, alertCause, situationPriority, publishingActions, isPlanned,
+            situationNumber, creationTime, countryRef, participantRef, version, situationSource, situationProgress, validityPeriods, alertCause, situationPriority, publishingActions, isPlanned,
         );
         situationElement.nodeXML = node;
 
@@ -139,20 +147,27 @@ export default class PtSituationElement {
 
         const situationProgress = json['progress'] ?? null;
 
-        const validityPeriodJSON = json['validityPeriod'] ?? null;
-        if (validityPeriodJSON === null) {
+        const validityPeriodsJSONo = json['validityPeriod'] ?? null;
+        if (validityPeriodsJSONo === null) {
             return null;
         }
-        
-        const validityPeriodStartDate = DateHelpers.initDateFromString(validityPeriodJSON['startDate']);
-        const validityPeriodEndDate = DateHelpers.initDateFromString(validityPeriodJSON['endDate']);
-        if (validityPeriodStartDate === null || validityPeriodEndDate === null) {
-            return null;
-        }
-        const validityPeriod: TimeInterval = {
-            startDate: validityPeriodStartDate,
-            endDate: validityPeriodEndDate,
-        };
+
+        const validityPeriodsJSON = validityPeriodsJSONo as Record<string, any>[];
+
+        const validityPeriods: TimeInterval[] = [];
+        validityPeriodsJSON.forEach(validityPeriodJSON  => {
+            const validityPeriodStartDate = DateHelpers.initDateFromString(validityPeriodJSON['startDate']);
+            const validityPeriodEndDate = DateHelpers.initDateFromString(validityPeriodJSON['endDate']);
+            if (validityPeriodStartDate === null || validityPeriodEndDate === null) {
+                return;
+            }
+            const validityPeriod: TimeInterval = {
+                startDate: validityPeriodStartDate,
+                endDate: validityPeriodEndDate,
+            };
+
+            validityPeriods.push(validityPeriod);
+        });
 
         const alertCause = json['alertCause'] ?? null;
 
@@ -183,7 +198,7 @@ export default class PtSituationElement {
         });
 
         const situationElement = new PtSituationElement(
-            situationNumber, creationTime, countryRef, participantRef, version, situationSource, situationProgress, validityPeriod, alertCause, situationPriority, publishingActions, isPlanned,
+            situationNumber, creationTime, countryRef, participantRef, version, situationSource, situationProgress, validityPeriods, alertCause, situationPriority, publishingActions, isPlanned,
         );
         situationElement.nodeXML = null;
 
@@ -387,15 +402,11 @@ export default class PtSituationElement {
         return null;
     }
 
-    public isActive(date: Date): boolean {
-        if (this.validityPeriod.startDate > date) {
-            return false;
-        }
+    public isActive(date: Date = new Date()): boolean {
+        const activePeriod = this.validityPeriods.find(el => {
+            return (el.startDate < date) && (el.endDate > date);
+        }) ?? null;
 
-        if (this.validityPeriod.endDate < date) {
-            return false;
-        }
-
-        return true
+        return activePeriod !== null;
     }
 }
