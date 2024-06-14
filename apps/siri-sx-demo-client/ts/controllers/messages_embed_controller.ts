@@ -25,6 +25,7 @@ export default class Messages_Embed_Controller {
     public filter_lang: LangEnum
     public filter_text_size: TextualContentSizeEnum
     public filter_is_active: boolean
+    public filter_scope_type: ScopeType | null
 
     private map_html_templates: Record<string, string>;
 
@@ -47,6 +48,7 @@ export default class Messages_Embed_Controller {
         this.filter_lang = 'de';
         this.filter_text_size = 'large';
         this.filter_is_active = false;
+        this.filter_scope_type = null;
         
         this._update_params_from_QueryString();
 
@@ -107,6 +109,11 @@ export default class Messages_Embed_Controller {
         const filterIsActive = urlParams.get('active');
         if (filterIsActive) {
             this.filter_is_active = filterIsActive !== '0';
+        }
+
+        const filterScopeType = urlParams.get('scopeType') ?? null;
+        if (filterScopeType !== null) {
+            this.filter_scope_type = filterScopeType.trim() as ScopeType;
         }
     }
 
@@ -188,6 +195,11 @@ export default class Messages_Embed_Controller {
 
                 const hasGeneralPerspective = action.passengerInformation.perspectives.indexOf('general') !== -1;
                 if (!hasGeneralPerspective) {
+                    return false;
+                }
+
+                const hasScopeType = this.filter_scope_type === null || action.scopeType === this.filter_scope_type;
+                if (!hasScopeType) {
                     return false;
                 }
 
