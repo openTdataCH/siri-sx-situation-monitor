@@ -92,7 +92,7 @@ export default class Messages_Render_Controller {
         let card_HTML = this.map_html_templates.card_publishing_action.slice();
 
         card_HTML = card_HTML.replace(/\[SCOPE_TYPE\]/g, publishingAction.scopeType);
-        card_HTML = card_HTML.replace(/\[OWNER_REF\]/g, publishingAction.passengerInformation.ownerRef);
+        card_HTML = card_HTML.replace(/\[OWNER_REF\]/g, publishingAction.passengerInformation.ownerRef ?? 'n/a');
 
         const perspective_html_items: string[] = [];
         const perspective_items: string[] = [];
