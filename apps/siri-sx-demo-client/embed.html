@@ -25,6 +25,15 @@
                                 <option value="TEST">TEST</option>
                             </select>
                         </div>
+                        <div>ScopeType</div>
+                        <div>
+                            <select class="form-select" id="filter_scope_type">
+                                <option value="all">ALL</option>
+                                <option value="line">line</option>
+                                <option value="stopPlace">stopPlace</option>
+                                <option value="vehicleJourney">vehicleJourney</option>
+                            </select>
+                        </div>
                         <div>Lang</div>
                         <div>
                             <select class="form-select" id="filter_lang">
@@ -34,9 +43,9 @@
                                 <option value="en">en</option>
                             </select>
                         </div>
-                        <div>Owner refs</div>
+                        <div>Text Filter</div>
                         <div>
-                            <input type="text" id="filter_owner_refs" value="" />
+                            <input type="text" id="filter_text" value="" />
                         </div>
                         <div>Size</div>
                         <div>
@@ -100,55 +109,49 @@
                             <li>ID: [SITUATION_ID]</li>
                             <li>Creation Time: [CREATION_TIME]</li>
                             <li>Action Owner: [ACTION_OWNER]</li>
-                            <li>Duration: [SITUATION_SUBTITLE]</li>
+                            <li>ScopeType: [AFFECT_TYPE]</li>
+                            <li>Validity Period
+                                <ul>[VALIDITY_PERIOD]</ul>
+                            </li>
+                            <li>Affects [AFFECTS_NO_TEXT]:</li>
+                            <div>
+                                <div>[AFFECT_CONTENT]</div>
+                            </div>
                         </ul>
                     </div>
                 </div>
 
-                <div id="template_situation_element_card2">
-                    <div class="card mb-2" id="card_level1_[CARD_LEVEL1_ID]">
-                        <div class="card-header d-flex">
-                            <div class="flex-grow-1">
-                                <span class="h5 align-middle">[SITUATION_HEADER]</span>
-                            </div>
-                            <div style="margin-right: 8px;">
-                                <span class="badge bg-info text-dark">[ALERT_CAUSE]</span>
-                            </div>
-                            <div style="margin-right: 8px;">
-                                <span class="badge bg-warning text-dark">[PARTICIPANT_REF]</span>
-                            </div>
-                            <div>
-                                <a class="content-collapse not-collapsed align-middle" href="#card_level1_body_[CARD_LEVEL1_ID]" data-bs-toggle="collapse" aria-expanded="true" aria-controls="card_level1_body_[CARD_LEVEL1_ID]">
-                                    <i class="bi bi-plus-circle"></i>
-                                    <i class="bi bi-dash-circle"></i>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="collapse show" id="card_level1_body_[CARD_LEVEL1_ID]">
-                            <div class="card-body">
-                                <ul>
-                                    <li><strong>ID</strong>: [SITUATION_NUMBER]</li>
-                                    <li><strong>Created</strong>: [SITUATION_CREATE_DATE]</li>
-                                    <li><strong>Source</strong>: [SOURCE_NAME] ([SOURCE_TYPE])</li>
-                                    <li><strong>Alert Cause</strong>: [ALERT_CAUSE]</li>
-                                    <li><strong>Participant</strong>: [PARTICIPANT_REF]</li>
-                                    <li><strong>Planned</strong>: [SITUATION_PLANNED]</li>
-                                    <li><strong>Priority</strong>: [PRIORITY]</li>
-                                    <li>
-                                        <strong>Valid</strong>
-                                        <ul>
-                                            <li><strong>From</strong>: [VALID_FROM_DATE]</li>
-                                            <li><strong>To</strong>: [VALID_TO_DATE]</li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                <div class="row">
-                                    [PUBLISHING_ACTIONS_CONTAINER]
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="template_affect_entire_line">
+                    <hr/>
+                    <ul>
+                        <li>Operator: [OPERATOR_REF]</li>
+                        <li>Line: [LINE_INFO]</li>
+                    </ul>
                 </div>
+
+                <div id="template_affect_stop_place">
+                    <div>stop [STOP_NAME] ([STOP_REF]) - test in <a href="[OJP_SIRI_SX_URL]" target="_blank">OJP Demo Departures</a></div>
+                </div>
+
+                <div id="template_affect_partial_line">
+                    <hr/>
+                    <ul>
+                        <li>Operator: [OPERATOR_REF]</li>
+                        <li>Line: [LINE_INFO]</li>
+                        <li>Direction: [LINE_DIRECTION]</li>
+                        <div>
+                            [LINE_STOPS]
+                        </div>
+                    </ul>
+                </div>
+
+                <div id="template_affect_vehicle_journey">
+                    <hr/>
+                    <ul>
+                        [AFFECT_VEHICLE_JOURNEY]
+                    </ul>
+                </div>
+
                 <div id="template_publishing_action">
                     <div class="col-6">
                         <div class="card mb-2">

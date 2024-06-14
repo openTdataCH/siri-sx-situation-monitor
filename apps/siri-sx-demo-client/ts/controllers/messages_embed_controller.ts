@@ -1,7 +1,7 @@
 import { App_Stage } from "../config/app_config";
 import { DateHelpers } from "../helpers/date-helpers";
 import { DOM_Helpers } from "../helpers/DOM_Helpers";
-import { LangEnum, PublishingAction, TextualContentSizeEnum } from "../models/pt_all.interface";
+import { AffectedLineNetworkWithStops, AffectedVehicleJourney, LangEnum, LineNetwork, PublishingAction, PublishingActionAffect, ScopeType, StopPlace, TextualContentSizeEnum, TimeInterval } from "../models/pt_all.interface";
 import PtSituationElement from "../models/pt_situation_element";
 import Messages_Fetch_Controller from "./messages_fetch_controller";
 
@@ -55,6 +55,10 @@ export default class Messages_Embed_Controller {
         this.map_html_templates = {
             card_situation_element: (document.getElementById('template_situation_element_card') as HTMLElement).innerHTML,
             situation_debug_info: (document.getElementById('template_situation_debug_info') as HTMLElement).innerHTML,
+            content_entire_line_affect: (document.getElementById('template_affect_entire_line') as HTMLElement).innerHTML,
+            content_stop_place_affect: (document.getElementById('template_affect_stop_place') as HTMLElement).innerHTML,
+            content_partial_line_affect: (document.getElementById('template_affect_partial_line') as HTMLElement).innerHTML,
+            content_vehicle_journey_affect: (document.getElementById('template_affect_vehicle_journey') as HTMLElement).innerHTML,
         };
 
         this.map_listeners = {
@@ -151,8 +155,6 @@ export default class Messages_Embed_Controller {
         const situation_element_cards: string[] = [];
 
         matchedActionsData.forEach((matchedActionData, group_idx) => {
-            const situationElement = matchedActionData.situation;
-
             const situation_element_card_HTML = this._compute_situation_element_card_HTML(matchedActionData, group_idx, matchedActionsData.length);
             situation_element_cards.push(situation_element_card_HTML);
         });
@@ -294,22 +296,123 @@ export default class Messages_Embed_Controller {
 
         const situationDateS = DateHelpers.formatDate(situationElement.creationTime);
 
-        const situation_subtitle: string = (() => {
-            const situationIntervalFromS = DateHelpers.formatDayHHMM(situationElement.validityPeriod.startDate);
-            const situationIntervalToS = DateHelpers.formatDayHHMM(situationElement.validityPeriod.endDate);
-            const situationIntervalS = 'From ' + situationIntervalFromS + ' to ' + situationIntervalToS;
+        const validityPeriodRows: string[] = (() => {
+            const rows: string[] = [];
 
-            return situationIntervalS;
+            if (situationElement.validityPeriods.length === 0) {
+                rows.push('<li>NO VALIDITY PERIOD</li>');
+                return rows;
+            }
+
+            const validityPeriodsNo = situationElement.validityPeriods.length;
+            if (validityPeriodsNo > 1) {
+                rows.push('<li>total: ' + validityPeriodsNo + '</li>');
+
+                const firstValidityPeriod = situationElement.validityPeriods[0];
+                rows.push('<li>first: ' + DateHelpers.formatValidityPeriodDuration(firstValidityPeriod) + '</li>');
+
+                if ((validityPeriodsNo - 2) > 0) {
+                    rows.push('<li>...................................................</li>');
+                }
+                
+                const lastValidityPeriod = situationElement.validityPeriods[situationElement.validityPeriods.length - 1];
+                rows.push('<li>last: ' + DateHelpers.formatValidityPeriodDuration(lastValidityPeriod) + '</li>');
+            } else {
+                const firstValidityPeriod = situationElement.validityPeriods[0];
+                rows.push('<li>' + DateHelpers.formatValidityPeriodDuration(firstValidityPeriod) + '</li>');
+            }
+            
+            const isActive = situationElement.isActive();
+            const isActiveText = isActive ? 'YES' : 'NO';
+            
+            rows.push('<li>Active now: ' + isActiveText + '</li>');
+
+            return rows;
         })();
 
         const matchedAction = matchedActionData.action;
 
-        container_HTML = container_HTML.replace('[SITUATION_SUBTITLE]', situation_subtitle);
+        const ownerRef = matchedAction.passengerInformation.ownerRef ?? '<span class="badge bg-warning text-dark">NO OWNER</span>';
+
         container_HTML = container_HTML.replace('[CREATION_TIME]', situationDateS);
-        container_HTML = container_HTML.replace('[ACTION_OWNER]', matchedAction.passengerInformation.ownerRef);
+        container_HTML = container_HTML.replace('[ACTION_OWNER]', ownerRef);
         container_HTML = container_HTML.replace('[ROW_IDX]', (rowIDX + 1).toString());
         container_HTML = container_HTML.replace('[ROWS_NO]', totalRowsNo.toString())
         container_HTML = container_HTML.replace('[SITUATION_ID]', matchedActionData.situation.situationNumber);
+        container_HTML = container_HTML.replace('[AFFECT_TYPE]', matchedActionData.action.scopeType);
+
+        container_HTML = container_HTML.replace('[VALIDITY_PERIOD]', validityPeriodRows.join(''));
+
+        const now = new Date();
+        const nowYMD = DateHelpers.formatDate(now).substring(0, 10);
+
+        const affectsNo = matchedActionData.action.affects.length;
+        let affectsNoText = '';
+        
+        let actionAffects = matchedActionData.action.affects.slice();
+        if (this.filter_is_active) {
+            const totalAffectsNo = actionAffects.length;
+
+            actionAffects = actionAffects.filter(affectData => {
+                if (affectData.type === 'vehicle-journey') {
+                    const vehicleJourneyAffect = affectData.affect as AffectedVehicleJourney;
+                    const isActive = vehicleJourneyAffect.framedVehicleJourneyRef.dataFrameRef === nowYMD;
+                    return isActive;
+                }
+
+                if (affectData.type === 'entire-line') {
+                    return true;
+                }
+
+                if (affectData.type === 'partial-line') {
+                    return true;
+                }
+
+                if (affectData.type === 'stop') {
+                    return true;
+                }
+
+                return false;
+            });
+            
+            affectsNoText = ' (total ' + totalAffectsNo + ', showing ' + actionAffects.length + ' active)';
+        } else {
+            if (affectsNo > 10) {
+                affectsNoText = ' (' + affectsNo + ', showing top 10)';
+                actionAffects = matchedActionData.action.affects.slice(0, 10);
+            }
+        }        
+
+        container_HTML = container_HTML.replace('[AFFECTS_NO_TEXT]', affectsNoText);
+
+        const affect_rows_HTML: string[] = [];
+        actionAffects.forEach(affectData => {
+            let row_HTML: string | null = null;
+
+            if (affectData.type === 'partial-line') {
+                row_HTML = this._compute_partialLine_affect_HTML(affectData);
+            }
+
+            if (affectData.type === 'entire-line') {
+                row_HTML = this._compute_entireLine_affect_HTML(affectData);
+            }
+
+            if (affectData.type === 'stop') {
+                row_HTML = this._compute_stopPlace_affect_HTML(affectData.affect as StopPlace);
+            }
+
+            if (affectData.type === 'vehicle-journey') {
+                row_HTML = this._compute_vehicleJourney_affect_HTML(affectData);
+            }
+
+            if (row_HTML === null) {
+                debugger;
+                return;
+            }
+
+            affect_rows_HTML.push(row_HTML);
+        });
+        container_HTML = container_HTML.replace('[AFFECT_CONTENT]', affect_rows_HTML.join(''));
 
         return container_HTML;
     }
