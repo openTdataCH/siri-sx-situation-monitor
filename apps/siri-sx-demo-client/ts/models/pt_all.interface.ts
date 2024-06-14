@@ -51,6 +51,7 @@ export interface PublishingActionAffect {
 export interface PublishingAction {
     scopeType: ScopeType
     passengerInformation: PassengerInformationAction
+    affects: PublishingActionAffect[]
 }
 
 export interface PassengerInformationAction {
