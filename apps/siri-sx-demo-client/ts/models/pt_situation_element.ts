@@ -117,7 +117,7 @@ export default class PtSituationElement {
         const plannedS = XPathHelpers.queryText('siri:Planned', node);
         const isPlanned = plannedS === 'true';
 
-        const publishingActions = PtSituationElement.computePublishingActionsFromSituationNode(node);
+        const publishingActions = PtSituationElement.computePublishingActionsFromSituationNode(situationNumber, node);
 
         const situationElement = new PtSituationElement(
             situationNumber, creationTime, countryRef, participantRef, version, situationSource, situationProgress, validityPeriods, alertCause, situationPriority, publishingActions, isPlanned,
@@ -205,12 +205,12 @@ export default class PtSituationElement {
         return situationElement;
     }
 
-    private static computePublishingActionsFromSituationNode(node: Node): PublishingAction[] {
+    private static computePublishingActionsFromSituationNode(situationNumber: string, node: Node): PublishingAction[] {
         const publishingActions: PublishingAction[] = [];
 
         const publishingActionNodes = XPathHelpers.queryNodes('siri:PublishingActions/siri:PublishingAction', node);
         publishingActionNodes.forEach(publishingActionNode => {
-            const publishingAction = PtSituationElement.computePublishingAction(publishingActionNode);
+            const publishingAction = PtSituationElement.computePublishingAction(situationNumber, publishingActionNode);
             if (publishingAction === null) {
                 Logger.logMessage('ERROR - cant compute PublishingAction', 'PtSituationElement.initFromSituationNode');
                 Logger.log(publishingActionNode);
@@ -223,9 +223,12 @@ export default class PtSituationElement {
         return publishingActions;
     }
 
-    private static computePublishingAction(publishingActionNode: Node): PublishingAction | null {
+    private static computePublishingAction(situationNumber: string, publishingActionNode: Node): PublishingAction | null {
         const infoActionNode = XPathHelpers.queryNode('siri:PassengerInformationAction', publishingActionNode);
         if (infoActionNode === null) {
+            console.error('computePublishingAction: NO <PassengerInformationAction>');
+            console.log(situationNumber);
+            console.log(publishingActionNode);
             return null;
         }
 
