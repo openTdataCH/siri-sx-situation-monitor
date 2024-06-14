@@ -1,14 +1,15 @@
 {
     "name": "siri-sx-demo-client",
     "dependencies": {
-        "xmldom": "^0.6.0",
-        "xpath": "^0.0.32"
+        "xmldom": "0.6.0",
+        "xpath": "0.0.32"
     },
     "devDependencies": {
-        "@types/node": "^14.14.25",
-        "watchify": "^3.11.1"
+        "@types/node": "20.8.10",
+        "watchify": "4.0.0"
     },
     "scripts": {
+        "preinstall": "npm i -g typescript watchify",
         "tscw": "tsc --watch",
         "clean": "rm -rf js/dist",
         "clean_node": "rm -rf node_modules",
