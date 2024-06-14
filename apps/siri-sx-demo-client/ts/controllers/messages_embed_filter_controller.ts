@@ -1,6 +1,6 @@
 import { App_Stage } from "../config/app_config";
 import { DOM_Helpers } from "../helpers/DOM_Helpers";
-import { LangEnum, TextualContentSizeEnum } from "../models/pt_all.interface";
+import { LangEnum, ScopeType, TextualContentSizeEnum } from "../models/pt_all.interface";
 import Messages_Embed_Controller from "./messages_embed_controller";
 
 type EventListenerCompletion = (ev: any) => void;
@@ -19,6 +19,7 @@ export default class Messages_Embed_Filter_Controller {
             'stage_select': document.getElementById('filter_stage') as HTMLSelectElement,
             'lang_select': document.getElementById('filter_lang') as HTMLSelectElement,
             'owner_refs_input': document.getElementById('filter_owner_refs') as HTMLInputElement,
+            'scope_type_select': document.getElementById('filter_scope_type') as HTMLSelectElement,
             'text_size_select': document.getElementById('filter_text_size') as HTMLSelectElement,
             'filter_active': document.getElementById('filter_active') as HTMLSelectElement,
             'response_source': document.getElementById('response_source') as HTMLSpanElement,
@@ -65,6 +66,8 @@ export default class Messages_Embed_Filter_Controller {
         let filter_owner_refs = '';
         if (this.messages_embed_controller.filter_owner_refs) {
             filter_owner_refs = this.messages_embed_controller.filter_owner_refs.join(',');
+        const filter_scope_type_s = this.messages_embed_controller.filter_scope_type ?? 'all';
+        (this.map_elements['scope_type_select'] as HTMLSelectElement).value = filter_scope_type_s;
         }
         (this.map_elements['owner_refs_input'] as HTMLInputElement).value = filter_owner_refs;
     }
@@ -101,6 +104,13 @@ export default class Messages_Embed_Filter_Controller {
         const active_elements_select = this.map_elements['filter_active'] as HTMLSelectElement;
         active_elements_select.addEventListener('change', ev => {
             this.messages_embed_controller.filter_is_active = active_elements_select.value === 'active'
+            this._update_on_change();
+        });
+
+        const scope_type_select = this.map_elements['scope_type_select'] as HTMLSelectElement;
+        scope_type_select.addEventListener('change', ev => {
+            const filter_value = scope_type_select.value === 'all' ? null : scope_type_select.value as ScopeType;
+            this.messages_embed_controller.filter_scope_type = filter_value;
             this._update_on_change();
         });
     }
