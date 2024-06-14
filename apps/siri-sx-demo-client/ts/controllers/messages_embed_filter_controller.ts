@@ -18,8 +18,8 @@ export default class Messages_Embed_Filter_Controller {
         this.map_elements = {
             'stage_select': document.getElementById('filter_stage') as HTMLSelectElement,
             'lang_select': document.getElementById('filter_lang') as HTMLSelectElement,
-            'owner_refs_input': document.getElementById('filter_owner_refs') as HTMLInputElement,
             'scope_type_select': document.getElementById('filter_scope_type') as HTMLSelectElement,
+            'filter_text_input': document.getElementById('filter_text') as HTMLInputElement,
             'text_size_select': document.getElementById('filter_text_size') as HTMLSelectElement,
             'filter_active': document.getElementById('filter_active') as HTMLSelectElement,
             'response_source': document.getElementById('response_source') as HTMLSpanElement,
@@ -63,13 +63,14 @@ export default class Messages_Embed_Filter_Controller {
         (this.map_elements['text_size_select'] as HTMLSelectElement).value = this.messages_embed_controller.filter_text_size;
         (this.map_elements['filter_active'] as HTMLSelectElement).value = this.messages_embed_controller.filter_is_active ? 'active' : 'all';
 
-        let filter_owner_refs = '';
-        if (this.messages_embed_controller.filter_owner_refs) {
-            filter_owner_refs = this.messages_embed_controller.filter_owner_refs.join(',');
         const filter_scope_type_s = this.messages_embed_controller.filter_scope_type ?? 'all';
         (this.map_elements['scope_type_select'] as HTMLSelectElement).value = filter_scope_type_s;
+
+        let filter_text = '';
+        if (this.messages_embed_controller.filter_texts) {
+            filter_text = this.messages_embed_controller.filter_texts.join(',');
         }
-        (this.map_elements['owner_refs_input'] as HTMLInputElement).value = filter_owner_refs;
+        (this.map_elements['filter_text_input'] as HTMLInputElement).value = filter_text;
     }
 
     private _init_listeners() {
@@ -89,9 +90,9 @@ export default class Messages_Embed_Filter_Controller {
             this._update_on_change();
         });
 
-        const owner_refs_input = this.map_elements['owner_refs_input'] as HTMLInputElement;
-        owner_refs_input.addEventListener('change', ev => {
-            this._update_filter_owner_refs(owner_refs_input);
+        const filter_text_input = this.map_elements['filter_text_input'] as HTMLInputElement;
+        filter_text_input.addEventListener('change', ev => {
+            this._update_filter_texts(filter_text_input);
             this._update_on_change();
         });
 
@@ -120,12 +121,12 @@ export default class Messages_Embed_Filter_Controller {
         this.map_elements['response_source'].innerHTML = response_source;
     }
 
-    private _update_filter_owner_refs(input_el: HTMLInputElement) {
-        const owner_refs_s = input_el.value.trim();
-        if (owner_refs_s === '') {
-            this.messages_embed_controller.filter_owner_refs = null;
+    private _update_filter_texts(input_el: HTMLInputElement) {
+        const filter_texts_s = input_el.value.trim();
+        if (filter_texts_s === '') {
+            this.messages_embed_controller.filter_texts = null;
         } else {
-            this.messages_embed_controller.filter_owner_refs = owner_refs_s.split(',');
+            this.messages_embed_controller.filter_texts = filter_texts_s.split(',');
         }
     }
 
@@ -135,8 +136,8 @@ export default class Messages_Embed_Filter_Controller {
         query_string_params['app_stage'] = this.messages_embed_controller.filter_app_stage;
         query_string_params['lang'] = this.messages_embed_controller.filter_lang;
 
-        if (this.messages_embed_controller.filter_owner_refs) {
-            query_string_params['owner_refs'] = this.messages_embed_controller.filter_owner_refs.join(',');
+        if (this.messages_embed_controller.filter_texts) {
+            query_string_params['text'] = this.messages_embed_controller.filter_texts.join(',');
         }
 
         if (this.messages_embed_controller.filter_is_active) {

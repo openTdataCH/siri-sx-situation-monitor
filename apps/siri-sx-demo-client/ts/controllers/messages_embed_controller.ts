@@ -21,7 +21,7 @@ export default class Messages_Embed_Controller {
     public has_debug_mode: boolean
 
     public filter_app_stage: App_Stage
-    public filter_owner_refs: string[] | null
+    public filter_texts: string[] | null
     public filter_lang: LangEnum
     public filter_text_size: TextualContentSizeEnum
     public filter_is_active: boolean
@@ -43,7 +43,7 @@ export default class Messages_Embed_Controller {
         this.has_debug_mode = false;
         
         this.filter_app_stage = 'PROD';
-        this.filter_owner_refs = null;
+        this.filter_texts = null;
         this.filter_lang = 'de';
         this.filter_text_size = 'large';
         this.filter_is_active = false;
@@ -97,11 +97,11 @@ export default class Messages_Embed_Controller {
             this.filter_text_size = textSize;
         }
 
-        const owner_refs_s = urlParams.get('owner_refs') ?? '';
-        if (owner_refs_s.trim() !== '') {
-            this.filter_owner_refs = owner_refs_s.split(',');
+        const filter_texts_s = urlParams.get('text') ?? '';
+        if (filter_texts_s.trim() !== '') {
+            this.filter_texts = filter_texts_s.split(',');
         } else {
-            this.filter_owner_refs = null;
+            this.filter_texts = null;
         }
 
         const filterIsActive = urlParams.get('active');
@@ -180,23 +180,25 @@ export default class Messages_Embed_Controller {
                 }
             }
 
-            let matchedAction: PublishingAction | null = null;
-            situationElement.publishingActions.forEach(action => {
-                const hasOwnerRef = this._match_owner_ref(action.passengerInformation.ownerRef);
+            const matchedActions = situationElement.publishingActions.filter(action => {
+                const hasOwnerRef = this._match_text(situationElement.situationNumber, action.passengerInformation.ownerRef);
                 if (!hasOwnerRef) {
-                    return;
+                    return false;
                 }
 
                 const hasGeneralPerspective = action.passengerInformation.perspectives.indexOf('general') !== -1;
                 if (!hasGeneralPerspective) {
-                    return
+                    return false;
                 }
 
-                matchedAction = action;
+                return true;
             });
-            if (matchedAction === null) {
-                return;
+
+            if (matchedActions.length === 0) {
+                return null;
             }
+
+            const matchedAction = matchedActions[0];
 
             const matchedActionData = <MatchedAction>{
                 action: matchedAction,
@@ -209,9 +211,17 @@ export default class Messages_Embed_Controller {
         return matchedActionsData;
     }
 
-    private _match_owner_ref(ownerRef: string): boolean {
-        if (this.filter_owner_refs === null) {
+    private _match_text(situationNumber: string, ownerRef: string | null): boolean {
+        if (this.filter_texts === null) {
             return true;
+        }
+
+        if (this.filter_texts.includes(situationNumber)) {
+            return true;
+        }
+
+        if (ownerRef === null) {
+            return false;
         }
 
         const sanitizeOwnerRef = (s: string): string => {
@@ -219,17 +229,13 @@ export default class Messages_Embed_Controller {
         };
 
         ownerRef = sanitizeOwnerRef(ownerRef);
-        
-        let hasMatches = false;
-        this.filter_owner_refs.forEach(filterOwnerRef => {
-            filterOwnerRef = sanitizeOwnerRef(filterOwnerRef);
 
-            if (ownerRef === filterOwnerRef) {
-                hasMatches = true;
-            }
-        });
+        const foundOwnerRef = this.filter_texts.find(filter_text => {
+            filter_text = sanitizeOwnerRef(filter_text);
+            return ownerRef === filter_text;
+        }) ?? null;
 
-        return hasMatches;
+        return foundOwnerRef !== null;
     }
 
     private _compute_situation_element_card_HTML(matchedActionData: MatchedAction, rowIDX: number, totalRowsNo: number): string {
