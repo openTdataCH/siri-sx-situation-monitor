@@ -19,7 +19,7 @@ export const APP_CONFIG: AppConfig = {
         },
         'INT': {
             stage: 'INT',
-            api_url: 'data/mocks/siri_sx-latest-int.xml',
+            api_url: 'https://tools.odpch.ch/siri-sx-data/siri_sx-latest-int.xml',
             bearer_key: '57c5dadd5e6307000100005ed14310e6a3664bd981d5ae2703689890',
         },
         'TEST': {
