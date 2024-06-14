@@ -127,84 +127,6 @@ export default class PtSituationElement {
         return situationElement;
     }
 
-    public static initFromJSON(json: Record<string, any>): PtSituationElement | null {
-        const situationNumber = json['situationNumber'] ?? null;
-        
-        const creationTime = DateHelpers.initDateFromString(json['creationTime']);
-        if (creationTime === null) {
-            return null;
-        }
-
-        const countryRef = json['countryRef'] ?? null;
-        const participantRef = json['participantRef'] ?? null;
-
-        const version = json['version'] ?? null;
-        if (version === null) {
-            return null;
-        }
-
-        const situationSource = PtSituationSource.initFromJSON(json['source'] ?? null);
-
-        const situationProgress = json['progress'] ?? null;
-
-        const validityPeriodsJSONo = json['validityPeriod'] ?? null;
-        if (validityPeriodsJSONo === null) {
-            return null;
-        }
-
-        const validityPeriodsJSON = validityPeriodsJSONo as Record<string, any>[];
-
-        const validityPeriods: TimeInterval[] = [];
-        validityPeriodsJSON.forEach(validityPeriodJSON  => {
-            const validityPeriodStartDate = DateHelpers.initDateFromString(validityPeriodJSON['startDate']);
-            const validityPeriodEndDate = DateHelpers.initDateFromString(validityPeriodJSON['endDate']);
-            if (validityPeriodStartDate === null || validityPeriodEndDate === null) {
-                return;
-            }
-            const validityPeriod: TimeInterval = {
-                startDate: validityPeriodStartDate,
-                endDate: validityPeriodEndDate,
-            };
-
-            validityPeriods.push(validityPeriod);
-        });
-
-        const alertCause = json['alertCause'] ?? null;
-
-        const situationPriority = json['priority'] ?? null;
-        if (situationPriority === null) {
-            return null;
-        }
-
-        if (!(situationNumber && countryRef && participantRef && situationSource && situationProgress && alertCause)) {
-            Logger.logMessage('ERROR - cant init', 'PtSituationElement.initFromJSON');
-            Logger.log(json);
-            return null;
-        }
-
-        const isPlanned = json['isPlanned'] ?? false;
-
-        const publishingActionsList: Record<string, any>[] | null = json['publishingActions'] ?? null;
-        if (publishingActionsList === null) {
-            return null;
-        }
-
-        const publishingActions: PublishingAction[] = [];
-        publishingActionsList.forEach(publishingActionJSON => {
-            const publishingAction = PtSituationElement.initPublishingActionFromJSON(publishingActionJSON);
-            if (publishingAction) {
-                publishingActions.push(publishingAction);
-            }
-        });
-
-        const situationElement = new PtSituationElement(
-            situationNumber, creationTime, countryRef, participantRef, version, situationSource, situationProgress, validityPeriods, alertCause, situationPriority, publishingActions, isPlanned,
-        );
-        situationElement.nodeXML = null;
-
-        return situationElement;
-    }
-
     private static computePublishingActionsFromSituationNode(situationNumber: string, node: Node): PublishingAction[] {
         const publishingActions: PublishingAction[] = [];
 
@@ -582,40 +504,6 @@ export default class PtSituationElement {
             });
 
         return textPropertyData
-    }
-
-    private static initPublishingActionFromJSON(json: Record<string, any>): PublishingAction | null {
-        const scopeType = json['scopeType'] ?? null;
-        if (scopeType === null) {
-            return null;
-        }
-
-        const passengerInformationJSON: Record<string, any> = json['passengerInformation'] ?? null;
-        if (passengerInformationJSON === null) {
-            return null;
-        }
-
-        const actionRef = passengerInformationJSON['actionRef'] ?? null;
-        const ownerRef = passengerInformationJSON['ownerRef'] ?? null;
-        const perspectives: string[] = passengerInformationJSON['perspectives'] ?? null;
-
-        const mapTextualContent: MapTextualContent = passengerInformationJSON['mapTextualContent'] ?? null;
-
-        if (actionRef && ownerRef && perspectives && mapTextualContent) {
-            const publishingAction = <PublishingAction>{
-                scopeType: scopeType,
-                passengerInformation: {
-                    actionRef: actionRef,
-                    ownerRef: ownerRef,
-                    perspectives: perspectives,
-                    mapTextualContent: mapTextualContent
-                }
-            }
-
-            return publishingAction;
-        }
-
-        return null;
     }
 
     public isActive(date: Date = new Date()): boolean {

@@ -30,26 +30,4 @@ export default class PtSituationSource {
 
         return situationSource
     }
-
-    public static initFromJSON(json: Record<string, any> | null): PtSituationSource | null {
-        if (json === null) {
-            return null;
-        }
-
-        const countryRef = json['countryRef'] ?? null;
-        const sourceType = json['sourceType'] ?? null;
-
-        if (!(countryRef && sourceType)) {
-            console.log('ERROR - cant PtSituationSource.initFromJSON')
-            console.log(json);
-            return null;
-        }
-
-        const situationSource = new PtSituationSource(countryRef, sourceType);
-
-        situationSource.name = json['name'] ?? null;
-        situationSource.externalCode = json['externalCode'] ?? null;
-
-        return situationSource;
-    }
 }
