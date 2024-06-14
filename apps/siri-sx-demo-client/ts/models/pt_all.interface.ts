@@ -8,7 +8,7 @@ export interface PublishingAction {
 
 export interface PassengerInformationAction {
     actionRef: string
-    ownerRef: string
+    ownerRef: string | null
     perspectives: string[]
     mapTextualContent: MapTextualContent
 }

@@ -233,7 +233,8 @@ export default class PtSituationElement {
         }
 
         const actionRef = XPathHelpers.queryText('siri:ActionRef', infoActionNode)
-        const ownerRef = XPathHelpers.queryText('siri:OwnerRef', infoActionNode)
+        const ownerRef = XPathHelpers.queryText('siri:OwnerRef', infoActionNode);
+
 
         const perspectives: string[] = [];
         const perspectiveNodes = XPathHelpers.queryNodes('siri:Perspective', infoActionNode)
