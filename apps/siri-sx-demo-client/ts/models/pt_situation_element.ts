@@ -292,18 +292,221 @@ export default class PtSituationElement {
             mapTextualContent[sizeKey] = textualContentItem;
         });
 
+        const actionAffects = PtSituationElement.computeAffects(situationNumber, scopeType, publishingActionNode);
 
-        const publishingAction = <PublishingAction>{
+        const publishingAction: PublishingAction = {
             scopeType: scopeType,
+            affects: actionAffects,
             passengerInformation: {
                 actionRef: actionRef,
                 ownerRef: ownerRef,
                 perspectives: perspectives,
                 mapTextualContent: mapTextualContent
-            }
+            },
         }
 
         return publishingAction;
+    }
+
+    private static computeAffects(situationNumber: string, scopeType: ScopeType, publishingActionNode: Node): PublishingActionAffect[] {
+        const actionAffects: PublishingActionAffect[] = []
+
+        const lineNetworks: LineNetwork[] = [];
+        const affectedLineNetworkNodes = XPathHelpers.queryNodes('siri:PublishAtScope/siri:Affects/siri:Networks/siri:AffectedNetwork/siri:AffectedLine', publishingActionNode);
+        affectedLineNetworkNodes.forEach(affectedLineNetworkNode => {
+            const lineNetwork = PtSituationElement.computeLineNetwork(affectedLineNetworkNode);
+            if (lineNetwork === null) {
+                return
+            }
+
+            if (scopeType === 'line') {
+                actionAffects.push({
+                    type: 'entire-line',
+                    affect: lineNetwork
+                })
+            }
+
+            if (scopeType === 'stopPlace') {
+                const directionRef = XPathHelpers.queryText('siri:Direction/siri:DirectionRef', affectedLineNetworkNode) ?? 'n/a';
+
+                const stopPlacesNodes = XPathHelpers.queryNodes('siri:StopPlaces/siri:AffectedStopPlace', affectedLineNetworkNode);
+                const stopPlaces = PtSituationElement.computeAffectedStopPlaces(stopPlacesNodes);
+
+                const affectedPartialLine: AffectedLineNetworkWithStops = {
+                    lineNetwork: lineNetwork,
+                    directionRef: directionRef,
+                    stopPlaces: stopPlaces,
+                }
+
+                actionAffects.push({
+                    type: 'partial-line',
+                    affect: affectedPartialLine
+                });
+            }
+        });
+
+        if (scopeType === 'stopPlace') {
+            const stopPlacesNodes = XPathHelpers.queryNodes('siri:PublishAtScope/siri:Affects/siri:StopPlaces/siri:AffectedStopPlace', publishingActionNode);
+            const stopPlaces = PtSituationElement.computeAffectedStopPlaces(stopPlacesNodes)
+            stopPlaces.forEach(stopPlace => {
+                actionAffects.push({
+                    type: 'stop',
+                    affect: stopPlace
+                });
+            });
+        }
+
+        if (scopeType === 'vehicleJourney') {
+            const affectedVehicleJourneys = PtSituationElement.computeAffectedJourneys(situationNumber, publishingActionNode);
+            affectedVehicleJourneys.forEach(affectedVehicleJourney => {
+                actionAffects.push({
+                    type: 'vehicle-journey',
+                    affect: affectedVehicleJourney
+                });
+            });
+        }
+
+        if (actionAffects.length === 0) {
+            console.error('computeAffects: EMPTY affects?');
+            console.log(situationNumber);
+            console.log(publishingActionNode);
+        } else {
+            if (scopeType === 'vehicleJourney') {
+                // debugger;
+            }
+        }
+
+        return actionAffects;
+    }
+
+    private static computeLineNetwork(lineNetworkNode: Node): LineNetwork | null {
+        const operatorRef = XPathHelpers.queryText('siri:AffectedOperator/siri:OperatorRef', lineNetworkNode);
+        const lineRef = XPathHelpers.queryText('siri:LineRef', lineNetworkNode);
+        const publishedLineName = XPathHelpers.queryText('siri:PublishedLineName', lineNetworkNode);
+
+        if ((operatorRef === null) || (lineRef === null) || (publishedLineName === null)) {
+            console.log('ERROR: LineNetwork cant init');
+            console.log(lineNetworkNode);
+            return null;
+        }
+
+        const lineNetwork: LineNetwork = {
+            operator: {
+                operatorRef: operatorRef
+            },
+            lineRef: lineRef,
+            publishedLineName: publishedLineName
+        };
+
+        return lineNetwork;
+    }
+
+    private static computeAffectedStopPlaces(stopPlaceNodes: Node[]): StopPlace[] {
+        const stopPlaces: StopPlace[] = []
+
+        stopPlaceNodes.forEach(stopPlaceNode => {
+            const stopPlaceRef = XPathHelpers.queryText('siri:StopPlaceRef', stopPlaceNode);
+            const placeName = XPathHelpers.queryText('siri:PlaceName', stopPlaceNode);
+
+            if ((stopPlaceRef === null) || (placeName === null)) {
+                console.log('ERROR: StopPlace cant init');
+                console.log(stopPlaceNode);
+                return null;
+            }
+
+            const stopPlace: StopPlace = {
+                stopPlaceRef: stopPlaceRef,
+                placeName: placeName,
+            }
+            stopPlaces.push(stopPlace);
+        });
+
+        return stopPlaces;
+    }
+
+    private static computeAffectedJourneys(situationNumber: string, publishingActionNode: Node): AffectedVehicleJourney[] {
+        const affectedVehicleJourneys: AffectedVehicleJourney[] = [];
+
+        const affectedVehicleJourneyNodes = XPathHelpers.queryNodes('siri:PublishAtScope/siri:Affects/siri:VehicleJourneys/siri:AffectedVehicleJourney', publishingActionNode);
+        affectedVehicleJourneyNodes.forEach((vehicleJourneyNode, idx) => {
+            const framedVehicleJourneyRefNode = XPathHelpers.queryNode('siri:FramedVehicleJourneyRef', vehicleJourneyNode);
+            if (framedVehicleJourneyRefNode === null) {
+                console.error('computeAffectedJourneys - NULL FramedVehicleJourneyRef');
+                console.log(situationNumber);
+                console.log(vehicleJourneyNode);
+                return;
+            }
+
+            const dataFrameRef = XPathHelpers.queryText('siri:DataFrameRef', framedVehicleJourneyRefNode);
+            const datedVehicleJourneyRef = XPathHelpers.queryText('siri:DatedVehicleJourneyRef', framedVehicleJourneyRefNode);
+            if (dataFrameRef === null || datedVehicleJourneyRef === null) {
+                console.error('computeAffectedJourneys - NULL FramedVehicleJourneyRef members');
+                console.log(situationNumber);
+                console.log(framedVehicleJourneyRefNode);
+                return;
+            }
+
+            const framedVehicleJourneyRef: FramedVehicleJourneyRef = {
+                dataFrameRef: dataFrameRef,
+                datedVehicleJourneyRef: datedVehicleJourneyRef,
+            }
+            
+            const operatorRef = XPathHelpers.queryText('siri:Operator/siri:OperatorRef', vehicleJourneyNode);
+            if (operatorRef === null) {
+                console.error('computeAffectedJourneys - NULL operatorRef');
+                console.log(situationNumber);
+                console.log(vehicleJourneyNode);
+                return;
+            }
+
+            let origin: AffectedStopPlace | null = null;
+            const orginRef = XPathHelpers.queryText('siri:Origins/siri:StopPlaceRef', vehicleJourneyNode);
+            if (orginRef !== null) {
+                origin = {
+                    stopPlaceRef: orginRef,
+                    placeName: XPathHelpers.queryText('siri:Origins/siri:PlaceName', vehicleJourneyNode)
+                }
+            }
+
+            let destination: AffectedStopPlace | null = null;
+            const destinationRef = XPathHelpers.queryText('siri:Destinations/siri:StopPlaceRef', vehicleJourneyNode);
+            if (destinationRef !== null) {
+                destination = {
+                    stopPlaceRef: destinationRef,
+                    placeName: XPathHelpers.queryText('siri:Destinations/siri:PlaceName', vehicleJourneyNode)
+                }
+            }
+            
+            const stopCallNodes = XPathHelpers.queryNodes('siri:Calls/siri:Call', vehicleJourneyNode);
+            const callStopsRef: string[] = [];
+            stopCallNodes.forEach(stopCallNode => {
+                const stopPlaceRef = XPathHelpers.queryText('siri:StopPlaceRef', stopCallNode);
+                if (stopPlaceRef === null) {
+                    return
+                }
+                
+                callStopsRef.push(stopPlaceRef);
+            });
+
+            const lineRef = XPathHelpers.queryText('siri:LineRef', vehicleJourneyNode);
+            const publishedLineName = XPathHelpers.queryText('siri:PublishedLineName', vehicleJourneyNode);
+
+            const affectedVehicleJourney: AffectedVehicleJourney = {
+                framedVehicleJourneyRef: framedVehicleJourneyRef,
+                operator: {
+                    operatorRef: operatorRef
+                },
+                origin: origin,
+                destination: destination,
+                callStopsRef: callStopsRef,
+                lineRef: lineRef,
+                publishedLineName: publishedLineName,
+            };
+
+            affectedVehicleJourneys.push(affectedVehicleJourney);
+        });
+
+        return affectedVehicleJourneys;
     }
 
     private static computeTextualContent(textualContentNode: Node): TextualContent | null {
