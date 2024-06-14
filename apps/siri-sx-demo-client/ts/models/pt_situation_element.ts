@@ -233,8 +233,22 @@ export default class PtSituationElement {
         }
 
         const actionRef = XPathHelpers.queryText('siri:ActionRef', infoActionNode)
+        if (actionRef === null) {
+            console.error('computePublishingAction: NULL actionRef');
+            console.log(situationNumber);
+            console.log(publishingActionNode);
+            return null;
+        }
+
         const ownerRef = XPathHelpers.queryText('siri:OwnerRef', infoActionNode);
 
+        const scopeType = XPathHelpers.queryText('siri:PublishAtScope/siri:ScopeType', publishingActionNode) as ScopeType;
+        if (scopeType === null) {
+            console.error('computePublishingAction: NULL scopeType');
+            console.log(situationNumber);
+            console.log(publishingActionNode);
+            return null;
+        }
 
         const perspectives: string[] = [];
         const perspectiveNodes = XPathHelpers.queryNodes('siri:Perspective', infoActionNode)
@@ -278,11 +292,6 @@ export default class PtSituationElement {
             mapTextualContent[sizeKey] = textualContentItem;
         });
 
-        const scopeType = XPathHelpers.queryText('siri:PublishAtScope/siri:ScopeType', publishingActionNode);
-
-        if (!(actionRef && ownerRef && scopeType)) {
-            return null;
-        }
 
         const publishingAction = <PublishingAction>{
             scopeType: scopeType,
