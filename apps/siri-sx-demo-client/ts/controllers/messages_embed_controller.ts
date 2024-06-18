@@ -78,6 +78,20 @@ export default class Messages_Embed_Controller {
         }
 
         this.renderModelAffects = [];
+
+        this.map_elements['siri_sx_container'].addEventListener('click', (ev) => {
+            if (ev.target === null) {
+                return;
+            }
+            if (ev.target instanceof HTMLElement) {
+                const el = ev.target as HTMLElement;
+                if (DOM_Helpers.hasClassName(ev.target, 'build-affect-link-btn')) {
+                    const buttonEl = el as HTMLButtonElement;
+                    const affect_id = el.getAttribute('data-id');
+                    this._build_affect_link_for_id(affect_id, buttonEl);
+                }
+            }
+        });
     }
 
     private _show_loading_status() {
@@ -559,6 +573,148 @@ export default class Messages_Embed_Controller {
 
         const action_content_HTML = '<ul>' + textual_content_value_items.join(' ') + '</ul>';
         return action_content_HTML;
+    }
+    
+    private async _build_affect_link_for_id(affect_id: string | null, btn_el: HTMLButtonElement) {
+        if (affect_id === null) {
+            return;
+        }
+
+        const affect_id_parts = affect_id.split('_');
+        if (affect_id_parts.length !== 2) {
+            return;
+        }
+
+        const parentEl = btn_el.parentElement ?? null;
+        if (parentEl === null) {
+            return;
+        }
+        
+        const actionIDx = Number(affect_id_parts[0]);
+        const affectIDx = Number(affect_id_parts[1]);
+        const affectData = this.renderModelAffects[actionIDx][affectIDx];
+
+        btn_el.textContent = '... fetching';
+        btn_el.disabled = true;
+
+        const now = new Date();
+        let serviceDay = DateHelpers.formatDate(now).substring(0, 10);
+
+        const serviceQueryParams: Record<string, string> | null = (() => {
+            if (affectData.type === 'entire-line' || affectData.type === 'partial-line') {
+                const lineNetwork: LineNetwork | null = (() => {
+                    if (affectData.type === 'entire-line') {
+                        return affectData.affect as LineNetwork;
+                    }
+                    if (affectData.type === 'partial-line') {
+                        const lineAffect = affectData.affect as AffectedLineNetworkWithStops;
+                        return lineAffect.lineNetwork;
+                    }
+
+                    return null;
+                })();
+
+                if (lineNetwork === null) {
+                    return null;
+                }
+
+                const lineRefParts = lineNetwork.lineRef.split(':');
+                if (lineRefParts.length !== 3) {
+                    console.error('Expected 3 items for lineRef');
+                    return null;
+                }
+
+                const agencyId = lineRefParts[1];
+                const routeShortName = lineNetwork.publishedLineName;
+
+                const queryParams: Record<string, string> = {
+                    'agency_id': agencyId,
+                    'route_short_name': routeShortName,
+                };
+
+                return queryParams;
+            }
+
+            if (affectData.type === 'vehicle-journey') {
+                const vehicleJourneyAffect = affectData.affect as AffectedVehicleJourney;
+                
+                serviceDay = vehicleJourneyAffect.framedVehicleJourneyRef.dataFrameRef;
+                const journeyRef = vehicleJourneyAffect.framedVehicleJourneyRef.datedVehicleJourneyRef;
+                
+                const queryParams: Record<string, string> = {
+                    'journey_ref': journeyRef,
+                };
+                
+                return queryParams;
+            }
+
+            debugger;
+            return null;
+        })();
+
+        if (serviceQueryParams === null) {
+            btn_el.textContent = 'ERROR';
+
+            console.error('CANT compute serviceQueryParams');
+            console.log(affectData);
+
+            return;
+        }
+
+        serviceQueryParams['service_day'] = serviceDay;
+        
+        const qs = new URLSearchParams(serviceQueryParams);
+        const gtfsTripsURL = 'https://tools.odpch.ch/gtfs-rt-status/api/gtfs-query/trips?' + qs;
+
+        const gtfsTrips = await (await fetch(gtfsTripsURL)).json() as GTFS_DB_Trips_Response;
+
+        if (gtfsTrips.rows.length === 0) {
+            btn_el.textContent = 'ERROR';
+
+            console.error('NO trip found');
+            console.log(affectData);
+            return;
+        }
+
+        const firstTrip = gtfsTrips.rows[0];
+
+        const stop_times_data = firstTrip.stop_times_s.split(' -- ');
+        if (stop_times_data.length < 2) {
+            btn_el.textContent = 'ERROR';
+
+            console.error('Broken stop_times');
+            console.log(firstTrip);
+            return;
+        }
+
+        const stop1_Id = stop_times_data[0].split('|')[0].split(':')[0];
+        const stop2_Id = stop_times_data[stop_times_data.length - 1].split('|')[0].split(':')[0];
+
+        const tripHHMM: string = (() => {
+            const hhmm = firstTrip.departure_time.substring(0, 5);
+            if (hhmm <= '24:00') {
+                return hhmm;
+            }
+
+            const hhmmParts = hhmm.split(':');
+            const timeH = Number(hhmmParts[0]) - 24;
+            const timeH_f = timeH.toString(10).padStart(2, '0');
+            const newHHMM = timeH_f + ':' + hhmmParts[1];
+
+            return newHHMM;
+        })();
+        
+        const tripDateTime = serviceDay + ' ' + tripHHMM;
+
+        const qsParams: Record<string, string> = {
+            'from': stop1_Id,
+            'to': stop2_Id,
+            'trip_datetime': tripDateTime,
+            'do_search': 'yes',
+        };
+
+        const url = this._buildOJP_URL('search', qsParams);
+        parentEl.innerHTML = '<a href="' + url + '" target="_blank">Link</a>';
     }
 }
 
