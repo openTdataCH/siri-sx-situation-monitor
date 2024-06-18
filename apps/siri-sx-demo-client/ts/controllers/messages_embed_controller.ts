@@ -436,13 +436,25 @@ export default class Messages_Embed_Controller {
 
         const stopRefExtID = stopAffect.stopPlaceRef;
 
-        const ojpURL = 'https://opentdatach.github.io/ojp-demo-app/board?stage=test&stop_id=' + stopRefExtID;
+        const qsParams: Record<string, string> = {
+            'stop_id': stopRefExtID,
+        };
+        const ojpURL = this._buildOJP_URL('board', qsParams);
+
         rowHTML = rowHTML.replace('[OJP_SIRI_SX_URL]', ojpURL);
         
         return rowHTML;
     }
 
     _compute_partialLine_affect_HTML(affectData: PublishingActionAffect) {
+    _buildOJP_URL(route: 'search' | 'board', qsParams: Record<string, string>) {
+        qsParams['stage'] = this.filter_app_stage.toLowerCase();
+        const qs = new URLSearchParams(qsParams);
+
+        const ojpURL = 'https://tools.odpch.ch/beta-ojp-demo/' + route + '?' + qs;
+        return ojpURL;
+    }
+
         let rowHTML = this.map_html_templates.content_partial_line_affect.slice();
 
         const lineAffect = affectData.affect as AffectedLineNetworkWithStops
