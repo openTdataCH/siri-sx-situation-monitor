@@ -1,6 +1,7 @@
 import { App_Stage } from "../config/app_config";
 import { DateHelpers } from "../helpers/date-helpers";
 import { DOM_Helpers } from "../helpers/DOM_Helpers";
+import { GTFS_DB_Trips_Response } from "../models/gtfs_db";
 import { AffectedLineNetworkWithStops, AffectedVehicleJourney, LangEnum, LineNetwork, PublishingAction, PublishingActionAffect, ScopeType, StopPlace, TextualContentSizeEnum, TimeInterval } from "../models/pt_all.interface";
 import PtSituationElement from "../models/pt_situation_element";
 import Messages_Fetch_Controller from "./messages_fetch_controller";
