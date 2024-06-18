@@ -34,6 +34,8 @@ export default class Messages_Embed_Controller {
 
     private map_i18n_keys: Record<string, Record<LangEnum, string>>;
 
+    private renderModelAffects: PublishingActionAffect[][];
+
     constructor(messages_fetch_controller: Messages_Fetch_Controller) {
         this.messages_fetch_controller = messages_fetch_controller;
 
@@ -74,6 +76,8 @@ export default class Messages_Embed_Controller {
                 'it': 'NON PIANIFICATO',
             }
         }
+
+        this.renderModelAffects = [];
     }
 
     private _show_loading_status() {
@@ -154,6 +158,7 @@ export default class Messages_Embed_Controller {
         const matchedActionsData = this._prepareSituationElements(situationElements);
 
         const situation_element_cards: string[] = [];
+        this.renderModelAffects = [];
 
         matchedActionsData.forEach((matchedActionData, group_idx) => {
             const situation_element_card_HTML = this._compute_situation_element_card_HTML(matchedActionData, group_idx, matchedActionsData.length);
@@ -382,7 +387,9 @@ export default class Messages_Embed_Controller {
                 affectsNoText = ' (' + affectsNo + ', showing top 10)';
                 actionAffects = matchedActionData.action.affects.slice(0, 10);
             }
-        }        
+        }    
+        
+        this.renderModelAffects.push(actionAffects);
 
         container_HTML = container_HTML.replace('[AFFECTS_NO_TEXT]', affectsNoText);
 
