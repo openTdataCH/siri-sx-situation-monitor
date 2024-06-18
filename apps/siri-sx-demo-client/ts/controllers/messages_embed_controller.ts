@@ -160,8 +160,8 @@ export default class Messages_Embed_Controller {
         const situation_element_cards: string[] = [];
         this.renderModelAffects = [];
 
-        matchedActionsData.forEach((matchedActionData, group_idx) => {
-            const situation_element_card_HTML = this._compute_situation_element_card_HTML(matchedActionData, group_idx, matchedActionsData.length);
+        matchedActionsData.forEach((matchedActionData, rowIDx) => {
+            const situation_element_card_HTML = this._compute_situation_element_card_HTML(matchedActionData, rowIDx, matchedActionsData.length);
             situation_element_cards.push(situation_element_card_HTML);
         });
 
