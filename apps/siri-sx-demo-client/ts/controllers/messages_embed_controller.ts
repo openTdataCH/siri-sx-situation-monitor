@@ -394,15 +394,16 @@ export default class Messages_Embed_Controller {
         container_HTML = container_HTML.replace('[AFFECTS_NO_TEXT]', affectsNoText);
 
         const affect_rows_HTML: string[] = [];
-        actionAffects.forEach(affectData => {
+        actionAffects.forEach((affectData, idx) => {
             let row_HTML: string | null = null;
+            const affectModelId = rowIDX + '_' + idx;
 
             if (affectData.type === 'partial-line') {
-                row_HTML = this._compute_partialLine_affect_HTML(affectData);
+                row_HTML = this._compute_partialLine_affect_HTML(affectModelId, affectData);
             }
 
             if (affectData.type === 'entire-line') {
-                row_HTML = this._compute_entireLine_affect_HTML(affectData);
+                row_HTML = this._compute_entireLine_affect_HTML(affectModelId, affectData);
             }
 
             if (affectData.type === 'stop') {
@@ -410,7 +411,7 @@ export default class Messages_Embed_Controller {
             }
 
             if (affectData.type === 'vehicle-journey') {
-                row_HTML = this._compute_vehicleJourney_affect_HTML(affectData);
+                row_HTML = this._compute_vehicleJourney_affect_HTML(affectModelId, affectData);
             }
 
             if (row_HTML === null) {
@@ -425,12 +426,13 @@ export default class Messages_Embed_Controller {
         return container_HTML;
     }
 
-    _compute_entireLine_affect_HTML(affectData: PublishingActionAffect) {
+    _compute_entireLine_affect_HTML(affectModelId: string, affectData: PublishingActionAffect) {
         let rowHTML = this.map_html_templates.content_entire_line_affect.slice();
 
         const lineAffect = affectData.affect as LineNetwork
         rowHTML = rowHTML.replace('[OPERATOR_REF]', lineAffect.operator.operatorRef);
         rowHTML = rowHTML.replace('[LINE_INFO]', lineAffect.publishedLineName + ' - ' + lineAffect.lineRef);
+        rowHTML = rowHTML.replace('[AFFECT_ID]', affectModelId);
 
         return rowHTML;
     }
@@ -453,7 +455,6 @@ export default class Messages_Embed_Controller {
         return rowHTML;
     }
 
-    _compute_partialLine_affect_HTML(affectData: PublishingActionAffect) {
     _buildOJP_URL(route: 'search' | 'board', qsParams: Record<string, string>) {
         qsParams['stage'] = this.filter_app_stage.toLowerCase();
         const qs = new URLSearchParams(qsParams);
@@ -462,6 +463,7 @@ export default class Messages_Embed_Controller {
         return ojpURL;
     }
 
+    _compute_partialLine_affect_HTML(affectModelId: string, affectData: PublishingActionAffect) {
         let rowHTML = this.map_html_templates.content_partial_line_affect.slice();
 
         const lineAffect = affectData.affect as AffectedLineNetworkWithStops
@@ -479,7 +481,7 @@ export default class Messages_Embed_Controller {
         return rowHTML;
     }
 
-    _compute_vehicleJourney_affect_HTML(affectData: PublishingActionAffect) {
+    _compute_vehicleJourney_affect_HTML(affectModelId: string, affectData: PublishingActionAffect) {
         let rowHTML = this.map_html_templates.content_vehicle_journey_affect.slice();
 
         const vehicleJourneyAffect = affectData.affect as AffectedVehicleJourney;
@@ -516,6 +518,8 @@ export default class Messages_Embed_Controller {
                 const callStopsRefS = '<li>CallStopRefs: ' + vehicleJourneyAffect.callStopsRef.join(', ') + '</li>';
                 rows.push(callStopsRefS);
             }
+
+            rows.push('<li>Test in OJP Demo App - <span><button type="button" class="btn btn-primary btn-sm build-affect-link-btn" data-id="' + affectModelId + '">Build Link</button></span></li>');
             
             return rows;
         })();
