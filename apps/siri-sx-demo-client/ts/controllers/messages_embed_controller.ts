@@ -35,6 +35,7 @@ export default class Messages_Embed_Controller {
     private map_i18n_keys: Record<string, Record<LangEnum, string>>;
 
     private renderModelAffects: PublishingActionAffect[][];
+    private renderModelActions: MatchedAction[];
 
     constructor(messages_fetch_controller: Messages_Fetch_Controller) {
         this.messages_fetch_controller = messages_fetch_controller;
@@ -78,6 +79,7 @@ export default class Messages_Embed_Controller {
         }
 
         this.renderModelAffects = [];
+        this.renderModelActions = [];
 
         this.map_elements['siri_sx_container'].addEventListener('click', (ev) => {
             if (ev.target === null) {
@@ -173,6 +175,7 @@ export default class Messages_Embed_Controller {
 
         const situation_element_cards: string[] = [];
         this.renderModelAffects = [];
+        this.renderModelActions = [];
 
         matchedActionsData.forEach((matchedActionData, rowIDx) => {
             const situation_element_card_HTML = this._compute_situation_element_card_HTML(matchedActionData, rowIDx, matchedActionsData.length);
@@ -404,6 +407,7 @@ export default class Messages_Embed_Controller {
         }    
         
         this.renderModelAffects.push(actionAffects);
+        this.renderModelActions.push(matchedActionData);
 
         container_HTML = container_HTML.replace('[AFFECTS_NO_TEXT]', affectsNoText);
 
