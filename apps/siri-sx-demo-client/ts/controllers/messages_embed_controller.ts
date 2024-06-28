@@ -197,6 +197,7 @@ export default class Messages_Embed_Controller {
 
     private _prepareSituationElements(situationElements: PtSituationElement[]): MatchedAction[] {
         situationElements.sort(sortSituationElements);
+
         const now = new Date();
 
         const matchedActionsData: MatchedAction[] = [];
