@@ -21,12 +21,12 @@ export class DateHelpers {
   }
 
   // 21:38
-  public static formatTimeHHMM(d: Date, separator: string = ':'): string {
+  public static formatTimeHHMM(d: Date): string {
     const dateFormatted = DateHelpers.formatDate(d)
     return dateFormatted.substring(11,16);
   }
 
-  public static formatDayHHMM(d: Date, separator: string = ':'): string {
+  public static formatDayHHMM(d: Date): string {
     const dateFormatted = DateHelpers.formatDate(d)
     return dateFormatted.substring(0,16);
   }
