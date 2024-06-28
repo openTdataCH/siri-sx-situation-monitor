@@ -597,6 +597,7 @@ export default class Messages_Embed_Controller {
         const actionIDx = Number(affect_id_parts[0]);
         const affectIDx = Number(affect_id_parts[1]);
         const affectData = this.renderModelAffects[actionIDx][affectIDx];
+        const matchedAction = this.renderModelActions[actionIDx];
 
         btn_el.textContent = '... fetching';
         btn_el.disabled = true;
@@ -680,14 +681,47 @@ export default class Messages_Embed_Controller {
             return;
         }
 
-        const firstTrip = gtfsTrips.rows[0];
+        let gtfsTrip = gtfsTrips.rows[0];
+        if (gtfsTrips.rows.length > 1) {
+            gtfsTrips.rows.sort((a, b) => a.departure_day_minutes - b.departure_day_minutes);
 
-        const stop_times_data = firstTrip.stop_times_s.split(' -- ');
+            // Try to get the validity period to match the service day
+            let validityPeriod = matchedAction.situation.validityPeriods.find(validityPeriod => {
+                const validityPeriodDay = DateHelpers.formatDate(validityPeriod.startDate);
+                return validityPeriodDay === serviceDay;
+            }) ?? null;
+            // If not found, use the first validity period
+            if (validityPeriod === null) {
+                validityPeriod = matchedAction.situation.validityPeriods[0];
+            }
+
+            const now = new Date();
+            const nowHHMM = DateHelpers.formatTimeHHMM(now);
+
+            // Try to get the start of validity period (in HH:MM format)
+            let serviceFromHHMM = nowHHMM;
+            const validityPeriodFromHHMM = DateHelpers.formatTimeHHMM(validityPeriod.startDate);
+            const validityPeriodToHHMM = DateHelpers.formatTimeHHMM(validityPeriod.endDate);
+            if ((nowHHMM < validityPeriodFromHHMM) || (nowHHMM > validityPeriodToHHMM)) {
+                serviceFromHHMM = validityPeriodFromHHMM;
+            }
+
+            // Match the first trip that is inside the validity period
+            const firstMatchedTrip = gtfsTrips.rows.find(gtfsTrip => {
+                const gtfsTripFromHHMM = gtfsTrip.departure_time.substring(0, 5);
+                return gtfsTripFromHHMM >= serviceFromHHMM;
+            }) ?? null;
+            if (firstMatchedTrip !== null) {
+                gtfsTrip = firstMatchedTrip;
+            }
+        }
+
+        const stop_times_data = gtfsTrip.stop_times_s.split(' -- ');
         if (stop_times_data.length < 2) {
             btn_el.textContent = 'ERROR';
 
             console.error('Broken stop_times');
-            console.log(firstTrip);
+            console.log(gtfsTrip);
             return;
         }
 
@@ -695,7 +729,7 @@ export default class Messages_Embed_Controller {
         const stop2_Id = stop_times_data[stop_times_data.length - 1].split('|')[0].split(':')[0];
 
         const tripHHMM: string = (() => {
-            const hhmm = firstTrip.departure_time.substring(0, 5);
+            const hhmm = gtfsTrip.departure_time.substring(0, 5);
             if (hhmm <= '24:00') {
                 return hhmm;
             }
