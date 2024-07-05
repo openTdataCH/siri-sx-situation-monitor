@@ -624,18 +624,12 @@ export default class Messages_Embed_Controller {
                     return null;
                 }
 
-                const lineRefParts = lineNetwork.lineRef.split(':');
-                if (lineRefParts.length !== 3) {
-                    console.error('Expected 3 items for lineRef');
-                    return null;
-                }
-
-                const agencyId = lineRefParts[1];
                 const routeShortName = lineNetwork.publishedLineName;
+                const lineRef = lineNetwork.lineRef;
 
                 const queryParams: Record<string, string> = {
-                    'agency_id': agencyId,
                     'route_short_name': routeShortName,
+                    'line_ref': lineRef,
                 };
 
                 return queryParams;
