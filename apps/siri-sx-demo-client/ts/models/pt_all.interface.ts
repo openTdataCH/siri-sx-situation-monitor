@@ -10,6 +10,7 @@ export interface LineNetwork {
     operator: NetworkOperator
     lineRef: string
     publishedLineName: string
+    stopPlaces: StopPlace[]
 }
 
 export interface AffectedLineNetworkWithStops {

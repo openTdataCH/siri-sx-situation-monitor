@@ -312,12 +312,16 @@ export default class PtSituationElement {
             return null;
         }
 
+        const stopPlaceNodes = XPathHelpers.queryNodes('siri:StopPlaces/siri:AffectedStopPlace', lineNetworkNode);
+        const stopPlaces = PtSituationElement.computeAffectedStopPlaces(stopPlaceNodes);
+
         const lineNetwork: LineNetwork = {
             operator: {
                 operatorRef: operatorRef
             },
             lineRef: lineRef,
-            publishedLineName: publishedLineName
+            publishedLineName: publishedLineName,
+            stopPlaces: stopPlaces
         };
 
         return lineNetwork;
