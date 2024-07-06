@@ -22,3 +22,30 @@ export interface GTFS_DB_Trips_Response {
     },
     rows: Trip_Flat_JSON[],
 }
+
+interface TripPointTime {
+    timeS: string
+    timeMins: number
+}
+
+interface GTFS_Stop {
+    stop_id: string
+    stop_name: string
+}
+
+interface GTFS_StopTime {
+    stop: GTFS_Stop
+    arrS: string | null
+    depS: string | null
+}
+
+interface GTFS_Agency {
+    agency_id: string
+    agency_name: string
+}
+
+interface GTFS_Route {
+    route_id: string
+    route_short_name: string
+    agency: GTFS_Agency
+}
