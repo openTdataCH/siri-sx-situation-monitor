@@ -233,7 +233,6 @@ export default class PtSituationElement {
     private static computeAffects(situationNumber: string, scopeType: ScopeType, publishingActionNode: Node): PublishingActionAffect[] {
         const actionAffects: PublishingActionAffect[] = []
 
-        const lineNetworks: LineNetwork[] = [];
         const affectedLineNetworkNodes = XPathHelpers.queryNodes('siri:PublishAtScope/siri:Affects/siri:Networks/siri:AffectedNetwork/siri:AffectedLine', publishingActionNode);
         affectedLineNetworkNodes.forEach(affectedLineNetworkNode => {
             const lineNetwork = PtSituationElement.computeLineNetwork(affectedLineNetworkNode);
