@@ -1,7 +1,7 @@
 import { App_Stage } from "../config/app_config";
 import { DateHelpers } from "../helpers/date-helpers";
 import { DOM_Helpers } from "../helpers/DOM_Helpers";
-import { GTFS_DB_Trips_Response } from "../models/gtfs_db";
+import { GTFS_DB_Trips_Response, GTFS_Trip } from "../models/gtfs_db";
 import { AffectedLineNetworkWithStops, AffectedVehicleJourney, LangEnum, LineNetwork, PublishingAction, PublishingActionAffect, ScopeType, StopPlace, TextualContentSizeEnum, TimeInterval } from "../models/pt_all.interface";
 import PtSituationElement from "../models/pt_situation_element";
 import Messages_Fetch_Controller from "./messages_fetch_controller";
@@ -666,9 +666,9 @@ export default class Messages_Embed_Controller {
         const qs = new URLSearchParams(serviceQueryParams);
         const gtfsTripsURL = 'https://tools.odpch.ch/gtfs-rt-status/api/gtfs-query/trips?' + qs;
 
-        const gtfsTrips = await (await fetch(gtfsTripsURL)).json() as GTFS_DB_Trips_Response;
+        const gtfsTripsJSON = await (await fetch(gtfsTripsURL)).json() as GTFS_DB_Trips_Response;
 
-        if (gtfsTrips.rows.length === 0) {
+        if (gtfsTripsJSON.rows.length === 0) {
             btn_el.textContent = 'ERROR';
 
             console.error('NO trip found');
@@ -676,9 +676,76 @@ export default class Messages_Embed_Controller {
             return;
         }
 
-        let gtfsTrip = gtfsTrips.rows[0];
-        if (gtfsTrips.rows.length > 1) {
-            gtfsTrips.rows.sort((a, b) => a.departure_day_minutes - b.departure_day_minutes);
+        let gtfsTrips: GTFS_Trip[] = [];
+        gtfsTripsJSON.rows.forEach(tripJSON => {
+            const gtfsTrip = GTFS_Trip.initWithTrip_Flat_JSON(tripJSON);
+            if (gtfsTrip) {
+                gtfsTrips.push(gtfsTrip);
+            }
+        });
+
+        // Sort all trips by departure time
+        gtfsTrips.sort((a, b) => a.departure.timeMins - b.departure.timeMins);
+
+        const affectedStopIDs: string[] | null = (() => {
+            if (affectData.type === 'entire-line' || affectData.type === 'partial-line') {
+                const lineNetwork: LineNetwork | null = (() => {
+                    if (affectData.type === 'entire-line') {
+                        return affectData.affect as LineNetwork;
+                    }
+                    if (affectData.type === 'partial-line') {
+                        const lineAffect = affectData.affect as AffectedLineNetworkWithStops;
+                        return lineAffect.lineNetwork;
+                    }
+
+                    return null;
+                })();
+
+                if (lineNetwork === null) {
+                    return null;
+                }
+
+                const stopIDs: string[] = [];
+                lineNetwork.stopPlaces.forEach(stopPlace => {
+                    const stopPlaceRef = stopPlace.stopPlaceRef;
+                    const stopId: string = (() => {
+                        const sloidParts = stopPlaceRef.split(':sloid:');
+                        if (sloidParts.length === 0) {
+                            return stopPlaceRef;
+                        } else {
+                            const sloidStopId = sloidParts[1].padStart(5, '0');
+                            return '85' + sloidStopId;
+                        }
+                    })();
+                    
+                    stopIDs.push(stopId);
+                });
+
+                return stopIDs;
+            }
+            
+            return null;
+        })();
+
+        const matchedTrip: GTFS_Trip = (() => {
+            const defaultTrip = gtfsTrips[0];
+
+            if (gtfsTrips.length === 1) {
+                return defaultTrip;
+            }
+
+            // if present, filter the trips having only affected stops
+            if (affectedStopIDs !== null && (affectedStopIDs.length > 0)) {
+                gtfsTrips = gtfsTrips.filter(gtfsTrip => {
+                    const tripStopIDs = gtfsTrip.stopTimes.map(stopTime => {
+                        const stopIdParts = stopTime.stop.stop_id.split(':');
+                        return stopIdParts[0];
+                    });
+
+                    const tripStopIDsIntersected = tripStopIDs.filter(tripStopID => affectedStopIDs.includes(tripStopID));
+                    return tripStopIDsIntersected.length > 0;
+                });
+            }
 
             // Try to get the validity period to match the service day
             let validityPeriod = matchedAction.situation.validityPeriods.find(validityPeriod => {
@@ -701,30 +768,36 @@ export default class Messages_Embed_Controller {
                 serviceFromHHMM = validityPeriodFromHHMM;
             }
 
-            // Match the first trip that is inside the validity period
-            const firstMatchedTrip = gtfsTrips.rows.find(gtfsTrip => {
-                const gtfsTripFromHHMM = gtfsTrip.departure_time.substring(0, 5);
+            const selectedTrip = gtfsTrips.find(gtfsTrip => {
+                const gtfsTripFromHHMM = gtfsTrip.departure.timeS.substring(0, 5);
                 return gtfsTripFromHHMM >= serviceFromHHMM;
-            }) ?? null;
-            if (firstMatchedTrip !== null) {
-                gtfsTrip = firstMatchedTrip;
+            }) ?? defaultTrip;
+
+            return selectedTrip;
+        })();
+
+        const stopIDs = matchedTrip.stopTimes.map(stopTime => {
+            const stopIdParts = stopTime.stop.stop_id.split(':');
+            return stopIdParts[0];
+        });
+
+        const stop1_Id = stopIDs[0];
+        const stop2_Id: string = (() => {
+            const defaultStop2_Id = stopIDs[stopIDs.length - 1];
+
+            if (affectedStopIDs === null || (affectedStopIDs.length === 0)) {
+                return defaultStop2_Id;
             }
-        }
 
-        const stop_times_data = gtfsTrip.stop_times_s.split(' -- ');
-        if (stop_times_data.length < 2) {
-            btn_el.textContent = 'ERROR';
+            if (affectedStopIDs.includes(stop1_Id)) {
+                return defaultStop2_Id;
+            }
 
-            console.error('Broken stop_times');
-            console.log(gtfsTrip);
-            return;
-        }
-
-        const stop1_Id = stop_times_data[0].split('|')[0].split(':')[0];
-        const stop2_Id = stop_times_data[stop_times_data.length - 1].split('|')[0].split(':')[0];
+            return affectedStopIDs[0];
+        })();
 
         const tripHHMM: string = (() => {
-            const hhmm = gtfsTrip.departure_time.substring(0, 5);
+            const hhmm = matchedTrip.departure.timeS.substring(0, 5);
             if (hhmm <= '24:00') {
                 return hhmm;
             }
