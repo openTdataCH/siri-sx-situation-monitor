@@ -1,4 +1,4 @@
-export interface Trip_Flat {
+export interface Trip_Flat_JSON {
     trip_id: string
     trip_short_name: string
     departure_time: string
@@ -20,5 +20,5 @@ export interface GTFS_DB_Trips_Response {
         gtfs_day: string,
         rows_no: number
     },
-    rows: Trip_Flat[],
+    rows: Trip_Flat_JSON[],
 }
