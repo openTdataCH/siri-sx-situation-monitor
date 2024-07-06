@@ -91,9 +91,13 @@ export default class Messages_Embed_Filter_Controller {
         });
 
         const filter_text_input = this.map_elements['filter_text_input'] as HTMLInputElement;
-        filter_text_input.addEventListener('change', ev => {
-            this._update_filter_texts(filter_text_input);
-            this._update_on_change();
+        let filter_text_inputDebounceTimer: NodeJS.Timeout;
+        filter_text_input.addEventListener('input', () => {
+            clearTimeout(filter_text_inputDebounceTimer);
+            filter_text_inputDebounceTimer = setTimeout(() => {
+                this._update_filter_texts(filter_text_input);
+                this._update_on_change();
+            }, 300);
         });
 
         const text_size_select = this.map_elements['text_size_select'] as HTMLSelectElement;
