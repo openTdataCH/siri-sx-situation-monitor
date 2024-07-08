@@ -653,7 +653,8 @@ export default class Messages_Embed_Controller {
         })();
 
         if (serviceQueryParams === null) {
-            btn_el.textContent = 'ERROR';
+            btn_el.textContent = 'ERROR queryParams';
+            btn_el.disabled = false;
 
             console.error('CANT compute serviceQueryParams');
             console.log(affectData);
@@ -669,7 +670,8 @@ export default class Messages_Embed_Controller {
         const gtfsTripsJSON = await (await fetch(gtfsTripsURL)).json() as GTFS_DB_Trips_Response;
 
         if (gtfsTripsJSON.rows.length === 0) {
-            btn_el.textContent = 'ERROR';
+            btn_el.textContent = 'ERROR - no trips';
+            btn_el.disabled = false;
 
             console.error('NO trip found');
             console.log(affectData);
