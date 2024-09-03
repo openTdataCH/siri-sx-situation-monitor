@@ -1,4 +1,3 @@
-import { DateHelpers } from "../helpers/date-helpers"
 import Logger from "../helpers/logger"
 import { XPathHelpers } from "../helpers/xpath"
 import { MapTextualContent, PublishingAction, TextualContent, TextualContentSizeEnum, TextualPropertyContent, TimeInterval, LangEnum, ScopeType, PublishingActionAffect, LineNetwork, AffectedLineNetworkWithStops, StopPlace, AffectedVehicleJourney, AffectedStopPlace, FramedVehicleJourneyRef } from "./pt_all.interface"
