@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>SIRI SX IFRAME</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+        
+        <link href="assets/css/page.css?v=16" rel="stylesheet" />
+    </head>
+
+    <body>
+        <div class="container-fluid">
+            <div id="filter-container" class="row d-none debug-container">
+                <div class="col">
+                    <div class="d-flex align-items-center search-form mb-2">
+                        <div>Stage</div>
+                        <div>
+                            <select class="form-select" id="filter_stage">
+                                <option value="PROD">PROD</option>
+                                <option value="INT">INT</option>
+                                <option value="TEST">TEST</option>
+                            </select>
+                        </div>
+                        <div>ScopeType</div>
+                        <div>
+                            <select class="form-select" id="filter_scope_type">
+                                <option value="all">ALL</option>
+                                <option value="line">line</option>
+                                <option value="stopPlace">stopPlace</option>
+                                <option value="vehicleJourney">vehicleJourney</option>
+                            </select>
+                        </div>
+                        <div>Lang</div>
+                        <div>
+                            <select class="form-select" id="filter_lang">
+                                <option value="de" selected>de</option>
+                                <option value="fr">fr</option>
+                                <option value="it">it</option>
+                                <option value="en">en</option>
+                            </select>
+                        </div>
+                        <div>Text Filter</div>
+                        <div>
+                            <input type="text" id="filter_text" value="" />
+                        </div>
+                        <div>Size</div>
+                        <div>
+                            <select class="form-select" id="filter_text_size">
+                                <option value="small">small</option>
+                                <option value="medium">medium</option>
+                                <option value="large" selected>large</option>
+                            </select>
+                        </div>
+                        <div>Active</div>
+                        <div>
+                            <select class="form-select" id="filter_active">
+                                <option value="all">all</option>
+                                <option value="active">active</option>
+                            </select>
+                        </div>
+                        <div>
+                            <a id="filter_url_builder" class="btn btn-primary" href="embed.html" target="_blank">TEST (new window)</a>
+                        </div>
+                    </div>
+
+                    <div>Source Code: <a href="https://github.com/openTdataCH/siri-sx-situation-monitor" target="_blank">openTdataCH / siri-sx-situation-monitor</a></div>
+                    <div>Response Source: <span id="response_source"></span></div>
+                </div>
+
+                <hr class="mt-2 mb-2"/>
+            </div>
+
+            <div class="row">
+                <div class="col" id="loading_status">
+                    <div class="d-flex align-items-center search-form">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>Loading ...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col" id="siri_sx_container"></div>
+            </div>
+
+            <div class="d-none">
+                <div id="template_situation_element_card">
+                    <div class="card card card-situation mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">[SITUATION_HEADER]</h5>
+                            <p class="card-text">[SITUATION_CONTENT]</p>
+                            <div>
+                                [DEBUG_INFO]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="template_situation_debug_info">
+                    <div class="debug-text text-muted">
+                        <div>Debug Info</div>
+                        <ul>
+                            <li>IDX: [ROW_IDX] / [ROWS_NO]</li>
+                            <li>ID: [SITUATION_ID]</li>
+                            <li>Creation Time: [CREATION_TIME]</li>
+                            <li>Action Owner: [ACTION_OWNER]</li>
+                            <li>ScopeType: [AFFECT_TYPE]</li>
+                            <li>Validity Period
+                                <ul>[VALIDITY_PERIOD]</ul>
+                            </li>
+                            <li>Affects [AFFECTS_NO_TEXT]:</li>
+                            <div>
+                                <div>[AFFECT_CONTENT]</div>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="template_affect_entire_line">
+                    <hr/>
+                    <ul>
+                        <li>Operator: [OPERATOR_REF]</li>
+                        <li>Line: [LINE_INFO]</li>
+                        <li>Test in OJP Demo App - <span><button type="button" class="btn btn-primary btn-sm build-affect-link-btn" data-id="[AFFECT_ID]">Build Link</button></span></li>
+                    </ul>
+                </div>
+
+                <div id="template_affect_stop_place">
+                    <div>stop [STOP_NAME] ([STOP_REF]) - test in <a href="[OJP_SIRI_SX_URL]" target="_blank">OJP Demo Departures</a></div>
+                </div>
+
+                <div id="template_affect_partial_line">
+                    <hr/>
+                    <ul>
+                        <li>Operator: [OPERATOR_REF]</li>
+                        <li>Line: [LINE_INFO]</li>
+                        <li>Direction: [LINE_DIRECTION]</li>
+                        <div>
+                            [LINE_STOPS]
+                        </div>
+                    </ul>
+                </div>
+
+                <div id="template_affect_vehicle_journey">
+                    <hr/>
+                    <ul>
+                        [AFFECT_VEHICLE_JOURNEY]
+                    </ul>
+                </div>
+
+                <div id="template_publishing_action">
+                    <div class="col-6">
+                        <div class="card mb-2">
+                            <div class="card-header d-flex">
+                                <div class="flex-grow-1">
+                                    <span class="h5 align-middle">[OWNER_REF]</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-warning text-dark">[SCOPE_TYPE]</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li><strong>Owner</strong>: [OWNER_REF]</li>
+                                    <li><strong>Scope Type</strong>: [SCOPE_TYPE]</li>
+                                    <li><strong>Perspectives</strong>: [PERSPECTIVES]</li>
+                                </ul>
+                                <div>Textual Content (Large, DE)</div>
+                                [TEXTUAL_CONTENT_CONTAINER]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+        <script>
+            window.APP_VARS = {
+                'page_type': 'embed'
+            };
+        </script>
+        <script src="assets/js-dist/bundle.js?v=16" charset="utf-8"></script>
+    </body>
+</html>

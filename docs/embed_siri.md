@@ -18,9 +18,10 @@ All parameters are optional, the default values are used instead.
 |-|-|-|-|
 | lang | `de`, `en`, `fr`, `it`  | `de` | Messages textual content language |
 | text_size | `small`, `medium`, `large`  | `large` | Messages textual content text size |
-| owner_refs | String |  | Comma separated strings of the `OwnerRef`, i.e. `100602` for PostAuto. Full list: [Business Organisations](https://opentransportdata.swiss/en/dataset/goch) dataset.  |
+| text | String |  | Comma separated strings of the `OwnerRef` or `SituationNumber`. Example: `100602` for PostAuto - full list: [Business Organisations](https://opentransportdata.swiss/en/dataset/goch) dataset.  |
 | active | `1` |  | Show only active messages (based on `ValidityPeriod`) |
 | app_stage | `TEST`, `INT`  | `TEST` | Backend API configuration, `TEST` for `siri-sx_test`, `INT` for `siri-sx_int` API endpoints |
+| scopeType | `line`, `stopPlace`  | `vehicleJourney` | Filter situations by scope type |
 | debug | `1`  |  | Debug flag to show more information about the messages and also provide a GUI to customise the parameters |
 
 ## Build Integration URL
@@ -50,6 +51,7 @@ The URL can be then embeded in a HTML IFRAME as in the following example:
 
 ## Document Revisions
 
+- 2024-06-18 - documented `scopeType` and `text` params
 - 2022-07-29 - documented the [URL builder](https://tools.odpch.ch/siri-sx-poc/embed.html?debug=1) tool
 - 2022-07-21 - documented sorting, added `debug` param
 - 2022-07-20 - added `active` query parameter

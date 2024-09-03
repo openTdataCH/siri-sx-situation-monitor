@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "commonJS",
+        "target": "ES2021",
+        "sourceMap": true,
+        "strict": true,
+        "outDir": "./tmp/js-build",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "resolveJsonModule": true
+    },
+    "include": [
+        "./ts/**/*.ts"
+    ]
+}

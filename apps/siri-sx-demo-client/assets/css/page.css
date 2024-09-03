@@ -1,0 +1,29 @@
+.container-fluid {
+    margin-top: 16px;
+}
+
+.form-day {
+    width: 200px;
+}
+
+.not-collapsed .bi-plus-circle {
+    display: none;
+}
+.not-collapsed.collapsed .bi-plus-circle {
+    display: inline;
+}
+
+.not-collapsed .bi-dash-circle {
+    display: inline;
+}
+.not-collapsed.collapsed .bi-dash-circle {
+    display: none;
+}
+
+.debug-text {
+    font-size: 14px;
+}
+
+.search-form > div {
+    margin-right: 10px;
+}
