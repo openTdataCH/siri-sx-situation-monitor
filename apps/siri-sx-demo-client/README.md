@@ -4,7 +4,7 @@ This is a sample application to get started embedding SIRI SX Response, please r
 
 ## URLs
 
-https://tools.odpch.ch/siri-sx-poc/embed.html
+https://tools.odpch.ch/siri-sx-poc/embed.html?debug=1
 
 ## Installation
 
