@@ -24,7 +24,7 @@ export default class Messages_Fetch_Controller {
 
     public fetch_latest(completion: Response_Completion) {
         const stage_data = APP_CONFIG.map_stages[this.app_stage]
-        let api_url = stage_data.api_url;
+        let api_url = stage_data.api_url + '?rand=' + Date.now().toString();
         
         const requestHeaders = {
             "Content-Type": "application/xml",
