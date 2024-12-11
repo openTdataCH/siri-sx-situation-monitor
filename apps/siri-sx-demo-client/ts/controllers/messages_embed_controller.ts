@@ -43,6 +43,7 @@ export default class Messages_Embed_Controller {
         this.map_elements = {
             'loading_status': document.getElementById('loading_status') as HTMLDivElement,
             'siri_sx_container': document.getElementById('siri_sx_container') as HTMLDivElement,
+            'results_header': document.getElementById('results_header') as HTMLDivElement,
         };
 
         this.has_debug_mode = false;
@@ -98,10 +99,12 @@ export default class Messages_Embed_Controller {
 
     private _show_loading_status() {
         DOM_Helpers.removeClassName(this.map_elements['loading_status'], 'd-none');
+        DOM_Helpers.addClassName(this.map_elements['results_header'], 'd-none');
     }
 
     private _hide_loading_status() {
         DOM_Helpers.addClassName(this.map_elements['loading_status'], 'd-none');
+        DOM_Helpers.removeClassName(this.map_elements['results_header'], 'd-none');
     }
 
     private _update_params_from_QueryString() {
