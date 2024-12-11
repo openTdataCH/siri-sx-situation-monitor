@@ -220,11 +220,6 @@ export default class Messages_Embed_Controller {
                     return false;
                 }
 
-                const hasGeneralPerspective = action.passengerInformation.perspectives.indexOf('general') !== -1;
-                if (!hasGeneralPerspective) {
-                    return false;
-                }
-
                 const hasScopeType = this.filter_scope_type === null || action.scopeType === this.filter_scope_type;
                 if (!hasScopeType) {
                     return false;
