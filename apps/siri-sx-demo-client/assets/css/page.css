@@ -1,22 +1,10 @@
 body, html {
     height: 100%;
     margin: 0;
-  }
-.top-cell {
-    position: relative;
-    flex-shrink: 0;
-    width: 100%;
 }
-.bottom-cell {
-    overflow-y: auto; /* Enables scrolling */
-    flex-grow: 1;
-    width: 100%;
- }
-.container-fluid {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
+
+.results {
+    overflow-y: auto;
 }
 
 .form-day {
@@ -39,8 +27,4 @@ body, html {
 
 .debug-text {
     font-size: 14px;
-}
-
-.search-form > div {
-    margin-right: 10px;
 }
