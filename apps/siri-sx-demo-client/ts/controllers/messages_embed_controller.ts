@@ -175,7 +175,7 @@ export default class Messages_Embed_Controller {
     }
 
     private renderHTML(situationElements: PtSituationElement[], error: string | null) {
-        const matchedActionsData = this._prepareSituationElements(situationElements);
+        const matchedActionsData = this._prepareMatchedActions(situationElements);
         console.log('STATS response: FILTER actions: ' + matchedActionsData.length + ' PublishingAction objects');
         this.map_elements['stats_filtered_actions_no'].innerText = '' + matchedActionsData.length;
 
@@ -201,7 +201,7 @@ export default class Messages_Embed_Controller {
         this.map_elements['siri_sx_container'].innerHTML = messagesContainerHTML;
     }
 
-    private _prepareSituationElements(situationElements: PtSituationElement[]): MatchedAction[] {
+    private _prepareMatchedActions(situationElements: PtSituationElement[]): MatchedAction[] {
         situationElements.sort(sortSituationElements);
 
         const now = new Date();
