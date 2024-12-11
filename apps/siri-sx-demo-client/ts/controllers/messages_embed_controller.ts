@@ -172,6 +172,7 @@ export default class Messages_Embed_Controller {
 
     private renderHTML(situationElements: PtSituationElement[], error: string | null) {
         const matchedActionsData = this._prepareSituationElements(situationElements);
+        console.log('STATS response: FILTER actions: ' + matchedActionsData.length + ' PublishingAction objects');
 
         const situation_element_cards: string[] = [];
         this.renderModelAffects = [];
