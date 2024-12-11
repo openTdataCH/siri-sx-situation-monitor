@@ -362,6 +362,7 @@ export default class Messages_Embed_Controller {
         container_HTML = container_HTML.replace('[ROWS_NO]', totalRowsNo.toString())
         container_HTML = container_HTML.replace('[SITUATION_ID]', matchedActionData.situation.situationNumber);
         container_HTML = container_HTML.replace('[AFFECT_TYPE]', matchedActionData.action.scopeType);
+        container_HTML = container_HTML.replace('[SITUATION_ALERT_CAUSE]', matchedActionData.situation.alertCause);
         container_HTML = container_HTML.replace('[PERSPECTIVES]', matchedActionData.action.passengerInformation.perspectives.join(', '));
 
         container_HTML = container_HTML.replace('[VALIDITY_PERIOD]', validityPeriodRows.join(''));
