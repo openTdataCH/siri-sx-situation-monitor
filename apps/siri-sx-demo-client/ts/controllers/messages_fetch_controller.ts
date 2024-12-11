@@ -24,6 +24,7 @@ export default class Messages_Fetch_Controller {
         this.current_situation_elements = [];
 
         this.map_elements = {
+            'stats_situation_nodes_no': document.getElementById('stats_situation_nodes_no') as HTMLSpanElement,
             'stats_situations_no': document.getElementById('stats_situations_no') as HTMLSpanElement,
             'stats_actions_no': document.getElementById('stats_actions_no') as HTMLSpanElement,
         };
@@ -77,8 +78,7 @@ export default class Messages_Fetch_Controller {
 
             const situationNodes = XPathHelpers.queryNodes('siri:Situations/siri:PtSituationElement', situationsRootNode);
             console.log('STATS response: found ' + situationNodes.length + ' PtSituationElement nodes');
-
-            this.map_elements['stats_situations_no'].innerHTML = '' + situationNodes.length;
+            this.map_elements['stats_situation_nodes_no'].innerHTML = '' + situationNodes.length;
 
             situationNodes.forEach(situationNode => {
                 const situationElement = PtSituationElement.initFromSituationNode(situationNode);
