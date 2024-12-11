@@ -232,14 +232,13 @@ export default class Messages_Embed_Controller {
                 return null;
             }
 
-            const matchedAction = matchedActions[0];
-
-            const matchedActionData = <MatchedAction>{
-                action: matchedAction,
-                situation: situationElement
-            }
-
-            matchedActionsData.push(matchedActionData);
+            matchedActions.forEach(matchedAction => {
+                const matchedActionData = <MatchedAction>{
+                    action: matchedAction,
+                    situation: situationElement
+                }
+                matchedActionsData.push(matchedActionData);
+            });
         });
 
         return matchedActionsData;
