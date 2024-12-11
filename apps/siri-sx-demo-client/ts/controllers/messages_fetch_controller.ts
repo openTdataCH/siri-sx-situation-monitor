@@ -11,7 +11,9 @@ export default class Messages_Fetch_Controller {
 
     public response_source: string;
 
-    public current_situation_elements: PtSituationElement[]
+    public current_situation_elements: PtSituationElement[];
+
+    private map_elements: Record<string, HTMLElement>;
 
     constructor(app_stage: App_Stage = 'INT', local_storage_service: LocalStorageService) {
         this.app_stage = app_stage;
@@ -20,6 +22,11 @@ export default class Messages_Fetch_Controller {
         this.response_source = 'n/a';
 
         this.current_situation_elements = [];
+
+        this.map_elements = {
+            'stats_situations_no': document.getElementById('stats_situations_no') as HTMLSpanElement,
+            'stats_actions_no': document.getElementById('stats_actions_no') as HTMLSpanElement,
+        };
     }
 
     public fetch_latest(completion: Response_Completion) {
@@ -71,6 +78,8 @@ export default class Messages_Fetch_Controller {
             const situationNodes = XPathHelpers.queryNodes('siri:Situations/siri:PtSituationElement', situationsRootNode);
             console.log('STATS response: found ' + situationNodes.length + ' PtSituationElement nodes');
 
+            this.map_elements['stats_situations_no'].innerHTML = '' + situationNodes.length;
+
             situationNodes.forEach(situationNode => {
                 const situationElement = PtSituationElement.initFromSituationNode(situationNode);
                 if (situationElement) {
@@ -81,8 +90,10 @@ export default class Messages_Fetch_Controller {
             situationElements.sort((a,b) => b.creationTime.getDate() - a.creationTime.getDate()); 
 
             console.log('STATS response: generated ' + situationElements.length + ' PtSituationElement objects');
+            this.map_elements['stats_situations_no'].innerHTML = '' + situationElements.length;
 
             const actionsNo = situationElements.reduce((acc, item) => acc + item.publishingActions.length, 0);
+            this.map_elements['stats_actions_no'].innerHTML = '' + actionsNo;
 
             console.log('STATS response: generated ' + actionsNo + ' PublishingAction objects');
 

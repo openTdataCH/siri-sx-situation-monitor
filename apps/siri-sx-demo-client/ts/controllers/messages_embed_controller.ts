@@ -44,6 +44,7 @@ export default class Messages_Embed_Controller {
             'loading_status': document.getElementById('loading_status') as HTMLDivElement,
             'siri_sx_container': document.getElementById('siri_sx_container') as HTMLDivElement,
             'results_header': document.getElementById('results_header') as HTMLDivElement,
+            'stats_filtered_actions_no': document.getElementById('stats_filtered_actions_no') as HTMLSpanElement,
         };
 
         this.has_debug_mode = false;
@@ -176,6 +177,7 @@ export default class Messages_Embed_Controller {
     private renderHTML(situationElements: PtSituationElement[], error: string | null) {
         const matchedActionsData = this._prepareSituationElements(situationElements);
         console.log('STATS response: FILTER actions: ' + matchedActionsData.length + ' PublishingAction objects');
+        this.map_elements['stats_filtered_actions_no'].innerText = '' + matchedActionsData.length;
 
         const situation_element_cards: string[] = [];
         this.renderModelAffects = [];
