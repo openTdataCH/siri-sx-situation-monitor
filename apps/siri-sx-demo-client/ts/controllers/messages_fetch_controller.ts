@@ -35,9 +35,12 @@ export default class Messages_Fetch_Controller {
             headers: requestHeaders
         });
 
+        console.log('STATS response: START fetch from ' + api_url);
+
         fetch(request).then(response => {
             if (response.ok) {
                 this.response_source = 'API: ' + api_url;
+                console.log('STATS response: DONE FETCH from ' + api_url);
                 this._parse_response(response, completion);
             } else {
                 const errorMessage = 'Failed to fetch from ' + api_url + ' . ERROR: ' + response.status;
@@ -49,9 +52,13 @@ export default class Messages_Fetch_Controller {
 
     private _parse_response(response: Response, completion: Response_Completion): void {
         response.text().then(responseXMLText => {
+            console.log('STATS response: DONE PARSE text()');
+
             const situationElements: PtSituationElement[] = [];
 
             const responseDocument = new DOMParser().parseFromString(responseXMLText, 'application/xml');
+            console.log('STATS response: DONE DOMParser().parseFromString');
+
             const situationsRootNode = XPathHelpers.queryNode('//siri:SituationExchangeDelivery', responseDocument);
             if (situationsRootNode === null) {
                 const errorMessage = 'Failed to parse, check console for the responseText';
@@ -60,8 +67,10 @@ export default class Messages_Fetch_Controller {
                 completion([], errorMessage);
                 return;
             }
-            
+
             const situationNodes = XPathHelpers.queryNodes('siri:Situations/siri:PtSituationElement', situationsRootNode);
+            console.log('STATS response: found ' + situationNodes.length + ' PtSituationElement nodes');
+
             situationNodes.forEach(situationNode => {
                 const situationElement = PtSituationElement.initFromSituationNode(situationNode);
                 if (situationElement) {
@@ -70,6 +79,12 @@ export default class Messages_Fetch_Controller {
             });
 
             situationElements.sort((a,b) => b.creationTime.getDate() - a.creationTime.getDate()); 
+
+            console.log('STATS response: generated ' + situationElements.length + ' PtSituationElement objects');
+
+            const actionsNo = situationElements.reduce((acc, item) => acc + item.publishingActions.length, 0);
+
+            console.log('STATS response: generated ' + actionsNo + ' PublishingAction objects');
 
             this.current_situation_elements = situationElements;
 
