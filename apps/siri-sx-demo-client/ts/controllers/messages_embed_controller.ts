@@ -399,7 +399,7 @@ export default class Messages_Embed_Controller {
 
         container_HTML = container_HTML.replace('[CREATION_TIME]', situationDateS);
         container_HTML = container_HTML.replace('[ACTION_OWNER]', ownerRef);
-        container_HTML = container_HTML.replace('[ROW_IDX]', (rowIDX + 1).toString());
+        container_HTML = container_HTML.replaceAll('[ROW_IDX]', rowIDX.toString());
         container_HTML = container_HTML.replace('[ROWS_NO]', totalRowsNo.toString())
         container_HTML = container_HTML.replace('[SITUATION_ID]', matchedActionData.situation.situationNumber);
         container_HTML = container_HTML.replace('[AFFECT_TYPE]', matchedActionData.action.scopeType);
