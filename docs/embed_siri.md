@@ -6,8 +6,9 @@ This page explains how to integrate SIRI request and consume the response in an 
 
 https://tools.odpch.ch/siri-sx-poc/embed.html
 
-- by default all `//PtSituationElement/` response nodes having a `//PassengerInformationAction/Perspective` of value `general` are shown
-- the messages can be filtered also by `OwnerRef`, see below
+- by default all `//PtSituationElement/` response nodes having a `//PublishingAction` child are shown
+- the messages can be filtered also by various params, see below
+- the messages are `<PublishingAction>` children of `<PtSituation>` nodes, there is 1-many reltionshop between them
 - sorting is done by unplanned messages first (using `Planned` node) then most recent messages to oldest (using `CreationTime` node)
 
 ## Query Parameters
@@ -21,7 +22,8 @@ All parameters are optional, the default values are used instead.
 | text | String |  | Comma separated strings of the `OwnerRef` or `SituationNumber`. Example: `100602` for PostAuto - full list: [Business Organisations](https://opentransportdata.swiss/en/dataset/goch) dataset.  |
 | active | `1` |  | Show only active messages (based on `ValidityPeriod`) |
 | app_stage | `TEST`, `INT`  | `TEST` | Backend API configuration, `TEST` for `siri-sx_test`, `INT` for `siri-sx_int` API endpoints |
-| scopeType | `line`, `stopPlace`  | `vehicleJourney` | Filter situations by scope type |
+| scopeType | `line`, `stopPlace`, `vehicleJourney`  | `-` | Filter situations by scope type |
+| perspective | `general`, `line`, `stopPoint`, `vehicleJourney`  | `-` | Filter `PublishingAction` by perspective |
 | debug | `1`  |  | Debug flag to show more information about the messages and also provide a GUI to customise the parameters |
 
 ## Build Integration URL
@@ -51,6 +53,7 @@ The URL can be then embeded in a HTML IFRAME as in the following example:
 
 ## Document Revisions
 
+- 2024-12-12 - documented `perspective` param, updated general info
 - 2024-06-18 - documented `scopeType` and `text` params
 - 2022-07-29 - documented the [URL builder](https://tools.odpch.ch/siri-sx-poc/embed.html?debug=1) tool
 - 2022-07-21 - documented sorting, added `debug` param
