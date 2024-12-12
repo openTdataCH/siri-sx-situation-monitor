@@ -453,6 +453,7 @@ export default class Messages_Embed_Controller {
         const lineAffect = affectData.affect as LineNetwork
         rowHTML = rowHTML.replace('[OPERATOR_REF]', lineAffect.operator.operatorRef);
         rowHTML = rowHTML.replace('[LINE_INFO]', lineAffect.publishedLineName + ' - ' + lineAffect.lineRef);
+        rowHTML = rowHTML.replace('[DIRECTION_REF]', lineAffect.directionRef ?? 'n/a');
         rowHTML = rowHTML.replace('[AFFECT_ID]', affectModelId);
 
         return rowHTML;
@@ -490,7 +491,7 @@ export default class Messages_Embed_Controller {
         const lineAffect = affectData.affect as AffectedLineNetworkWithStops
         rowHTML = rowHTML.replace('[OPERATOR_REF]', lineAffect.lineNetwork.operator.operatorRef);
         rowHTML = rowHTML.replace('[LINE_INFO]', lineAffect.lineNetwork.publishedLineName + ' - ' + lineAffect.lineNetwork.lineRef);
-        rowHTML = rowHTML.replace('[LINE_DIRECTION]', lineAffect.directionRef);
+        rowHTML = rowHTML.replace('[DIRECTION_REF]', lineAffect.directionRef);
 
         const stopPlace_HTML_rows: string[] = [];
         lineAffect.stopPlaces.forEach(stopPlace => {

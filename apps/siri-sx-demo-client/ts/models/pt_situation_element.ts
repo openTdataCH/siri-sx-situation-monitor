@@ -243,7 +243,7 @@ export default class PtSituationElement {
                 actionAffects.push({
                     type: 'entire-line',
                     affect: lineNetwork
-                })
+                });
             }
 
             if (scopeType === 'stopPlace') {
@@ -310,6 +310,8 @@ export default class PtSituationElement {
             return null;
         }
 
+        const directionRef = XPathHelpers.queryText('siri:Direction/siri:DirectionRef', lineNetworkNode);
+
         const stopPlaceNodes = XPathHelpers.queryNodes('siri:StopPlaces/siri:AffectedStopPlace', lineNetworkNode);
         const stopPlaces = PtSituationElement.computeAffectedStopPlaces(stopPlaceNodes);
 
@@ -318,6 +320,7 @@ export default class PtSituationElement {
                 operatorRef: operatorRef
             },
             lineRef: lineRef,
+            directionRef: directionRef,
             publishedLineName: publishedLineName,
             stopPlaces: stopPlaces
         };
