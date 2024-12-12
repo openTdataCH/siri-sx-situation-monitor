@@ -112,10 +112,12 @@
             <div id="template_situation_element_card">
                 <div class="card card card-situation mb-3">
                     <div class="card-body">
-                        <h5 class="card-title">[SITUATION_HEADER]</h5>
-                        <p class="card-text">[SITUATION_CONTENT]</p>
                         <div>
-                            [DEBUG_INFO]
+                            <h5 class="card-title">[SITUATION_HEADER]</h5>
+                            <p class="card-text">[SITUATION_CONTENT]</p>
+                            <div>
+                                [DEBUG_INFO]
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -123,23 +125,25 @@
 
             <div id="template_situation_debug_info">
                 <div class="debug-text text-muted">
-                    <div>Debug Info</div>
-                    <ul>
-                        <li>IDX: [ROW_IDX] / [ROWS_NO]</li>
-                        <li>ID: [SITUATION_ID]</li>
-                        <li>Creation Time: [CREATION_TIME]</li>
-                        <li>Action Owner: [ACTION_OWNER]</li>
-                        <li>Alert Cause: [SITUATION_ALERT_CAUSE]</li>
-                        <li>ScopeType: [AFFECT_TYPE]</li>
-                        <li>Perspectives: [PERSPECTIVES]</li>
-                        <li>Validity Period
-                            <ul>[VALIDITY_PERIOD]</ul>
-                        </li>
-                        <li>Affects [AFFECTS_NO_TEXT]:</li>
-                        <div>
-                            <div>[AFFECT_CONTENT]</div>
-                        </div>
-                    </ul>
+                    <div>Debug Info <button type="button" class="btn btn-info btn-sm situation-xml-btn" data-idx="[ROW_IDX]">XML</button></div>
+                    <div class="d-flex gap-2">
+                        <ul>
+                            <li>IDX: [ROW_IDX] / [ROWS_NO]</li>
+                            <li>ID: [SITUATION_ID]</li>
+                            <li>Creation Time: [CREATION_TIME]</li>
+                            <li>Action Owner: [ACTION_OWNER]</li>
+                            <li>Alert Cause: [SITUATION_ALERT_CAUSE]</li>
+                            <li>ScopeType: [AFFECT_TYPE]</li>
+                            <li>Perspectives: [PERSPECTIVES]</li>
+                            <li>Validity Period
+                                <ul>[VALIDITY_PERIOD]</ul>
+                            </li>
+                            <li>Affects [AFFECTS_NO_TEXT]:</li>
+                            <div>
+                                <div>[AFFECT_CONTENT]</div>
+                            </div>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
