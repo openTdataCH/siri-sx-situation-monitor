@@ -37,4 +37,23 @@ export class DOM_Helpers {
         const has_class_name = el.className.indexOf(class_name) !== -1;
         return has_class_name;
     }
+    
+    public static findParentWithClass(element: HTMLElement, className: string): HTMLElement | null {
+        let currentElement: HTMLElement | null = element;
+    
+        while (currentElement) {
+            if (DOM_Helpers.hasClassName(currentElement, className)) {
+                return currentElement;
+            }
+            currentElement = currentElement.parentElement;
+        }
+    
+        return null;
+    }
+
+    public static findChildrenWithClassName(el: HTMLElement, className: string): HTMLElement[] {
+        const matchingElements = el.querySelectorAll('.' + className);
+        const elements = Array.from(matchingElements) as HTMLElement[];
+        return elements;
+    }
 }
