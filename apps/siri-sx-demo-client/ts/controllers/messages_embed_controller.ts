@@ -96,6 +96,33 @@ export default class Messages_Embed_Controller {
                     const affect_id = el.getAttribute('data-id');
                     this._build_affect_link_for_id(affect_id, buttonEl);
                 }
+
+                if (DOM_Helpers.hasClassName(ev.target, 'situation-xml-btn')) {
+                    const parentEl = DOM_Helpers.findParentWithClass(ev.target, 'debug-text');
+                    if (parentEl === null) {
+                        return;
+                    }
+                    const textareaEls = DOM_Helpers.findChildrenWithClassName(parentEl, 'debug-xml');
+                    if (textareaEls.length === 0) {
+                        return;
+                    }
+                    const textareaEl = textareaEls[0];
+                    const textareaContainerEl = textareaEl.parentElement;
+                    if (textareaContainerEl === null) {
+                        return;
+                    }
+
+                    const dataIDx = Number(el.getAttribute('data-idx'));
+                    const matchedAction = this.renderModelActions[dataIDx];
+                    if (matchedAction.situation.nodeXML === null) {
+                        return;
+                    }
+                    
+                    const situationXML = DOM_Helpers.formatNodeXML(matchedAction.situation.nodeXML);
+                    textareaEl.textContent = situationXML;
+
+                    DOM_Helpers.removeClassName(textareaContainerEl, 'd-none');
+                }
             }
         });
     }

@@ -7,6 +7,11 @@ body, html {
     overflow-y: auto;
 }
 
+.debug-xml {
+    height: 100%;
+    resize: none;
+}
+
 .form-day {
     width: 200px;
 }
