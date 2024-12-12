@@ -19,6 +19,7 @@ export default class Messages_Embed_Filter_Controller {
             'stage_select': document.getElementById('filter_stage') as HTMLSelectElement,
             'lang_select': document.getElementById('filter_lang') as HTMLSelectElement,
             'scope_type_select': document.getElementById('filter_scope_type') as HTMLSelectElement,
+            'perspective_select': document.getElementById('filter_perspective') as HTMLSelectElement,
             'filter_text_input': document.getElementById('filter_text') as HTMLInputElement,
             'text_size_select': document.getElementById('filter_text_size') as HTMLSelectElement,
             'filter_active': document.getElementById('filter_active') as HTMLSelectElement,
@@ -65,6 +66,9 @@ export default class Messages_Embed_Filter_Controller {
 
         const filter_scope_type_s = this.messages_embed_controller.filter_scope_type ?? 'all';
         (this.map_elements['scope_type_select'] as HTMLSelectElement).value = filter_scope_type_s;
+
+        const filter_perspective_s = this.messages_embed_controller.filter_perspective ?? 'all';
+        (this.map_elements['perspective_select'] as HTMLSelectElement).value = filter_perspective_s;
 
         let filter_text = '';
         if (this.messages_embed_controller.filter_texts) {
@@ -116,6 +120,13 @@ export default class Messages_Embed_Filter_Controller {
         scope_type_select.addEventListener('change', ev => {
             const filter_value = scope_type_select.value === 'all' ? null : scope_type_select.value as ScopeType;
             this.messages_embed_controller.filter_scope_type = filter_value;
+            this._update_on_change();
+        });
+
+        const perspective_select = this.map_elements['perspective_select'] as HTMLSelectElement;
+        perspective_select.addEventListener('change', ev => {
+            const filter_value = perspective_select.value === 'all' ? null : perspective_select.value as string;
+            this.messages_embed_controller.filter_perspective = filter_value;
             this._update_on_change();
         });
     }

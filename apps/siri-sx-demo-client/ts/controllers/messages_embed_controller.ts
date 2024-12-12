@@ -26,7 +26,8 @@ export default class Messages_Embed_Controller {
     public filter_lang: LangEnum
     public filter_text_size: TextualContentSizeEnum
     public filter_is_active: boolean
-    public filter_scope_type: ScopeType | null
+    public filter_scope_type: ScopeType | null;
+    public filter_perspective: string | null;
 
     private map_html_templates: Record<string, string>;
 
@@ -55,6 +56,7 @@ export default class Messages_Embed_Controller {
         this.filter_text_size = 'large';
         this.filter_is_active = false;
         this.filter_scope_type = null;
+        this.filter_perspective = null;
         
         this._update_params_from_QueryString();
 
@@ -144,6 +146,11 @@ export default class Messages_Embed_Controller {
         if (filterScopeType !== null) {
             this.filter_scope_type = filterScopeType.trim() as ScopeType;
         }
+
+        const filterPerspective = urlParams.get('perspective') ?? null;
+        if (filterPerspective !== null) {
+            this.filter_perspective = filterPerspective.trim();
+        }
     }
 
     public fetchAndRenderLatest() {
@@ -227,6 +234,11 @@ export default class Messages_Embed_Controller {
 
                 const hasScopeType = this.filter_scope_type === null || action.scopeType === this.filter_scope_type;
                 if (!hasScopeType) {
+                    return false;
+                }
+
+                const hasPerspective = this.filter_perspective === null || action.passengerInformation.perspectives.includes(this.filter_perspective);
+                if (!hasPerspective) {
                     return false;
                 }
 
