@@ -134,7 +134,9 @@ export default class Messages_Embed_Controller {
 
     private _hide_loading_status() {
         DOM_Helpers.addClassName(this.map_elements['loading_status'], 'd-none');
-        DOM_Helpers.removeClassName(this.map_elements['results_header'], 'd-none');
+        if (this.has_debug_mode) {
+            DOM_Helpers.removeClassName(this.map_elements['results_header'], 'd-none');
+        }
     }
 
     private _update_params_from_QueryString() {
