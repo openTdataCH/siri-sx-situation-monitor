@@ -160,6 +160,10 @@ export default class Messages_Embed_Filter_Controller {
         }
 
         query_string_params['text_size'] = this.messages_embed_controller.filter_text_size;
+
+        if (this.messages_embed_controller.filter_perspective) {
+            query_string_params['perspective'] = this.messages_embed_controller.filter_perspective;
+        }
         
         const qs = new URLSearchParams(query_string_params).toString();
 
