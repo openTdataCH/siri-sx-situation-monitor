@@ -11,7 +11,9 @@ export default class Messages_Fetch_Controller {
 
     public response_source: string;
 
-    public current_situation_elements: PtSituationElement[]
+    public current_situation_elements: PtSituationElement[];
+
+    private map_elements: Record<string, HTMLElement>;
 
     constructor(app_stage: App_Stage = 'INT', local_storage_service: LocalStorageService) {
         this.app_stage = app_stage;
@@ -20,11 +22,17 @@ export default class Messages_Fetch_Controller {
         this.response_source = 'n/a';
 
         this.current_situation_elements = [];
+
+        this.map_elements = {
+            'stats_situation_nodes_no': document.getElementById('stats_situation_nodes_no') as HTMLSpanElement,
+            'stats_situations_no': document.getElementById('stats_situations_no') as HTMLSpanElement,
+            'stats_actions_no': document.getElementById('stats_actions_no') as HTMLSpanElement,
+        };
     }
 
     public fetch_latest(completion: Response_Completion) {
         const stage_data = APP_CONFIG.map_stages[this.app_stage]
-        let api_url = stage_data.api_url;
+        let api_url = stage_data.api_url + '?rand=' + Date.now().toString();
         
         const requestHeaders = {
             "Content-Type": "application/xml",
@@ -35,9 +43,12 @@ export default class Messages_Fetch_Controller {
             headers: requestHeaders
         });
 
+        console.log('STATS response: START fetch from ' + api_url);
+
         fetch(request).then(response => {
             if (response.ok) {
                 this.response_source = 'API: ' + api_url;
+                console.log('STATS response: DONE FETCH from ' + api_url);
                 this._parse_response(response, completion);
             } else {
                 const errorMessage = 'Failed to fetch from ' + api_url + ' . ERROR: ' + response.status;
@@ -49,9 +60,13 @@ export default class Messages_Fetch_Controller {
 
     private _parse_response(response: Response, completion: Response_Completion): void {
         response.text().then(responseXMLText => {
+            console.log('STATS response: DONE PARSE text()');
+
             const situationElements: PtSituationElement[] = [];
 
             const responseDocument = new DOMParser().parseFromString(responseXMLText, 'application/xml');
+            console.log('STATS response: DONE DOMParser().parseFromString');
+
             const situationsRootNode = XPathHelpers.queryNode('//siri:SituationExchangeDelivery', responseDocument);
             if (situationsRootNode === null) {
                 const errorMessage = 'Failed to parse, check console for the responseText';
@@ -60,8 +75,11 @@ export default class Messages_Fetch_Controller {
                 completion([], errorMessage);
                 return;
             }
-            
+
             const situationNodes = XPathHelpers.queryNodes('siri:Situations/siri:PtSituationElement', situationsRootNode);
+            console.log('STATS response: found ' + situationNodes.length + ' PtSituationElement nodes');
+            this.map_elements['stats_situation_nodes_no'].innerHTML = '' + situationNodes.length;
+
             situationNodes.forEach(situationNode => {
                 const situationElement = PtSituationElement.initFromSituationNode(situationNode);
                 if (situationElement) {
@@ -70,6 +88,14 @@ export default class Messages_Fetch_Controller {
             });
 
             situationElements.sort((a,b) => b.creationTime.getDate() - a.creationTime.getDate()); 
+
+            console.log('STATS response: generated ' + situationElements.length + ' PtSituationElement objects');
+            this.map_elements['stats_situations_no'].innerHTML = '' + situationElements.length;
+
+            const actionsNo = situationElements.reduce((acc, item) => acc + item.publishingActions.length, 0);
+            this.map_elements['stats_actions_no'].innerHTML = '' + actionsNo;
+
+            console.log('STATS response: generated ' + actionsNo + ' PublishingAction objects');
 
             this.current_situation_elements = situationElements;
 

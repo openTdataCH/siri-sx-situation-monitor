@@ -9,6 +9,7 @@ interface NetworkOperator {
 export interface LineNetwork {
     operator: NetworkOperator
     lineRef: string
+    directionRef: string | null
     publishedLineName: string
     stopPlaces: StopPlace[]
 }

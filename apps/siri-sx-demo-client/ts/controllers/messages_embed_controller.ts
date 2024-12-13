@@ -26,7 +26,8 @@ export default class Messages_Embed_Controller {
     public filter_lang: LangEnum
     public filter_text_size: TextualContentSizeEnum
     public filter_is_active: boolean
-    public filter_scope_type: ScopeType | null
+    public filter_scope_type: ScopeType | null;
+    public filter_perspective: string | null;
 
     private map_html_templates: Record<string, string>;
 
@@ -43,6 +44,8 @@ export default class Messages_Embed_Controller {
         this.map_elements = {
             'loading_status': document.getElementById('loading_status') as HTMLDivElement,
             'siri_sx_container': document.getElementById('siri_sx_container') as HTMLDivElement,
+            'results_header': document.getElementById('results_header') as HTMLDivElement,
+            'stats_filtered_actions_no': document.getElementById('stats_filtered_actions_no') as HTMLSpanElement,
         };
 
         this.has_debug_mode = false;
@@ -53,6 +56,7 @@ export default class Messages_Embed_Controller {
         this.filter_text_size = 'large';
         this.filter_is_active = false;
         this.filter_scope_type = null;
+        this.filter_perspective = null;
         
         this._update_params_from_QueryString();
 
@@ -92,16 +96,47 @@ export default class Messages_Embed_Controller {
                     const affect_id = el.getAttribute('data-id');
                     this._build_affect_link_for_id(affect_id, buttonEl);
                 }
+
+                if (DOM_Helpers.hasClassName(ev.target, 'situation-xml-btn')) {
+                    const parentEl = DOM_Helpers.findParentWithClass(ev.target, 'debug-text');
+                    if (parentEl === null) {
+                        return;
+                    }
+                    const textareaEls = DOM_Helpers.findChildrenWithClassName(parentEl, 'debug-xml');
+                    if (textareaEls.length === 0) {
+                        return;
+                    }
+                    const textareaEl = textareaEls[0];
+                    const textareaContainerEl = textareaEl.parentElement;
+                    if (textareaContainerEl === null) {
+                        return;
+                    }
+
+                    const dataIDx = Number(el.getAttribute('data-idx'));
+                    const matchedAction = this.renderModelActions[dataIDx];
+                    if (matchedAction.situation.nodeXML === null) {
+                        return;
+                    }
+                    
+                    const situationXML = DOM_Helpers.formatNodeXML(matchedAction.situation.nodeXML);
+                    textareaEl.textContent = situationXML;
+
+                    DOM_Helpers.removeClassName(textareaContainerEl, 'd-none');
+                }
             }
         });
     }
 
     private _show_loading_status() {
         DOM_Helpers.removeClassName(this.map_elements['loading_status'], 'd-none');
+        DOM_Helpers.addClassName(this.map_elements['results_header'], 'd-none');
     }
 
     private _hide_loading_status() {
         DOM_Helpers.addClassName(this.map_elements['loading_status'], 'd-none');
+        if (this.has_debug_mode) {
+            DOM_Helpers.removeClassName(this.map_elements['results_header'], 'd-none');
+        }
     }
 
     private _update_params_from_QueryString() {
@@ -140,6 +175,11 @@ export default class Messages_Embed_Controller {
         if (filterScopeType !== null) {
             this.filter_scope_type = filterScopeType.trim() as ScopeType;
         }
+
+        const filterPerspective = urlParams.get('perspective') ?? null;
+        if (filterPerspective !== null) {
+            this.filter_perspective = filterPerspective.trim();
+        }
     }
 
     public fetchAndRenderLatest() {
@@ -171,7 +211,9 @@ export default class Messages_Embed_Controller {
     }
 
     private renderHTML(situationElements: PtSituationElement[], error: string | null) {
-        const matchedActionsData = this._prepareSituationElements(situationElements);
+        const matchedActionsData = this._prepareMatchedActions(situationElements);
+        console.log('STATS response: FILTER actions: ' + matchedActionsData.length + ' PublishingAction objects');
+        this.map_elements['stats_filtered_actions_no'].innerText = '' + matchedActionsData.length;
 
         const situation_element_cards: string[] = [];
         this.renderModelAffects = [];
@@ -195,7 +237,7 @@ export default class Messages_Embed_Controller {
         this.map_elements['siri_sx_container'].innerHTML = messagesContainerHTML;
     }
 
-    private _prepareSituationElements(situationElements: PtSituationElement[]): MatchedAction[] {
+    private _prepareMatchedActions(situationElements: PtSituationElement[]): MatchedAction[] {
         situationElements.sort(sortSituationElements);
 
         const now = new Date();
@@ -219,13 +261,13 @@ export default class Messages_Embed_Controller {
                     return false;
                 }
 
-                const hasGeneralPerspective = action.passengerInformation.perspectives.indexOf('general') !== -1;
-                if (!hasGeneralPerspective) {
+                const hasScopeType = this.filter_scope_type === null || action.scopeType === this.filter_scope_type;
+                if (!hasScopeType) {
                     return false;
                 }
 
-                const hasScopeType = this.filter_scope_type === null || action.scopeType === this.filter_scope_type;
-                if (!hasScopeType) {
+                const hasPerspective = this.filter_perspective === null || action.passengerInformation.perspectives.includes(this.filter_perspective);
+                if (!hasPerspective) {
                     return false;
                 }
 
@@ -236,14 +278,13 @@ export default class Messages_Embed_Controller {
                 return null;
             }
 
-            const matchedAction = matchedActions[0];
-
-            const matchedActionData = <MatchedAction>{
-                action: matchedAction,
-                situation: situationElement
-            }
-
-            matchedActionsData.push(matchedActionData);
+            matchedActions.forEach(matchedAction => {
+                const matchedActionData = <MatchedAction>{
+                    action: matchedAction,
+                    situation: situationElement
+                }
+                matchedActionsData.push(matchedActionData);
+            });
         });
 
         return matchedActionsData;
@@ -360,10 +401,12 @@ export default class Messages_Embed_Controller {
 
         container_HTML = container_HTML.replace('[CREATION_TIME]', situationDateS);
         container_HTML = container_HTML.replace('[ACTION_OWNER]', ownerRef);
-        container_HTML = container_HTML.replace('[ROW_IDX]', (rowIDX + 1).toString());
+        container_HTML = container_HTML.replaceAll('[ROW_IDX]', rowIDX.toString());
         container_HTML = container_HTML.replace('[ROWS_NO]', totalRowsNo.toString())
         container_HTML = container_HTML.replace('[SITUATION_ID]', matchedActionData.situation.situationNumber);
         container_HTML = container_HTML.replace('[AFFECT_TYPE]', matchedActionData.action.scopeType);
+        container_HTML = container_HTML.replace('[SITUATION_ALERT_CAUSE]', matchedActionData.situation.alertCause);
+        container_HTML = container_HTML.replace('[PERSPECTIVES]', matchedActionData.action.passengerInformation.perspectives.join(', '));
 
         container_HTML = container_HTML.replace('[VALIDITY_PERIOD]', validityPeriodRows.join(''));
 
@@ -451,6 +494,7 @@ export default class Messages_Embed_Controller {
         const lineAffect = affectData.affect as LineNetwork
         rowHTML = rowHTML.replace('[OPERATOR_REF]', lineAffect.operator.operatorRef);
         rowHTML = rowHTML.replace('[LINE_INFO]', lineAffect.publishedLineName + ' - ' + lineAffect.lineRef);
+        rowHTML = rowHTML.replace('[DIRECTION_REF]', lineAffect.directionRef ?? 'n/a');
         rowHTML = rowHTML.replace('[AFFECT_ID]', affectModelId);
 
         return rowHTML;
@@ -488,7 +532,7 @@ export default class Messages_Embed_Controller {
         const lineAffect = affectData.affect as AffectedLineNetworkWithStops
         rowHTML = rowHTML.replace('[OPERATOR_REF]', lineAffect.lineNetwork.operator.operatorRef);
         rowHTML = rowHTML.replace('[LINE_INFO]', lineAffect.lineNetwork.publishedLineName + ' - ' + lineAffect.lineNetwork.lineRef);
-        rowHTML = rowHTML.replace('[LINE_DIRECTION]', lineAffect.directionRef);
+        rowHTML = rowHTML.replace('[DIRECTION_REF]', lineAffect.directionRef);
 
         const stopPlace_HTML_rows: string[] = [];
         lineAffect.stopPlaces.forEach(stopPlace => {

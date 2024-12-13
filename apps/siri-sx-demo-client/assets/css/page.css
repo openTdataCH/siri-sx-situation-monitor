@@ -1,5 +1,15 @@
-.container-fluid {
-    margin-top: 16px;
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.results {
+    overflow-y: auto;
+}
+
+.debug-xml {
+    height: 100%;
+    resize: none;
 }
 
 .form-day {
@@ -22,8 +32,4 @@
 
 .debug-text {
     font-size: 14px;
-}
-
-.search-form > div {
-    margin-right: 10px;
 }
