@@ -62,26 +62,19 @@ export default class Messages_Fetch_Controller {
         response.text().then(responseXMLText => {
             console.log('STATS response: DONE PARSE text()');
 
+            const situationElementMatches: string[] = responseXMLText.match(/<PtSituationElement\b[^>]*>.*?<\/PtSituationElement>/gs) ?? [];
+            console.log('STATS response: found ' + situationElementMatches.length + ' PtSituationElement nodes');
+            this.map_elements['stats_situation_nodes_no'].innerHTML = '' + situationElementMatches.length;
+
             const situationElements: PtSituationElement[] = [];
+            situationElementMatches.forEach(situationElementMatch => {
+                const dom = new DOMParser().parseFromString(situationElementMatch, 'application/xml');
+                const node = XPathHelpers.queryNode('/PtSituationElement', dom);
+                if (node === null) {
+                    return;
+                }
 
-            const responseDocument = new DOMParser().parseFromString(responseXMLText, 'application/xml');
-            console.log('STATS response: DONE DOMParser().parseFromString');
-
-            const situationsRootNode = XPathHelpers.queryNode('//siri:SituationExchangeDelivery', responseDocument);
-            if (situationsRootNode === null) {
-                const errorMessage = 'Failed to parse, check console for the responseText';
-                console.error('ERROR - responseText:');
-                console.log(responseXMLText);
-                completion([], errorMessage);
-                return;
-            }
-
-            const situationNodes = XPathHelpers.queryNodes('siri:Situations/siri:PtSituationElement', situationsRootNode);
-            console.log('STATS response: found ' + situationNodes.length + ' PtSituationElement nodes');
-            this.map_elements['stats_situation_nodes_no'].innerHTML = '' + situationNodes.length;
-
-            situationNodes.forEach(situationNode => {
-                const situationElement = PtSituationElement.initFromSituationNode(situationNode);
+                const situationElement = PtSituationElement.initFromSituationNode(node);
                 if (situationElement) {
                     situationElements.push(situationElement);
                 }
