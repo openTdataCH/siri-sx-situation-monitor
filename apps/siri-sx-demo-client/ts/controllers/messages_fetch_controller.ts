@@ -1,4 +1,5 @@
 import { APP_CONFIG, App_Stage } from "../config/app_config";
+import { SIRI_SX_Helpers } from "../helpers/siri-sx-helpers";
 import { XPathHelpers } from "../helpers/xpath";
 import PtSituationElement from "../models/pt_situation_element";
 import LocalStorageService from "./local_storage_service";
@@ -59,30 +60,42 @@ export default class Messages_Fetch_Controller {
     }
 
     private _parse_response(response: Response, completion: Response_Completion): void {
+        const filterTexts: string[] | null = (() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filter_texts_s = urlParams.get('text') ?? '';
+
+            if (filter_texts_s.trim() === '') {
+                return null;
+            }
+
+            return filter_texts_s.split(',');
+        })();
+        
         response.text().then(responseXMLText => {
             console.log('STATS response: DONE PARSE text()');
 
+            const situationElementMatches: string[] = responseXMLText.match(/<PtSituationElement\b[^>]*>.*?<\/PtSituationElement>/gs) ?? [];
+            console.log('STATS response: found ' + situationElementMatches.length + ' PtSituationElement nodes');
+            this.map_elements['stats_situation_nodes_no'].innerHTML = '' + situationElementMatches.length;
+
             const situationElements: PtSituationElement[] = [];
+            situationElementMatches.forEach(situationElementMatch => {
+                const dom = new DOMParser().parseFromString(situationElementMatch, 'application/xml');
+                const node = XPathHelpers.queryNode('/PtSituationElement', dom);
+                if (node === null) {
+                    return;
+                }
 
-            const responseDocument = new DOMParser().parseFromString(responseXMLText, 'application/xml');
-            console.log('STATS response: DONE DOMParser().parseFromString');
-
-            const situationsRootNode = XPathHelpers.queryNode('//siri:SituationExchangeDelivery', responseDocument);
-            if (situationsRootNode === null) {
-                const errorMessage = 'Failed to parse, check console for the responseText';
-                console.error('ERROR - responseText:');
-                console.log(responseXMLText);
-                completion([], errorMessage);
-                return;
-            }
-
-            const situationNodes = XPathHelpers.queryNodes('siri:Situations/siri:PtSituationElement', situationsRootNode);
-            console.log('STATS response: found ' + situationNodes.length + ' PtSituationElement nodes');
-            this.map_elements['stats_situation_nodes_no'].innerHTML = '' + situationNodes.length;
-
-            situationNodes.forEach(situationNode => {
-                const situationElement = PtSituationElement.initFromSituationNode(situationNode);
+                const situationElement = PtSituationElement.initFromSituationNode(node);
                 if (situationElement) {
+                    if (situationElement.publishingActions.length > 0) {
+                        const firstAction = situationElement.publishingActions[0];
+                        const matchedText = SIRI_SX_Helpers.matchText(filterTexts, situationElement.situationNumber, firstAction.passengerInformation.ownerRef);
+                        if (!matchedText) {
+                            return;
+                        }
+                    }
+                    
                     situationElements.push(situationElement);
                 }
             });

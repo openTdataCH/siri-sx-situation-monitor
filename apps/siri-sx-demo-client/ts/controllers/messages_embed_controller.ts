@@ -1,6 +1,7 @@
 import { App_Stage } from "../config/app_config";
 import { DateHelpers } from "../helpers/date-helpers";
 import { DOM_Helpers } from "../helpers/DOM_Helpers";
+import { SIRI_SX_Helpers } from "../helpers/siri-sx-helpers";
 import { GTFS_DB_Trips_Response, GTFS_Trip } from "../models/gtfs_db";
 import { AffectedLineNetworkWithStops, AffectedVehicleJourney, LangEnum, LineNetwork, PublishingAction, PublishingActionAffect, ScopeType, StopPlace, TextualContentSizeEnum, TimeInterval } from "../models/pt_all.interface";
 import PtSituationElement from "../models/pt_situation_element";
@@ -256,7 +257,7 @@ export default class Messages_Embed_Controller {
             }
 
             const matchedActions = situationElement.publishingActions.filter(action => {
-                const hasOwnerRef = this._match_text(situationElement.situationNumber, action.passengerInformation.ownerRef);
+                const hasOwnerRef = SIRI_SX_Helpers.matchText(this.filter_texts, situationElement.situationNumber, action.passengerInformation.ownerRef);
                 if (!hasOwnerRef) {
                     return false;
                 }
@@ -288,33 +289,6 @@ export default class Messages_Embed_Controller {
         });
 
         return matchedActionsData;
-    }
-
-    private _match_text(situationNumber: string, ownerRef: string | null): boolean {
-        if (this.filter_texts === null) {
-            return true;
-        }
-
-        if (this.filter_texts.includes(situationNumber)) {
-            return true;
-        }
-
-        if (ownerRef === null) {
-            return false;
-        }
-
-        const sanitizeOwnerRef = (s: string): string => {
-            return s.trim().toLowerCase().replace('ch:1:sboid:', '');
-        };
-
-        ownerRef = sanitizeOwnerRef(ownerRef);
-
-        const foundOwnerRef = this.filter_texts.find(filter_text => {
-            filter_text = sanitizeOwnerRef(filter_text);
-            return ownerRef === filter_text;
-        }) ?? null;
-
-        return foundOwnerRef !== null;
     }
 
     private _compute_situation_element_card_HTML(matchedActionData: MatchedAction, rowIDX: number, totalRowsNo: number): string {
@@ -709,7 +683,7 @@ export default class Messages_Embed_Controller {
         serviceQueryParams['service_day'] = serviceDay;
         
         const qs = new URLSearchParams(serviceQueryParams);
-        const gtfsTripsURL = 'https://tools.odpch.ch/gtfs-rt-status/api/gtfs-query/trips?' + qs;
+        const gtfsTripsURL = 'https://tools.odpch.ch/gtfs-query/trips?' + qs;
 
         const gtfsTripsJSON = await (await fetch(gtfsTripsURL)).json() as GTFS_DB_Trips_Response;
 
