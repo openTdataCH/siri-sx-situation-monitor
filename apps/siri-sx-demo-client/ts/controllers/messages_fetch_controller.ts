@@ -1,4 +1,5 @@
 import { APP_CONFIG, App_Stage } from "../config/app_config";
+import { SIRI_SX_Helpers } from "../helpers/siri-sx-helpers";
 import { XPathHelpers } from "../helpers/xpath";
 import PtSituationElement from "../models/pt_situation_element";
 import LocalStorageService from "./local_storage_service";
@@ -59,6 +60,17 @@ export default class Messages_Fetch_Controller {
     }
 
     private _parse_response(response: Response, completion: Response_Completion): void {
+        const filterTexts: string[] | null = (() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filter_texts_s = urlParams.get('text') ?? '';
+
+            if (filter_texts_s.trim() === '') {
+                return null;
+            }
+
+            return filter_texts_s.split(',');
+        })();
+        
         response.text().then(responseXMLText => {
             console.log('STATS response: DONE PARSE text()');
 
@@ -76,6 +88,14 @@ export default class Messages_Fetch_Controller {
 
                 const situationElement = PtSituationElement.initFromSituationNode(node);
                 if (situationElement) {
+                    if (situationElement.publishingActions.length > 0) {
+                        const firstAction = situationElement.publishingActions[0];
+                        const matchedText = SIRI_SX_Helpers.matchText(filterTexts, situationElement.situationNumber, firstAction.passengerInformation.ownerRef);
+                        if (!matchedText) {
+                            return;
+                        }
+                    }
+                    
                     situationElements.push(situationElement);
                 }
             });
