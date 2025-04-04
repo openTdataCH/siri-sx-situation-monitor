@@ -1,7 +1,7 @@
 import xpath from 'xpath'
 
 const mapNS = {
-  'siri' : 'http://www.siri.org.uk/siri',
+  // 'siri' : 'http://www.siri.org.uk/siri',
 };
 
 export class XPathHelpers {
