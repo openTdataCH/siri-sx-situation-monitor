@@ -14,14 +14,14 @@ export default class PtSituationSource {
     }
 
     public static initFromSituationNode(node: Node): PtSituationSource | null {
-        const countryRef = XPathHelpers.queryText('siri:Source/siri:CountryRef', node)
-        
-        if (!(countryRef && sourceType)) {
         const sourceType = XPathHelpers.queryText('Source/SourceType', node);
+        if (!sourceType) {
             console.log('ERROR - cant PtSituationSource.initFromSituationNode')
             console.log(node);
             return null;
         }
+
+        const countryRef = XPathHelpers.queryText('Source/CountryRef', node) ?? 'n/a CountryRef';
 
         const situationSource = new PtSituationSource(countryRef, sourceType);
 
