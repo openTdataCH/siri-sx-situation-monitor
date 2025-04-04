@@ -15,9 +15,9 @@ export default class PtSituationSource {
 
     public static initFromSituationNode(node: Node): PtSituationSource | null {
         const countryRef = XPathHelpers.queryText('siri:Source/siri:CountryRef', node)
-        const sourceType = XPathHelpers.queryText('siri:Source/siri:SourceType', node)
         
         if (!(countryRef && sourceType)) {
+        const sourceType = XPathHelpers.queryText('Source/SourceType', node);
             console.log('ERROR - cant PtSituationSource.initFromSituationNode')
             console.log(node);
             return null;
@@ -25,8 +25,8 @@ export default class PtSituationSource {
 
         const situationSource = new PtSituationSource(countryRef, sourceType);
 
-        situationSource.name = XPathHelpers.queryText('siri:Source/siri:Name', node)
-        situationSource.externalCode = XPathHelpers.queryText('siri:Source/siri:ExternalCode', node)
+        situationSource.name = XPathHelpers.queryText('Source/Name', node)
+        situationSource.externalCode = XPathHelpers.queryText('Source/ExternalCode', node)
 
         return situationSource
     }
