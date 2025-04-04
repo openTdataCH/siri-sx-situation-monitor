@@ -354,7 +354,23 @@ export default class PtSituationElement {
     private static computeAffectedJourneys(situationNumber: string, publishingActionNode: Node): AffectedVehicleJourney[] {
         const affectedVehicleJourneys: AffectedVehicleJourney[] = [];
 
-        const affectedVehicleJourneyNodes = XPathHelpers.queryNodes('siri:PublishAtScope/siri:Affects/siri:VehicleJourneys/siri:AffectedVehicleJourney', publishingActionNode);
+        const affectedVehicleJourneyNodes: Node[] = (() => {
+            const maxTagsCount = 100;
+
+            const publishingActionNodeS = new XMLSerializer().serializeToString(publishingActionNode);
+            const tagName = "AffectedVehicleJourney";
+            const regex = new RegExp(`<${tagName}[^>]*>(.*?)</${tagName}>`, "gs");
+            const tagsCount = (publishingActionNodeS.match(regex) || []).length;
+
+            if (tagsCount < maxTagsCount) {
+                const nodes = XPathHelpers.queryNodes('PublishAtScope/Affects/VehicleJourneys/AffectedVehicleJourney', publishingActionNode);
+                return nodes;
+            }
+
+            console.error('ERROR - too many ' + tagsCount + ' <AffectedVehicleJourney> nodes for ' + situationNumber);
+            return [];
+        })();
+
         affectedVehicleJourneyNodes.forEach((vehicleJourneyNode, idx) => {
             const framedVehicleJourneyRefNode = XPathHelpers.queryNode('FramedVehicleJourneyRef', vehicleJourneyNode);
             if (framedVehicleJourneyRefNode === null) {
