@@ -114,7 +114,7 @@ export default class Messages_Embed_Filter_Controller {
 
         const active_elements_select = this.map_elements['filter_active'] as HTMLSelectElement;
         active_elements_select.addEventListener('change', ev => {
-            this.messages_embed_controller.filter_is_active = active_elements_select.value === 'active'
+            this.messages_embed_controller.filter_is_active = active_elements_select.value === 'active';
             this._update_on_change();
         });
 
