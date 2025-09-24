@@ -26,7 +26,8 @@ export default class Messages_Embed_Controller {
     public filter_texts: string[] | null
     public filter_lang: LangEnum
     public filter_text_size: TextualContentSizeEnum
-    public filter_is_active: boolean
+    public filter_is_active: boolean;
+    public filter_unplanned: boolean;
     public filter_scope_type: ScopeType | null;
     public filter_perspective: string | null;
 
@@ -56,6 +57,7 @@ export default class Messages_Embed_Controller {
         this.filter_lang = 'de';
         this.filter_text_size = 'large';
         this.filter_is_active = false;
+        this.filter_unplanned = false;
         this.filter_scope_type = null;
         this.filter_perspective = null;
         
@@ -172,6 +174,11 @@ export default class Messages_Embed_Controller {
             this.filter_is_active = filterIsActive !== '0';
         }
 
+        const filterUnplanned = urlParams.get('unplanned');
+        if (filterUnplanned) {
+            this.filter_unplanned = filterUnplanned === '1';
+        }
+
         const filterScopeType = urlParams.get('scopeType') ?? null;
         if (filterScopeType !== null) {
             this.filter_scope_type = filterScopeType.trim() as ScopeType;
@@ -253,6 +260,13 @@ export default class Messages_Embed_Controller {
                 const isActive = situationElement.isActive(now);
                 if (!isActive) {
                     return;
+                }
+            }
+
+            if (this.filter_unplanned) {
+                const isPlanned = situationElement.isPlanned;
+                if (isPlanned) {
+                    return;    
                 }
             }
 
