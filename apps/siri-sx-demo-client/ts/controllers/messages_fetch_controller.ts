@@ -60,8 +60,9 @@ export default class Messages_Fetch_Controller {
     }
 
     private _parse_response(response: Response, completion: Response_Completion): void {
+        const urlParams = new URLSearchParams(window.location.search);
+
         const filterTexts: string[] | null = (() => {
-            const urlParams = new URLSearchParams(window.location.search);
             const filter_texts_s = urlParams.get('text') ?? '';
 
             if (filter_texts_s.trim() === '') {
@@ -70,7 +71,9 @@ export default class Messages_Fetch_Controller {
 
             return filter_texts_s.split(',');
         })();
-        
+
+        const filterUnplanned = urlParams.get('unplanned') === '1';
+
         response.text().then(responseXMLText => {
             console.log('STATS response: DONE PARSE text()');
 
@@ -94,6 +97,10 @@ export default class Messages_Fetch_Controller {
                         if (!matchedText) {
                             return;
                         }
+                    }
+
+                    if (filterUnplanned && situationElement.isPlanned) {
+                        return;
                     }
                     
                     situationElements.push(situationElement);

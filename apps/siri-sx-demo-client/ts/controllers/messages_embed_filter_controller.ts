@@ -23,6 +23,7 @@ export default class Messages_Embed_Filter_Controller {
             'filter_text_input': document.getElementById('filter_text') as HTMLInputElement,
             'text_size_select': document.getElementById('filter_text_size') as HTMLSelectElement,
             'filter_active': document.getElementById('filter_active') as HTMLSelectElement,
+            'filter_unplanned': document.getElementById('filter_unplanned') as HTMLSelectElement,
             'response_source': document.getElementById('response_source') as HTMLSpanElement,
         };
         this._init_GUI_Elements();
@@ -63,6 +64,7 @@ export default class Messages_Embed_Filter_Controller {
         (this.map_elements['lang_select'] as HTMLSelectElement).value = this.messages_embed_controller.filter_lang;
         (this.map_elements['text_size_select'] as HTMLSelectElement).value = this.messages_embed_controller.filter_text_size;
         (this.map_elements['filter_active'] as HTMLSelectElement).value = this.messages_embed_controller.filter_is_active ? 'active' : 'all';
+        (this.map_elements['filter_unplanned'] as HTMLSelectElement).value = this.messages_embed_controller.filter_unplanned ? 'unplanned' : 'all';
 
         const filter_scope_type_s = this.messages_embed_controller.filter_scope_type ?? 'all';
         (this.map_elements['scope_type_select'] as HTMLSelectElement).value = filter_scope_type_s;
@@ -112,7 +114,13 @@ export default class Messages_Embed_Filter_Controller {
 
         const active_elements_select = this.map_elements['filter_active'] as HTMLSelectElement;
         active_elements_select.addEventListener('change', ev => {
-            this.messages_embed_controller.filter_is_active = active_elements_select.value === 'active'
+            this.messages_embed_controller.filter_is_active = active_elements_select.value === 'active';
+            this._update_on_change();
+        });
+
+        const unplanned_elements_select = this.map_elements['filter_unplanned'] as HTMLSelectElement;
+        unplanned_elements_select.addEventListener('change', ev => {
+            this.messages_embed_controller.filter_unplanned = unplanned_elements_select.value === 'unplanned';
             this._update_on_change();
         });
 
@@ -157,6 +165,10 @@ export default class Messages_Embed_Filter_Controller {
 
         if (this.messages_embed_controller.filter_is_active) {
             query_string_params['active'] = '1';
+        }
+
+        if (this.messages_embed_controller.filter_unplanned) {
+            query_string_params['unplanned'] = '1';
         }
 
         query_string_params['text_size'] = this.messages_embed_controller.filter_text_size;
