@@ -24,6 +24,7 @@ All parameters are optional, the default values are used instead.
 | app_stage | `TEST`, `INT`  | `TEST` | Backend API configuration, `TEST` for `siri-sx_test`, `INT` for `siri-sx_int` API endpoints |
 | scopeType | `line`, `stopPlace`, `vehicleJourney`  | `-` | Filter situations by scope type |
 | perspective | `general`, `line`, `stopPoint`, `vehicleJourney`  | `-` | Filter `PublishingAction` by perspective |
+| unplanned | `1`  | `-` | Show only `PtSituationElement` that are unplanned |
 | debug | `1`  |  | Debug flag to show more information about the messages and also provide a GUI to customise the parameters |
 
 ## Build Integration URL
@@ -53,6 +54,7 @@ The URL can be then embeded in a HTML IFRAME as in the following example:
 
 ## Document Revisions
 
+- 2025-09-24 - added `unplanned` param
 - 2024-12-12 - documented `perspective` param, updated general info
 - 2024-06-18 - documented `scopeType` and `text` params
 - 2022-07-29 - documented the [URL builder](https://tools.odpch.ch/siri-sx-poc/embed.html?debug=1) tool
