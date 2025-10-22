@@ -378,6 +378,14 @@ export default class Messages_Embed_Controller {
             const isActive = situationElement.isActive();
             if (isActive) {
                 rows.push('<li>Active now: <span class="badge bg-danger-subtle text-dark">YES</span></li>');
+
+                // Show only if they werent show above
+                if (validityPeriodsNo > 2) {
+                    const activePeriods = situationElement.computeActivePeriods();
+                    if (activePeriods.length > 0) {
+                        rows.push('<ul><li>' + DateHelpers.formatValidityPeriodDuration(activePeriods[0]) + '</li></ul>');
+                    }
+                }
             } else {
                 rows.push('<li>Active now: NO</li>');
             }
