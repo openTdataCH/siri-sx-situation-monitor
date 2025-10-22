@@ -509,10 +509,25 @@ export default class Messages_Embed_Controller {
     }
 
     _buildOJP_URL(route: 'search' | 'board', qsParams: Record<string, string>) {
-        qsParams['stage'] = this.filter_app_stage.toLowerCase();
+        // set stage if different than PROD
+        const targetStage = (() => {
+            const appStage = this.filter_app_stage.toLowerCase();
+            if (appStage === 'int') {
+                return 'v2-int';
+            }
+
+            if (appStage === 'test') {
+                return 'v2-test';
+            }
+
+            return null;
+        })();
+        if (targetStage !== null) {
+            qsParams['stage'] = targetStage;
+        }
         const qs = new URLSearchParams(qsParams);
 
-        const ojpURL = 'https://tools.odpch.ch/beta-ojp-demo/' + route + '?' + qs;
+        const ojpURL = 'https://opentdatach.github.io/ojp-demo-app/' + route + '?' + qs;
         return ojpURL;
     }
 
