@@ -746,7 +746,7 @@ export default class Messages_Embed_Controller {
                     const stopPlaceRef = stopPlace.stopPlaceRef;
                     const stopId: string = (() => {
                         const sloidParts = stopPlaceRef.split(':sloid:');
-                        if (sloidParts.length === 0) {
+                        if (sloidParts.length === 1) {
                             return stopPlaceRef;
                         } else {
                             const sloidStopId = sloidParts[1].padStart(5, '0');
