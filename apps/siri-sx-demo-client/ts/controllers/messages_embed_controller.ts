@@ -376,9 +376,11 @@ export default class Messages_Embed_Controller {
             }
             
             const isActive = situationElement.isActive();
-            const isActiveText = isActive ? 'YES' : 'NO';
-            
-            rows.push('<li>Active now: ' + isActiveText + '</li>');
+            if (isActive) {
+                rows.push('<li>Active now: <span class="badge bg-danger-subtle text-dark">YES</span></li>');
+            } else {
+                rows.push('<li>Active now: NO</li>');
+            }
 
             return rows;
         })();
