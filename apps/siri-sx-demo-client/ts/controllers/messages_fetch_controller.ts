@@ -47,6 +47,12 @@ export default class Messages_Fetch_Controller {
             return;
         }
 
+        if (stage_data.bearer_key === '') {
+            console.error('no bearer key for stage, get one from https://api-manager.opentransportdata.swiss/');
+            console.log(stage_data);
+            return;
+        }
+
         let api_url = stage_data.api_url + '?rand=' + Date.now().toString();
         
         const requestHeaders = {
