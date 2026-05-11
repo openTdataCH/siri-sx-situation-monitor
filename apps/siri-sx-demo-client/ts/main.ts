@@ -6,7 +6,7 @@ import { App_Stage } from "./config/app_config";
 import LocalStorageService from "./controllers/local_storage_service";
 
 const urlParams = new URLSearchParams(window.location.search);
-const app_stage: App_Stage = (urlParams.get('app_stage') as App_Stage) ?? 'INT';
+const app_stage: App_Stage = (urlParams.get('app_stage') as App_Stage) ?? 'PROD';
 
 type PageType = 'home' | 'embed';
 const page_type: PageType = (<any>window).APP_VARS['page_type'] ?? 'home';

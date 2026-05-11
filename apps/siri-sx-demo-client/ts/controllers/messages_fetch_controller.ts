@@ -16,7 +16,7 @@ export default class Messages_Fetch_Controller {
 
     private map_elements: Record<string, HTMLElement>;
 
-    constructor(app_stage: App_Stage = 'INT', local_storage_service: LocalStorageService) {
+    constructor(app_stage: App_Stage = 'PROD', local_storage_service: LocalStorageService) {
         this.app_stage = app_stage;
         this.local_storage_service = local_storage_service;
         
