@@ -1,6 +1,6 @@
 export type App_Stage = 'PROD' | 'INT' | 'TEST'
 
-interface App_Stage_Data {
+export interface App_Stage_Data {
     stage: App_Stage
     api_url: string
     bearer_key: string
