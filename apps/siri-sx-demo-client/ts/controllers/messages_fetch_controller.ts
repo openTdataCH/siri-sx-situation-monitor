@@ -1,4 +1,4 @@
-import { APP_CONFIG, App_Stage } from "../config/app_config";
+import { APP_CONFIG, App_Stage, App_Stage_Data } from "../config/app_config";
 import { SIRI_SX_Helpers } from "../helpers/siri-sx-helpers";
 import { XPathHelpers } from "../helpers/xpath";
 import PtSituationElement from "../models/pt_situation_element";
@@ -32,7 +32,21 @@ export default class Messages_Fetch_Controller {
     }
 
     public fetch_latest(completion: Response_Completion) {
-        const stage_data = APP_CONFIG.map_stages[this.app_stage]
+        const stage_data: App_Stage_Data | null = (() => {
+            const appStageS = this.app_stage.toUpperCase();
+            if (appStageS in APP_CONFIG.map_stages) {
+                const appStageData = APP_CONFIG.map_stages[appStageS as App_Stage] ?? null;
+                return appStageData;
+            }
+
+            return null;
+        })();
+        if (stage_data === null) {
+            console.error('cant read stage data for: ' + this.app_stage);
+            console.log(APP_CONFIG.map_stages);
+            return;
+        }
+
         let api_url = stage_data.api_url + '?rand=' + Date.now().toString();
         
         const requestHeaders = {
