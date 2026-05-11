@@ -81,62 +81,78 @@ export default class Messages_Embed_Filter_Controller {
 
     private _init_listeners() {
         const stage_select = this.map_elements['stage_select'] as HTMLSelectElement;
-        stage_select.addEventListener('change', ev => {
-            this.messages_embed_controller.filter_app_stage = stage_select.value as App_Stage;
-            this._build_filter_url();
-            
-            this.map_listeners['ReloadData'].forEach(completion => {
-                completion(stage_select.value);
+        if (stage_select) {
+            stage_select.addEventListener('change', ev => {
+                this.messages_embed_controller.filter_app_stage = stage_select.value as App_Stage;
+                this._build_filter_url();
+                
+                this.map_listeners['ReloadData'].forEach(completion => {
+                    completion(stage_select.value);
+                });
             });
-        });
+        }
 
         const lang_select = this.map_elements['lang_select'] as HTMLSelectElement;
-        lang_select.addEventListener('change', ev => {
-            this.messages_embed_controller.filter_lang = lang_select.value as LangEnum;
-            this._update_on_change();
-        });
+        if (lang_select) {
+            lang_select.addEventListener('change', ev => {
+                this.messages_embed_controller.filter_lang = lang_select.value as LangEnum;
+                this._update_on_change();
+            });
+        }
 
         const filter_text_input = this.map_elements['filter_text_input'] as HTMLInputElement;
-        let filter_text_inputDebounceTimer: NodeJS.Timeout;
-        filter_text_input.addEventListener('input', () => {
-            clearTimeout(filter_text_inputDebounceTimer);
-            filter_text_inputDebounceTimer = setTimeout(() => {
-                this._update_filter_texts(filter_text_input);
-                this._update_on_change();
-            }, 300);
-        });
+        if (filter_text_input) {
+            let filter_text_inputDebounceTimer: NodeJS.Timeout;
+            filter_text_input.addEventListener('input', () => {
+                clearTimeout(filter_text_inputDebounceTimer);
+                filter_text_inputDebounceTimer = setTimeout(() => {
+                    this._update_filter_texts(filter_text_input);
+                    this._update_on_change();
+                }, 300);
+            });
+        }
 
         const text_size_select = this.map_elements['text_size_select'] as HTMLSelectElement;
-        text_size_select.addEventListener('change', ev => {
-            this.messages_embed_controller.filter_text_size = text_size_select.value as TextualContentSizeEnum;
-            this._update_on_change();
-        });
+        if (text_size_select) {
+            text_size_select.addEventListener('change', ev => {
+                this.messages_embed_controller.filter_text_size = text_size_select.value as TextualContentSizeEnum;
+                this._update_on_change();
+            });
+        }
 
         const active_elements_select = this.map_elements['filter_active'] as HTMLSelectElement;
-        active_elements_select.addEventListener('change', ev => {
-            this.messages_embed_controller.filter_is_active = active_elements_select.value === 'active';
-            this._update_on_change();
-        });
+        if (active_elements_select) {
+            active_elements_select.addEventListener('change', ev => {
+                this.messages_embed_controller.filter_is_active = active_elements_select.value === 'active';
+                this._update_on_change();
+            });
+        }
 
         const unplanned_elements_select = this.map_elements['filter_unplanned'] as HTMLSelectElement;
-        unplanned_elements_select.addEventListener('change', ev => {
-            this.messages_embed_controller.filter_unplanned = unplanned_elements_select.value === 'unplanned';
-            this._update_on_change();
-        });
+        if (unplanned_elements_select) {
+            unplanned_elements_select.addEventListener('change', ev => {
+                this.messages_embed_controller.filter_unplanned = unplanned_elements_select.value === 'unplanned';
+                this._update_on_change();
+            });
+        }
 
         const scope_type_select = this.map_elements['scope_type_select'] as HTMLSelectElement;
-        scope_type_select.addEventListener('change', ev => {
-            const filter_value = scope_type_select.value === 'all' ? null : scope_type_select.value as ScopeType;
-            this.messages_embed_controller.filter_scope_type = filter_value;
-            this._update_on_change();
-        });
+        if (scope_type_select) {
+            scope_type_select.addEventListener('change', ev => {
+                const filter_value = scope_type_select.value === 'all' ? null : scope_type_select.value as ScopeType;
+                this.messages_embed_controller.filter_scope_type = filter_value;
+                this._update_on_change();
+            });
+        }
 
         const perspective_select = this.map_elements['perspective_select'] as HTMLSelectElement;
-        perspective_select.addEventListener('change', ev => {
-            const filter_value = perspective_select.value === 'all' ? null : perspective_select.value as string;
-            this.messages_embed_controller.filter_perspective = filter_value;
-            this._update_on_change();
-        });
+        if (perspective_select) {
+            perspective_select.addEventListener('change', ev => {
+                const filter_value = perspective_select.value === 'all' ? null : perspective_select.value as string;
+                this.messages_embed_controller.filter_perspective = filter_value;
+                this._update_on_change();
+            });
+        }
     }
 
     private _updateResponseSource() {

@@ -527,6 +527,14 @@ export default class PtSituationElement {
         return textPropertyData
     }
 
+    public computeActivePeriods(date: Date = new Date()): TimeInterval[] {
+        const activeValidityPeriods = this.validityPeriods.filter(el => {
+            return (el.startDate < date) && (el.endDate > date);
+        });
+
+        return activeValidityPeriods;
+    }
+
     public isActive(date: Date = new Date()): boolean {
         const activePeriod = this.validityPeriods.find(el => {
             return (el.startDate < date) && (el.endDate > date);

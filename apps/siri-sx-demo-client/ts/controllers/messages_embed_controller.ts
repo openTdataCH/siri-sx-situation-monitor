@@ -376,9 +376,19 @@ export default class Messages_Embed_Controller {
             }
             
             const isActive = situationElement.isActive();
-            const isActiveText = isActive ? 'YES' : 'NO';
-            
-            rows.push('<li>Active now: ' + isActiveText + '</li>');
+            if (isActive) {
+                rows.push('<li>Active now: <span class="badge bg-danger-subtle text-dark">YES</span></li>');
+
+                // Show only if they werent show above
+                if (validityPeriodsNo > 2) {
+                    const activePeriods = situationElement.computeActivePeriods();
+                    if (activePeriods.length > 0) {
+                        rows.push('<ul><li>' + DateHelpers.formatValidityPeriodDuration(activePeriods[0]) + '</li></ul>');
+                    }
+                }
+            } else {
+                rows.push('<li>Active now: NO</li>');
+            }
 
             return rows;
         })();
@@ -507,10 +517,25 @@ export default class Messages_Embed_Controller {
     }
 
     _buildOJP_URL(route: 'search' | 'board', qsParams: Record<string, string>) {
-        qsParams['stage'] = this.filter_app_stage.toLowerCase();
+        // set stage if different than PROD
+        const targetStage = (() => {
+            const appStage = this.filter_app_stage.toLowerCase();
+            if (appStage === 'int') {
+                return 'v2-int';
+            }
+
+            if (appStage === 'test') {
+                return 'v2-test';
+            }
+
+            return null;
+        })();
+        if (targetStage !== null) {
+            qsParams['stage'] = targetStage;
+        }
         const qs = new URLSearchParams(qsParams);
 
-        const ojpURL = 'https://tools.odpch.ch/beta-ojp-demo/' + route + '?' + qs;
+        const ojpURL = 'https://opentdatach.github.io/ojp-demo-app/' + route + '?' + qs;
         return ojpURL;
     }
 
@@ -744,7 +769,7 @@ export default class Messages_Embed_Controller {
                     const stopPlaceRef = stopPlace.stopPlaceRef;
                     const stopId: string = (() => {
                         const sloidParts = stopPlaceRef.split(':sloid:');
-                        if (sloidParts.length === 0) {
+                        if (sloidParts.length === 1) {
                             return stopPlaceRef;
                         } else {
                             const sloidStopId = sloidParts[1].padStart(5, '0');
