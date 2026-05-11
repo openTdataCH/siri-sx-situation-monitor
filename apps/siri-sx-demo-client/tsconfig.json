@@ -7,7 +7,8 @@
         "outDir": "./tmp/js-build",
         "moduleResolution": "node",
         "esModuleInterop": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "types": ["node"]
     },
     "include": [
         "./ts/**/*.ts"

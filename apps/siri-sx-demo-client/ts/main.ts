@@ -6,7 +6,19 @@ import { App_Stage } from "./config/app_config";
 import LocalStorageService from "./controllers/local_storage_service";
 
 const urlParams = new URLSearchParams(window.location.search);
-const app_stage: App_Stage = (urlParams.get('app_stage') as App_Stage) ?? 'INT';
+const app_stage: App_Stage = (() => {
+    const qs1 = urlParams.get('app_stage');
+    if (qs1 !== null) {
+        return qs1 as App_Stage;
+    }
+
+    const qs2 = urlParams.get('stage');
+    if (qs2 !== null) {
+        return qs2 as App_Stage;
+    }
+
+    return 'PROD';
+})();
 
 type PageType = 'home' | 'embed';
 const page_type: PageType = (<any>window).APP_VARS['page_type'] ?? 'home';
