@@ -14,17 +14,17 @@ export const APP_CONFIG: AppConfig = {
     map_stages: {
         'PROD': {
             stage: 'PROD',
-            api_url: 'https://tools.odpch.ch/siri-sx-data/siri_sx-latest-prod.xml',
+            api_url: 'https://tools.opentransportdata.swiss/data/siri-sx/siri_sx-latest-prod.xml',
             bearer_key: '57c5dbbbf1fe4d0001000018d335e64dd98e45919a81f62f051262b5',
         },
         'INT': {
             stage: 'INT',
-            api_url: 'https://tools.odpch.ch/siri-sx-data/siri_sx-latest-int.xml',
+            api_url: 'https://tools.opentransportdata.swiss/data/siri-sx/siri_sx-latest-int.xml',
             bearer_key: '57c5dadd5e6307000100005ed14310e6a3664bd981d5ae2703689890',
         },
         'TEST': {
             stage: 'TEST',
-            api_url: 'https://tools.odpch.ch/siri-sx-data/siri_sx-latest-test.xml',
+            api_url: 'https://tools.opentransportdata.swiss/data/siri-sx/siri_sx-latest-test.xml',
             bearer_key: '57c5dadd5e6307000100005eaafedab248ab4a0bb48e7dfb3d5df696',
         },
     }

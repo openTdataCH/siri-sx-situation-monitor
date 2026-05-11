@@ -722,7 +722,7 @@ export default class Messages_Embed_Controller {
         serviceQueryParams['service_day'] = serviceDay;
         
         const qs = new URLSearchParams(serviceQueryParams);
-        const gtfsTripsURL = 'https://tools.odpch.ch/gtfs-query/trips?' + qs;
+        const gtfsTripsURL = 'https://tools.opentransportdata.swiss/gtfs-query/trips?' + qs;
 
         const gtfsTripsJSON = await (await fetch(gtfsTripsURL)).json() as GTFS_DB_Trips_Response;
 
