@@ -6,7 +6,8 @@
     },
     "devDependencies": {
         "@types/node": "20.8.10",
-        "watchify": "4.0.0"
+        "watchify": "4.0.0",
+        "typescript": "5.5"
     },
     "scripts": {
         "preinstall": "npm i -g typescript watchify",
