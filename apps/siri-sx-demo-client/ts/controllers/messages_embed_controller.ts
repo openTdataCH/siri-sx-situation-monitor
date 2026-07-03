@@ -766,17 +766,7 @@ export default class Messages_Embed_Controller {
 
                 const stopIDs: string[] = [];
                 lineNetwork.stopPlaces.forEach(stopPlace => {
-                    const stopPlaceRef = stopPlace.stopPlaceRef;
-                    const stopId: string = (() => {
-                        const sloidParts = stopPlaceRef.split(':sloid:');
-                        if (sloidParts.length === 1) {
-                            return stopPlaceRef;
-                        } else {
-                            const sloidStopId = sloidParts[1].padStart(5, '0');
-                            return '85' + sloidStopId;
-                        }
-                    })();
-                    
+                    const stopId = stopPlace.stopPlaceRef;
                     stopIDs.push(stopId);
                 });
 
@@ -836,8 +826,8 @@ export default class Messages_Embed_Controller {
         })();
 
         const stopIDs = matchedTrip.stopTimes.map(stopTime => {
-            const stopIdParts = stopTime.stop.stop_id.split(':');
-            return stopIdParts[0];
+            const stopId = stopTime.stop.stop_id;
+            return stopId;
         });
 
         const stop1_Id = stopIDs[0];
