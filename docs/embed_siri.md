@@ -54,6 +54,7 @@ The URL can be then embeded in a HTML IFRAME as in the following example:
 
 ## Document Revisions
 
+- 2026-07-03 - use new domain: https://tools.opentransportdata.swiss/siri-sx/monitor/embed.html
 - 2025-09-24 - added `unplanned` param
 - 2024-12-12 - documented `perspective` param, updated general info
 - 2024-06-18 - documented `scopeType` and `text` params
