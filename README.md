@@ -1,7 +1,20 @@
-# SIRI SX Situation Monitor
+# SIRI-SX Browser v2
 
-This repo contains the tools and applications used for [Service Interface for Real Time Information](https://en.wikipedia.org/wiki/Service_Interface_for_Real_Time_Information) development.
+Standalone Angular application with Bootstrap styling.
 
-## Docs
+## Local development
 
-- [Embed SIRI SX Response](./docs/embed_siri.md)
+Install dependencies and start the development server:
+
+```bash
+npm install
+npm start
+```
+
+The application is then available at `http://localhost:4200/`.
+
+## Build
+
+```bash
+npm run build
+```
