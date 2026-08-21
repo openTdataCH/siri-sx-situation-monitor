@@ -17,6 +17,6 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('.navbar-brand')?.textContent).toContain('SIRI-SX Browser');
+    expect(element.querySelector('.app-header h1')?.textContent).toContain('SIRI-SX Browser');
   });
 });

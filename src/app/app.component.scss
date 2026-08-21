@@ -2,3 +2,25 @@
   display: block;
   min-height: 100vh;
 }
+
+// Temporary section colors. Replace these with the final application palette.
+.app-header {
+  color: #fff;
+  background-color: #495057;
+}
+
+.app-content {
+  background-color: #dee2e6;
+}
+
+.content-placeholder {
+  min-height: 12rem;
+  color: #495057;
+  background-color: #f8f9fa;
+  border: 2px dashed #adb5bd;
+}
+
+.app-footer {
+  color: #fff;
+  background-color: #6c757d;
+}
