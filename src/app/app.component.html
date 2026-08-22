@@ -4,8 +4,50 @@
   </header>
 
   <main class="app-content d-flex flex-grow-1 p-4">
-    <div class="content-placeholder d-flex flex-grow-1 align-items-center justify-content-center rounded-3">
-      <span>Content</span>
+    <div class="content-placeholder d-flex flex-column flex-grow-1 align-items-center justify-content-center gap-3 rounded-3">
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="parseState().status === 'loading'"
+        (click)="parseMock()"
+      >
+        @if (parseState().status === 'loading') {
+          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          Parsing…
+          @if (parseState().situationCount) {
+            {{ parseState().situationCount }}
+          }
+        } @else {
+          Parse SIRI-SX XML
+        }
+      </button>
+
+      @switch (parseState().status) {
+        @case ('idle') {
+          <span class="text-secondary">Load and parse the configured SIRI-SX response.</span>
+        }
+        @case ('success') {
+          <div
+            class="alert mb-0"
+            [class.alert-success]="!parseState().validationIssueCount && !parseState().invalidSituationCount"
+            [class.alert-warning]="!!parseState().validationIssueCount || !!parseState().invalidSituationCount"
+            role="status"
+          >
+            Parsed {{ parseState().situationCount }} situations.
+            @if (parseState().invalidSituationCount) {
+              Discarded {{ parseState().invalidSituationCount }} invalid situations.
+            }
+            @if (parseState().validationIssueCount) {
+              Found {{ parseState().validationIssueCount }} validation errors.
+            }
+          </div>
+        }
+        @case ('error') {
+          <div class="alert alert-danger mb-0" role="alert">
+            {{ parseState().message }}
+          </div>
+        }
+      }
     </div>
 
     <router-outlet />
