@@ -1,60 +1,209 @@
 <div class="app-layout d-flex flex-column min-vh-100">
-  <header class="app-header d-flex align-items-center px-4 py-3">
-    <h1 class="h5 mb-0">{{ title }}</h1>
+  <header class="app-header d-flex align-items-center gap-3 px-4 py-3">
+    <h1 class="h5 mb-0 me-auto">{{ title }}</h1>
+
+    @if (parseState().status === 'loading') {
+      <span class="small">
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        {{ parseState().situationCount }} processed
+      </span>
+    }
+
+    <button
+      type="button"
+      class="btn btn-light btn-sm"
+      [disabled]="parseState().status === 'loading'"
+      (click)="parseFeed()"
+    >
+      {{ store.items().length ? 'Reload' : 'Load messages' }}
+    </button>
   </header>
 
-  <main class="app-content d-flex flex-grow-1 p-4">
-    <div class="content-placeholder d-flex flex-column flex-grow-1 align-items-center justify-content-center gap-3 rounded-3">
-      <button
-        type="button"
-        class="btn btn-primary"
-        [disabled]="parseState().status === 'loading'"
-        (click)="parseMock()"
-      >
-        @if (parseState().status === 'loading') {
-          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-          Parsing…
-          @if (parseState().situationCount) {
-            {{ parseState().situationCount }}
-          }
-        } @else {
-          Parse SIRI-SX XML
-        }
-      </button>
+  <main class="app-content d-flex flex-column flex-grow-1 overflow-hidden">
+    <div class="toolbar d-flex flex-wrap align-items-center gap-2 border-bottom bg-white px-3 py-2">
+      <div class="btn-group btn-group-sm" role="group" aria-label="Data view">
+        <button
+          type="button"
+          class="btn"
+          [class.btn-primary]="activeView() === 'messages'"
+          [class.btn-outline-primary]="activeView() !== 'messages'"
+          (click)="activeView.set('messages')"
+        >
+          Messages <span class="badge text-bg-light ms-1">{{ store.items().length }}</span>
+        </button>
+        <button
+          type="button"
+          class="btn"
+          [class.btn-danger]="activeView() === 'invalid'"
+          [class.btn-outline-danger]="activeView() !== 'invalid'"
+          (click)="activeView.set('invalid')"
+        >
+          Invalid <span class="badge text-bg-light ms-1">{{ invalidSituations().length }}</span>
+        </button>
+      </div>
 
-      @switch (parseState().status) {
-        @case ('idle') {
-          <span class="text-secondary">Load and parse the configured SIRI-SX response.</span>
-        }
-        @case ('success') {
-          <div
-            class="alert mb-0"
-            [class.alert-success]="!parseState().validationIssueCount && !parseState().invalidSituationCount"
-            [class.alert-warning]="!!parseState().validationIssueCount || !!parseState().invalidSituationCount"
-            role="status"
-          >
-            Parsed {{ parseState().situationCount }} situations.
-            @if (parseState().invalidSituationCount) {
-              Discarded {{ parseState().invalidSituationCount }} invalid situations.
-            }
-            @if (parseState().validationIssueCount) {
-              Found {{ parseState().validationIssueCount }} validation errors.
-            }
-          </div>
-        }
-        @case ('error') {
-          <div class="alert alert-danger mb-0" role="alert">
-            {{ parseState().message }}
-          </div>
-        }
+      <input
+        type="search"
+        class="form-control form-control-sm search-input"
+        placeholder="Search messages, lines, stops…"
+        aria-label="Search messages"
+        [value]="searchTerm()"
+        (input)="updateSearch($event)"
+      >
+
+      <select
+        class="form-select form-select-sm language-select"
+        aria-label="Message language"
+        [value]="language()"
+        (change)="updateLanguage($event)"
+      >
+        <option value="de">Deutsch</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="it">Italiano</option>
+      </select>
+
+      @if (parseState().status === 'error') {
+        <span class="text-danger small">{{ parseState().message }}</span>
       }
     </div>
+
+    @if (activeView() === 'messages') {
+      @if (store.items().length === 0) {
+        <section class="empty-state d-flex flex-column flex-grow-1 align-items-center justify-content-center gap-3 p-4">
+          <span class="text-secondary">Load the configured SIRI-SX response to display messages.</span>
+          <button type="button" class="btn btn-primary" (click)="parseFeed()">Load messages</button>
+        </section>
+      } @else {
+        <div class="workspace d-flex flex-grow-1 overflow-hidden">
+          <section class="list-pane d-flex flex-column border-end" aria-label="Situation messages">
+            <div class="small text-secondary border-bottom bg-white px-3 py-2">
+              {{ filteredItems().length }} of {{ store.items().length }} messages
+            </div>
+
+            <cdk-virtual-scroll-viewport class="message-viewport flex-grow-1" itemSize="96">
+              <button
+                *cdkVirtualFor="let item of filteredItems(); trackBy: trackItem"
+                type="button"
+                class="message-row d-flex w-100 gap-3 border-0 border-bottom p-3 text-start"
+                [class.selected]="store.selectedId() === item.id"
+                (click)="select(item)"
+              >
+                <span class="priority-badge badge" [class.text-bg-danger]="item.priority >= 4" [class.text-bg-secondary]="item.priority < 4">
+                  P{{ item.priority }}
+                </span>
+                <span class="min-w-0 flex-grow-1">
+                  <strong class="message-summary d-block text-truncate">{{ summary(item) }}</strong>
+                  <span class="message-description d-block text-secondary text-truncate">
+                    {{ description(item) || item.alertCause }}
+                  </span>
+                  <span class="message-meta d-block text-secondary text-truncate">
+                    {{ formatPeriod(item.validityPeriods) }}
+                    @if (item.affectedLineNames.length) { · {{ item.affectedLineNames.join(', ') }} }
+                  </span>
+                </span>
+                @if (item.validationIssues.length) {
+                  <span class="badge text-bg-warning">{{ item.validationIssues.length }}</span>
+                }
+              </button>
+            </cdk-virtual-scroll-viewport>
+          </section>
+
+          <aside class="detail-pane flex-grow-1 overflow-auto bg-white p-4" aria-label="Selected situation detail">
+            @if (store.selected(); as item) {
+              <div class="d-flex align-items-start gap-3 mb-4">
+                <div class="min-w-0 flex-grow-1">
+                  <h2 class="h4 mb-2">{{ summary(item) }}</h2>
+                  <div class="text-secondary text-break">{{ item.id }} · version {{ item.version }}</div>
+                </div>
+                <span class="badge text-bg-secondary">P{{ item.priority }}</span>
+              </div>
+
+              @if (description(item)) {
+                <p class="lead">{{ description(item) }}</p>
+              }
+
+              <dl class="row small border rounded-3 p-3 mx-0">
+                <dt class="col-sm-3">Validity</dt>
+                <dd class="col-sm-9">{{ formatPeriod(item.validityPeriods) }}</dd>
+                <dt class="col-sm-3">Cause</dt>
+                <dd class="col-sm-9">{{ item.alertCause }}</dd>
+                <dt class="col-sm-3">Lines</dt>
+                <dd class="col-sm-9">{{ item.affectedLineNames.join(', ') || '—' }}</dd>
+                <dt class="col-sm-3">Stops</dt>
+                <dd class="col-sm-9">{{ item.affectedStopNames.join(', ') || '—' }}</dd>
+                <dt class="col-sm-3">Journeys</dt>
+                <dd class="col-sm-9">{{ item.affectedJourneyCount }}</dd>
+              </dl>
+
+              @for (message of item.messages; track message.actionRef) {
+                <section class="mt-4">
+                  <h3 class="h6">Passenger information · {{ message.actionRef }}</h3>
+                  <div class="small text-secondary mb-2">
+                    {{ message.scopeType }} · {{ message.perspectives.join(', ') }}
+                  </div>
+
+                  <div class="accordion" [id]="'content-' + $index">
+                    @for (size of contentSizes; track size) {
+                      @if (messageContent(message, size); as content) {
+                        <details class="border rounded-2 mb-2" [open]="size === 'medium'">
+                          <summary class="fw-semibold p-3 text-uppercase">{{ size }}</summary>
+                          <div class="border-top p-3">
+                            <p><strong>Summary:</strong> {{ localized(content.summary) || '—' }}</p>
+                            @if (localized(content.reason)) { <p><strong>Reason:</strong> {{ localized(content.reason) }}</p> }
+                            @if (localized(content.description)) { <p><strong>Description:</strong> {{ localized(content.description) }}</p> }
+                            @if (localized(content.consequence)) { <p><strong>Consequence:</strong> {{ localized(content.consequence) }}</p> }
+                            @if (localized(content.recommendation)) { <p><strong>Recommendation:</strong> {{ localized(content.recommendation) }}</p> }
+                            @if (localized(content.duration)) { <p><strong>Duration:</strong> {{ localized(content.duration) }}</p> }
+                            @if (localized(content.remark)) { <p><strong>Remark:</strong> {{ localized(content.remark) }}</p> }
+                            @for (link of content.infoLinks; track link.uri) {
+                              <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ localized(link.labels) || link.uri }}</a>
+                            }
+                          </div>
+                        </details>
+                      }
+                    }
+                  </div>
+                </section>
+              }
+
+              @if (item.validationIssues.length) {
+                <section class="alert alert-warning mt-4">
+                  <h3 class="h6">Validation issues</h3>
+                  @for (issue of item.validationIssues; track issue.path) {
+                    <div><code>{{ issue.path }}</code>: {{ issue.message }}</div>
+                  }
+                </section>
+              }
+            } @else {
+              <p class="text-secondary">Select a message to inspect it.</p>
+            }
+          </aside>
+        </div>
+      }
+    } @else {
+      <section class="invalid-pane flex-grow-1 overflow-auto p-4">
+        @if (invalidSituations().length === 0) {
+          <div class="alert alert-success">No invalid situations have been captured.</div>
+        }
+        @for (invalid of invalidSituations(); track invalid.index) {
+          <details class="bg-white border rounded-3 mb-3">
+            <summary class="p-3">
+              <strong>{{ invalid.situationNumber || 'Unknown situation' }}</strong>
+              <span class="text-danger ms-2">{{ invalid.message }}</span>
+            </summary>
+            <pre class="invalid-xml border-top mb-0 p-3"><code>{{ invalid.xml }}</code></pre>
+          </details>
+        }
+      </section>
+    }
 
     <router-outlet />
   </main>
 
-  <footer class="app-footer d-flex align-items-center justify-content-between px-4 py-3">
-    <span>SIRI-SX Situation Monitor</span>
-    <span>Footer</span>
+  <footer class="app-footer d-flex align-items-center gap-3 px-4 py-2 small">
+    <span>{{ store.items().length }} valid</span>
+    <span>{{ invalidSituations().length }} invalid</span>
+    <span class="ms-auto">SIRI-SX Situation Monitor</span>
   </footer>
 </div>

@@ -1,22 +1,55 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
-import { SiriSxStreamService } from './siri-sx/services';
+import {
+  LocalizedText,
+  PassengerMessageView,
+  PassengerTextContent,
+  PtSituationListItem,
+  SupportedLanguage,
+  TextContentSize,
+  localizedValue
+} from './siri-sx/models';
+import { PtSituationStore, SiriSxStreamService } from './siri-sx/services';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ScrollingModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
   private readonly siriSxStream = inject(SiriSxStreamService);
+  protected readonly store = inject(PtSituationStore);
 
   protected readonly title = 'SIRI-SX Browser';
   protected readonly parseState = signal<ParseState>({ status: 'idle' });
+  protected readonly searchTerm = signal('');
+  protected readonly language = signal<SupportedLanguage>('de');
+  protected readonly activeView = signal<'messages' | 'invalid'>('messages');
+  protected readonly invalidSituations = this.siriSxStream.invalidSituations;
+  protected readonly contentSizes: readonly TextContentSize[] = ['small', 'medium', 'large'];
 
-  protected parseMock(): void {
+  protected readonly filteredItems = computed(() => {
+    const query = this.searchTerm().trim().toLocaleLowerCase();
+    const language = this.language();
+    if (!query) return this.store.items();
+
+    return this.store.items().filter((item) => [
+      item.id,
+      item.alertCause,
+      item.summary(language),
+      item.description(language),
+      ...item.affectedLineNames,
+      ...item.affectedStopNames
+    ].some((value) => value?.toLocaleLowerCase().includes(query)));
+  });
+
+  protected parseFeed(): void {
+    this.store.reset();
+    this.activeView.set('messages');
     this.parseState.set({
       status: 'loading',
       situationCount: 0,
@@ -27,6 +60,7 @@ export class AppComponent {
     this.siriSxStream.streamSituations().subscribe({
       next: (event) => {
         if (event.type === 'situation') {
+          this.store.enqueue(event.situation);
           this.parseState.update((state) => ({
             status: 'loading',
             situationCount: event.index,
@@ -42,6 +76,7 @@ export class AppComponent {
             invalidSituationCount: (state.invalidSituationCount ?? 0) + 1
           }));
         } else {
+          this.store.flush();
           this.parseState.update((state) => ({
             status: 'success',
             situationCount: event.validCount,
@@ -51,6 +86,7 @@ export class AppComponent {
         }
       },
       error: (error: unknown) => {
+        this.store.flush();
         this.parseState.set({
           status: 'error',
           message: error instanceof Error ? error.message : 'Unable to parse the SIRI-SX response.'
@@ -58,6 +94,46 @@ export class AppComponent {
       }
     });
   }
+
+  protected updateSearch(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+  }
+
+  protected updateLanguage(event: Event): void {
+    this.language.set((event.target as HTMLSelectElement).value as SupportedLanguage);
+  }
+
+  protected select(item: PtSituationListItem): void {
+    this.store.select(item.id);
+  }
+
+  protected summary(item: PtSituationListItem): string {
+    return item.summary(this.language());
+  }
+
+  protected description(item: PtSituationListItem): string | undefined {
+    return item.description(this.language());
+  }
+
+  protected localized(text: LocalizedText | undefined): string | undefined {
+    return text ? localizedValue(text, this.language()) : undefined;
+  }
+
+  protected messageContent(
+    message: PassengerMessageView,
+    size: TextContentSize
+  ): PassengerTextContent | undefined {
+    return message.content[size];
+  }
+
+  protected formatPeriod(periods: readonly { start: Date; end: Date }[]): string {
+    if (periods.length === 0) return 'No period';
+    const start = periods.reduce((value, period) => period.start < value ? period.start : value, periods[0].start);
+    const end = periods.reduce((value, period) => period.end > value ? period.end : value, periods[0].end);
+    return `${start.toLocaleString()} – ${end.toLocaleString()}`;
+  }
+
+  protected readonly trackItem = (_index: number, item: PtSituationListItem): string => item.id;
 }
 
 interface ParseState {

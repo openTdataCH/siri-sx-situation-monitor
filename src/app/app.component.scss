@@ -3,24 +3,122 @@
   min-height: 100vh;
 }
 
-// Temporary section colors. Replace these with the final application palette.
+.app-layout {
+  height: 100vh;
+}
+
 .app-header {
   color: #fff;
-  background-color: #495057;
+  background-color: #343a40;
 }
 
-.app-content {
-  background-color: #dee2e6;
+.app-content,
+.empty-state,
+.invalid-pane {
+  min-height: 0;
+  background-color: #eef1f4;
 }
 
-.content-placeholder {
-  min-height: 12rem;
-  color: #495057;
-  background-color: #f8f9fa;
-  border: 2px dashed #adb5bd;
+.toolbar {
+  flex: 0 0 auto;
+}
+
+.search-input {
+  width: min(30rem, 45vw);
+}
+
+.language-select {
+  width: 8rem;
+}
+
+.workspace,
+.list-pane,
+.detail-pane,
+.message-viewport {
+  min-height: 0;
+}
+
+.list-pane {
+  flex: 0 0 42%;
+  min-width: 24rem;
+  background-color: #fff;
+}
+
+.message-viewport {
+  height: 100%;
+}
+
+.message-row {
+  height: 96px;
+  color: inherit;
+  background-color: #fff;
+}
+
+.message-row:hover,
+.message-row.selected {
+  background-color: #e9f2ff;
+}
+
+.message-row.selected {
+  box-shadow: inset 4px 0 #0d6efd;
+}
+
+.priority-badge {
+  width: 2.5rem;
+}
+
+.message-summary,
+.message-description,
+.message-meta {
+  line-height: 1.35;
+}
+
+.message-meta {
+  font-size: 0.78rem;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.detail-pane {
+  min-width: 0;
+}
+
+details > summary {
+  cursor: pointer;
+}
+
+.invalid-xml {
+  max-height: 30rem;
+  overflow: auto;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
 }
 
 .app-footer {
   color: #fff;
   background-color: #6c757d;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    overflow: auto !important;
+    flex-direction: column;
+  }
+
+  .list-pane {
+    flex-basis: 55vh;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .detail-pane {
+    overflow: visible !important;
+  }
+
+  .search-input {
+    order: 3;
+    width: 100%;
+  }
 }
