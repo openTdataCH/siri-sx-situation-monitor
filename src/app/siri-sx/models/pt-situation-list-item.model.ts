@@ -32,6 +32,7 @@ export class PtSituationListItem {
     public readonly summaries: LocalizedText,
     public readonly descriptions: LocalizedText,
     public readonly messages: readonly PassengerMessageView[],
+    public readonly affectedOperatorRefs: readonly string[],
     public readonly affectedLineNames: readonly string[],
     public readonly affectedStopNames: readonly string[],
     public readonly affectedJourneyCount: number,
@@ -42,12 +43,14 @@ export class PtSituationListItem {
   public static initFromSituation(situation: PtSituation): PtSituationListItem {
     const affects = collectAffects(situation);
     const lineNames = new Set<string>();
+    const operatorRefs = new Set<string>();
     const stopNames = new Set<string>();
     let affectedJourneyCount = 0;
 
     for (const affect of affects) {
       if (affect.type === 'line' || affect.type === 'partial-line') {
         lineNames.add(affect.line.name || affect.line.ref);
+        operatorRefs.add(affect.line.operatorRef);
       }
       if (affect.type === 'partial-line') {
         affect.stops.forEach((stop) => stopNames.add(stop.name || stop.ref));
@@ -82,6 +85,10 @@ export class PtSituationListItem {
         perspectives: action.perspectives,
         content: action.content
       })),
+      [
+        ...operatorRefs,
+        ...situation.publishingActions.map((action) => action.ownerRef)
+      ].filter((value, index, values) => values.indexOf(value) === index),
       [...lineNames],
       [...stopNames],
       affectedJourneyCount,
