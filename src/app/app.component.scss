@@ -31,6 +31,10 @@
   width: 8rem;
 }
 
+.operator-select {
+  width: 15rem;
+}
+
 .workspace,
 .list-pane,
 .detail-pane,
@@ -65,6 +69,14 @@
 
 .priority-badge {
   width: 2.5rem;
+}
+
+.result-badges {
+  width: 5rem;
+}
+
+.operator-badge {
+  max-width: 5rem;
 }
 
 .message-summary,

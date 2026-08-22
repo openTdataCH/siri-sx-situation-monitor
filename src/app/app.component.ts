@@ -30,11 +30,12 @@ export class AppComponent {
   protected readonly parseState = signal<ParseState>({ status: 'idle' });
   protected readonly searchTerm = signal('');
   protected readonly language = signal<SupportedLanguage>('de');
+  protected readonly operatorFilter = signal('');
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
   protected readonly contentSizes: readonly TextContentSize[] = ['small', 'medium', 'large'];
 
-  protected readonly filteredItems = computed(() => {
+  protected readonly textFilteredItems = computed(() => {
     const query = this.searchTerm().trim().toLocaleLowerCase();
     const language = this.language();
     if (!query) return this.store.items();
@@ -44,9 +45,38 @@ export class AppComponent {
       item.alertCause,
       item.summary(language),
       item.description(language),
+      ...item.affectedOperatorRefs,
+      ...item.affectedOperatorRefs.map((ref) =>
+        this.businessOrganisations.displayName(ref, language)
+      ),
       ...item.affectedLineNames,
       ...item.affectedStopNames
     ].some((value) => value?.toLocaleLowerCase().includes(query)));
+  });
+
+  protected readonly operatorOptions = computed(() => {
+    const counts = new Map<string, number>();
+    const language = this.language();
+    for (const item of this.textFilteredItems()) {
+      for (const operator of new Set(item.affectedOperatorRefs)) {
+        counts.set(operator, (counts.get(operator) ?? 0) + 1);
+      }
+    }
+
+    return [...counts.entries()]
+      .map(([ref, situationCount]) => ({
+        ref,
+        label: this.businessOrganisations.displayName(ref, language),
+        situationCount
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label, language));
+  });
+
+  protected readonly filteredItems = computed(() => {
+    const operator = this.operatorFilter();
+    return operator
+      ? this.textFilteredItems().filter((item) => item.affectedOperatorRefs.includes(operator))
+      : this.textFilteredItems();
   });
 
   protected parseFeed(): void {
@@ -99,10 +129,29 @@ export class AppComponent {
 
   protected updateSearch(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);
+    const selectedOperator = this.operatorFilter();
+    if (selectedOperator && !this.operatorOptions().some((option) => option.ref === selectedOperator)) {
+      this.operatorFilter.set('');
+    }
   }
 
   protected updateLanguage(event: Event): void {
     this.language.set((event.target as HTMLSelectElement).value as SupportedLanguage);
+  }
+
+  protected updateOperator(event: Event): void {
+    this.operatorFilter.set((event.target as HTMLSelectElement).value);
+  }
+
+  protected operatorName(sboid: string): string {
+    return this.businessOrganisations.displayName(sboid, this.language());
+  }
+
+  protected operatorCodes(item: PtSituationListItem): string {
+    return item.affectedOperatorRefs
+      .map((sboid) => this.businessOrganisations.shortName(sboid, this.language()))
+      .filter((value, index, values) => values.indexOf(value) === index)
+      .join(', ');
   }
 
   protected select(item: PtSituationListItem): void {
