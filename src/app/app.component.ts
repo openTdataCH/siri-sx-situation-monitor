@@ -2,6 +2,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+import { BusinessOrganisationService } from './business-organisations';
 import {
   LocalizedText,
   PassengerMessageView,
@@ -22,6 +23,7 @@ import { PtSituationStore, SiriSxStreamService } from './siri-sx/services';
 })
 export class AppComponent {
   private readonly siriSxStream = inject(SiriSxStreamService);
+  protected readonly businessOrganisations = inject(BusinessOrganisationService);
   protected readonly store = inject(PtSituationStore);
 
   protected readonly title = 'SIRI-SX Browser';
