@@ -75,6 +75,19 @@
         <option value="it">Italiano</option>
       </select>
 
+      <div class="form-check ms-1">
+        <input
+          id="validation-issues-only"
+          type="checkbox"
+          class="form-check-input"
+          [checked]="validationIssuesOnly()"
+          (change)="updateValidationIssuesOnly($event)"
+        >
+        <label class="form-check-label small" for="validation-issues-only">
+          Validation issues only
+        </label>
+      </div>
+
       @if (parseState().status === 'error') {
         <span class="text-danger small">{{ parseState().message }}</span>
       }
@@ -104,6 +117,7 @@
                 type="button"
                 class="message-row d-flex w-100 gap-3 border-0 border-bottom p-3 text-start"
                 [class.selected]="store.selectedId() === item.id"
+                [class.has-validation-issues]="item.validationIssues.length > 0"
                 (click)="select(item)"
               >
                 <span class="result-badges d-flex flex-column align-items-start gap-1">
@@ -127,7 +141,9 @@
                   </span>
                 </span>
                 @if (item.validationIssues.length) {
-                  <span class="badge text-bg-warning">{{ item.validationIssues.length }}</span>
+                  <span class="badge text-bg-warning" title="Validation issues">
+                    ! {{ item.validationIssues.length }}
+                  </span>
                 }
               </button>
             </cdk-virtual-scroll-viewport>

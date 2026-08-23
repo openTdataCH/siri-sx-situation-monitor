@@ -31,6 +31,7 @@ export class AppComponent {
   protected readonly searchTerm = signal('');
   protected readonly language = signal<SupportedLanguage>('de');
   protected readonly operatorFilter = signal('');
+  protected readonly validationIssuesOnly = signal(false);
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
   protected readonly contentSizes: readonly TextContentSize[] = ['small', 'medium', 'large'];
@@ -74,9 +75,13 @@ export class AppComponent {
 
   protected readonly filteredItems = computed(() => {
     const operator = this.operatorFilter();
-    return operator
+    const operatorFiltered = operator
       ? this.textFilteredItems().filter((item) => item.affectedOperatorRefs.includes(operator))
       : this.textFilteredItems();
+
+    return this.validationIssuesOnly()
+      ? operatorFiltered.filter((item) => item.validationIssues.length > 0)
+      : operatorFiltered;
   });
 
   protected parseFeed(): void {
@@ -141,6 +146,10 @@ export class AppComponent {
 
   protected updateOperator(event: Event): void {
     this.operatorFilter.set((event.target as HTMLSelectElement).value);
+  }
+
+  protected updateValidationIssuesOnly(event: Event): void {
+    this.validationIssuesOnly.set((event.target as HTMLInputElement).checked);
   }
 
   protected operatorName(sboid: string): string {

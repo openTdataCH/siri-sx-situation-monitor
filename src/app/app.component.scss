@@ -63,8 +63,22 @@
   background-color: #e9f2ff;
 }
 
+.message-row.has-validation-issues {
+  background-color: #fff8e1;
+  box-shadow: inset 4px 0 #ffc107;
+}
+
+.message-row.has-validation-issues:hover,
+.message-row.has-validation-issues.selected {
+  background-color: #ffefbd;
+}
+
 .message-row.selected {
   box-shadow: inset 4px 0 #0d6efd;
+}
+
+.message-row.selected.has-validation-issues {
+  box-shadow: inset 4px 0 #dc3545;
 }
 
 .priority-badge {
