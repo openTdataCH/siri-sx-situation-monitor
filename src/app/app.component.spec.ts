@@ -1,12 +1,34 @@
 import { provideHttpClient } from '@angular/common/http';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { EMPTY } from 'rxjs';
 import { AppComponent } from './app.component';
+import { BusinessOrganisationService } from './business-organisations';
+import { SiriSxStreamService } from './siri-sx/services';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideHttpClient()]
+      providers: [
+        provideHttpClient(),
+        {
+          provide: SiriSxStreamService,
+          useValue: {
+            invalidSituations: signal([]).asReadonly(),
+            streamSituations: () => EMPTY
+          }
+        },
+        {
+          provide: BusinessOrganisationService,
+          useValue: {
+            load: () => Promise.resolve(),
+            error: signal(undefined).asReadonly(),
+            displayName: (sboid: string) => sboid,
+            shortName: (sboid: string) => sboid
+          }
+        }
+      ]
     }).compileComponents();
   });
 

@@ -15,7 +15,7 @@
       [disabled]="parseState().status === 'loading'"
       (click)="parseFeed()"
     >
-      {{ store.items().length ? 'Reload' : 'Load messages' }}
+      Reload
     </button>
   </header>
 
@@ -113,8 +113,12 @@
     @if (activeView() === 'messages') {
       @if (store.items().length === 0) {
         <section class="empty-state d-flex flex-column flex-grow-1 align-items-center justify-content-center gap-3 p-4">
-          <span class="text-secondary">Load the configured SIRI-SX response to display messages.</span>
-          <button type="button" class="btn btn-primary" (click)="parseFeed()">Load messages</button>
+          @if (parseState().status === 'loading') {
+            <span class="spinner-border text-primary" aria-hidden="true"></span>
+            <span class="text-secondary">Loading SIRI-SX messages…</span>
+          } @else {
+            <span class="text-secondary">No SIRI-SX messages are available.</span>
+          }
         </section>
       } @else {
         <div class="workspace d-flex flex-grow-1 overflow-hidden">

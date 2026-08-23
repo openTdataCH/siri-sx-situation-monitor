@@ -9,6 +9,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(),
     provideRouter(routes),
-    provideAppInitializer(() => inject(BusinessOrganisationService).load())
+    provideAppInitializer(() => {
+      void inject(BusinessOrganisationService).load();
+    })
   ]
 };

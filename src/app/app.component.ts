@@ -1,5 +1,5 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { BusinessOrganisationService } from './business-organisations';
@@ -21,7 +21,7 @@ import { PtSituationStore, SiriSxStreamService } from './siri-sx/services';
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   private readonly siriSxStream = inject(SiriSxStreamService);
   protected readonly businessOrganisations = inject(BusinessOrganisationService);
   protected readonly store = inject(PtSituationStore);
@@ -111,6 +111,15 @@ export class AppComponent {
       && (!cause || item.alertCause === cause)
     );
   });
+
+  public ngOnInit(): void {
+    void this.loadInitialData();
+  }
+
+  private async loadInitialData(): Promise<void> {
+    await this.businessOrganisations.load();
+    this.parseFeed();
+  }
 
   protected parseFeed(): void {
     this.store.reset();
