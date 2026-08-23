@@ -124,6 +124,14 @@
   width: 2.5rem;
 }
 
+.priority-badge,
+.operator-badge {
+  display: inline-flex;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+}
+
 .result-badges {
   width: 7.5rem;
 }
