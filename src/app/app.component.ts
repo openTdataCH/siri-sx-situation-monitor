@@ -1,6 +1,5 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 
 import { BusinessOrganisationService } from './business-organisations';
 import {
@@ -15,8 +14,8 @@ import {
 import { PtSituationStore, SiriSxStreamService } from './siri-sx/services';
 
 @Component({
-  selector: 'app-root',
-  imports: [RouterOutlet, ScrollingModule],
+  selector: 'app-siri-sx-browser',
+  imports: [ScrollingModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
