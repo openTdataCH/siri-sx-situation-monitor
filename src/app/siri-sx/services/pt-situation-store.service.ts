@@ -46,7 +46,7 @@ export class PtSituationStore {
     }
   }
 
-  public select(id: string): void {
+  public select(id: string | null): void {
     this.selectedIdState.set(id);
   }
 }
