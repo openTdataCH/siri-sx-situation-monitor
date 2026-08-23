@@ -35,6 +35,10 @@
   width: 15rem;
 }
 
+.cause-select {
+  width: 13rem;
+}
+
 .workspace,
 .list-pane,
 .detail-pane,
@@ -86,11 +90,12 @@
 }
 
 .result-badges {
-  width: 5rem;
+  width: 7.5rem;
 }
 
-.operator-badge {
-  max-width: 5rem;
+.operator-badge,
+.cause-badge {
+  max-width: 7.5rem;
 }
 
 .message-summary,

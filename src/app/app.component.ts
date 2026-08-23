@@ -31,6 +31,7 @@ export class AppComponent {
   protected readonly searchTerm = signal('');
   protected readonly language = signal<SupportedLanguage>('de');
   protected readonly operatorFilter = signal('');
+  protected readonly causeFilter = signal('');
   protected readonly validationIssuesOnly = signal(false);
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
@@ -55,10 +56,28 @@ export class AppComponent {
     ].some((value) => value?.toLocaleLowerCase().includes(query)));
   });
 
+  protected readonly facetBaseItems = computed(() => this.validationIssuesOnly()
+    ? this.textFilteredItems().filter((item) => item.validationIssues.length > 0)
+    : this.textFilteredItems());
+
+  protected readonly operatorFacetItems = computed(() => {
+    const cause = this.causeFilter();
+    return cause
+      ? this.facetBaseItems().filter((item) => item.alertCause === cause)
+      : this.facetBaseItems();
+  });
+
+  protected readonly causeFacetItems = computed(() => {
+    const operator = this.operatorFilter();
+    return operator
+      ? this.facetBaseItems().filter((item) => item.affectedOperatorRefs.includes(operator))
+      : this.facetBaseItems();
+  });
+
   protected readonly operatorOptions = computed(() => {
     const counts = new Map<string, number>();
     const language = this.language();
-    for (const item of this.textFilteredItems()) {
+    for (const item of this.operatorFacetItems()) {
       for (const operator of new Set(item.affectedOperatorRefs)) {
         counts.set(operator, (counts.get(operator) ?? 0) + 1);
       }
@@ -73,15 +92,24 @@ export class AppComponent {
       .sort((left, right) => left.label.localeCompare(right.label, language));
   });
 
+  protected readonly causeOptions = computed(() => {
+    const counts = new Map<string, number>();
+    for (const item of this.causeFacetItems()) {
+      counts.set(item.alertCause, (counts.get(item.alertCause) ?? 0) + 1);
+    }
+
+    return [...counts.entries()]
+      .map(([cause, situationCount]) => ({ cause, situationCount }))
+      .sort((left, right) => left.cause.localeCompare(right.cause));
+  });
+
   protected readonly filteredItems = computed(() => {
     const operator = this.operatorFilter();
-    const operatorFiltered = operator
-      ? this.textFilteredItems().filter((item) => item.affectedOperatorRefs.includes(operator))
-      : this.textFilteredItems();
-
-    return this.validationIssuesOnly()
-      ? operatorFiltered.filter((item) => item.validationIssues.length > 0)
-      : operatorFiltered;
+    const cause = this.causeFilter();
+    return this.facetBaseItems().filter((item) =>
+      (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!cause || item.alertCause === cause)
+    );
   });
 
   protected parseFeed(): void {
@@ -138,6 +166,10 @@ export class AppComponent {
     if (selectedOperator && !this.operatorOptions().some((option) => option.ref === selectedOperator)) {
       this.operatorFilter.set('');
     }
+    const selectedCause = this.causeFilter();
+    if (selectedCause && !this.causeOptions().some((option) => option.cause === selectedCause)) {
+      this.causeFilter.set('');
+    }
   }
 
   protected updateLanguage(event: Event): void {
@@ -146,10 +178,30 @@ export class AppComponent {
 
   protected updateOperator(event: Event): void {
     this.operatorFilter.set((event.target as HTMLSelectElement).value);
+    const selectedCause = this.causeFilter();
+    if (selectedCause && !this.causeOptions().some((option) => option.cause === selectedCause)) {
+      this.causeFilter.set('');
+    }
+  }
+
+  protected updateCause(event: Event): void {
+    this.causeFilter.set((event.target as HTMLSelectElement).value);
+    const selectedOperator = this.operatorFilter();
+    if (selectedOperator && !this.operatorOptions().some((option) => option.ref === selectedOperator)) {
+      this.operatorFilter.set('');
+    }
   }
 
   protected updateValidationIssuesOnly(event: Event): void {
     this.validationIssuesOnly.set((event.target as HTMLInputElement).checked);
+    const selectedOperator = this.operatorFilter();
+    if (selectedOperator && !this.operatorOptions().some((option) => option.ref === selectedOperator)) {
+      this.operatorFilter.set('');
+    }
+    const selectedCause = this.causeFilter();
+    if (selectedCause && !this.causeOptions().some((option) => option.cause === selectedCause)) {
+      this.causeFilter.set('');
+    }
   }
 
   protected operatorName(sboid: string): string {

@@ -57,9 +57,21 @@
         [value]="operatorFilter()"
         (change)="updateOperator($event)"
       >
-        <option value="">All operators ({{ textFilteredItems().length }})</option>
+        <option value="">All operators ({{ operatorFacetItems().length }})</option>
         @for (operator of operatorOptions(); track operator.ref) {
           <option [value]="operator.ref">{{ operator.label }} ({{ operator.situationCount }})</option>
+        }
+      </select>
+
+      <select
+        class="form-select form-select-sm cause-select"
+        aria-label="Filter by alert cause"
+        [value]="causeFilter()"
+        (change)="updateCause($event)"
+      >
+        <option value="">All causes ({{ causeFacetItems().length }})</option>
+        @for (option of causeOptions(); track option.cause) {
+          <option [value]="option.cause">{{ option.cause }} ({{ option.situationCount }})</option>
         }
       </select>
 
@@ -129,6 +141,9 @@
                       {{ operatorCodes(item) }}
                     </span>
                   }
+                  <span class="cause-badge badge text-bg-info text-truncate" [title]="item.alertCause">
+                    {{ item.alertCause }}
+                  </span>
                 </span>
                 <span class="min-w-0 flex-grow-1">
                   <strong class="message-summary d-block text-truncate">{{ summary(item) }}</strong>
