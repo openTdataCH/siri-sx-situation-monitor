@@ -39,6 +39,10 @@
   width: 13rem;
 }
 
+.action-count-select {
+  width: 13rem;
+}
+
 .workspace,
 .list-pane,
 .detail-pane,
@@ -60,6 +64,37 @@
   height: 96px;
   color: inherit;
   background-color: #fff;
+}
+
+.situation-row {
+  font-weight: 500;
+  background-color: #fff;
+}
+
+.action-row {
+  padding-left: 2rem !important;
+  background-color: #f8f9fa;
+  box-shadow: inset 4px 0 #ced4da;
+}
+
+.action-row:hover,
+.action-row.selected {
+  background-color: #e7f1ff;
+}
+
+.action-indent {
+  flex: 0 0 1rem;
+  color: #6c757d;
+  font-size: 1.25rem;
+}
+
+.action-badges {
+  width: 7.5rem;
+  min-width: 0;
+}
+
+.action-badges .badge {
+  max-width: 7.5rem;
 }
 
 .message-row:hover,

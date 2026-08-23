@@ -32,8 +32,10 @@ export class AppComponent implements OnInit {
   protected readonly language = signal<SupportedLanguage>('de');
   protected readonly operatorFilter = signal('');
   protected readonly causeFilter = signal('');
+  protected readonly actionCountFilter = signal<number | null>(null);
   protected readonly validationIssuesOnly = signal(false);
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
+  protected readonly selectedAction = signal<ActionSelection | null>(null);
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
   protected readonly contentSizes: readonly TextContentSize[] = ['small', 'medium', 'large'];
 
@@ -62,16 +64,29 @@ export class AppComponent implements OnInit {
 
   protected readonly operatorFacetItems = computed(() => {
     const cause = this.causeFilter();
-    return cause
-      ? this.facetBaseItems().filter((item) => item.alertCause === cause)
-      : this.facetBaseItems();
+    const actionCount = this.actionCountFilter();
+    return this.facetBaseItems().filter((item) =>
+      (!cause || item.alertCause === cause)
+      && (actionCount === null || item.messages.length === actionCount)
+    );
   });
 
   protected readonly causeFacetItems = computed(() => {
     const operator = this.operatorFilter();
-    return operator
-      ? this.facetBaseItems().filter((item) => item.affectedOperatorRefs.includes(operator))
-      : this.facetBaseItems();
+    const actionCount = this.actionCountFilter();
+    return this.facetBaseItems().filter((item) =>
+      (!operator || item.affectedOperatorRefs.includes(operator))
+      && (actionCount === null || item.messages.length === actionCount)
+    );
+  });
+
+  protected readonly actionCountFacetItems = computed(() => {
+    const operator = this.operatorFilter();
+    const cause = this.causeFilter();
+    return this.facetBaseItems().filter((item) =>
+      (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!cause || item.alertCause === cause)
+    );
   });
 
   protected readonly operatorOptions = computed(() => {
@@ -103,13 +118,59 @@ export class AppComponent implements OnInit {
       .sort((left, right) => left.cause.localeCompare(right.cause));
   });
 
+  protected readonly actionCountOptions = computed(() => {
+    const counts = new Map<number, number>();
+    for (const item of this.actionCountFacetItems()) {
+      counts.set(item.messages.length, (counts.get(item.messages.length) ?? 0) + 1);
+    }
+
+    return [...counts.entries()]
+      .map(([actionCount, situationCount]) => ({ actionCount, situationCount }))
+      .sort((left, right) => left.actionCount - right.actionCount);
+  });
+
   protected readonly filteredItems = computed(() => {
     const operator = this.operatorFilter();
     const cause = this.causeFilter();
+    const actionCount = this.actionCountFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
       && (!cause || item.alertCause === cause)
+      && (actionCount === null || item.messages.length === actionCount)
     );
+  });
+
+  protected readonly resultRows = computed<SituationResultRow[]>(() =>
+    this.filteredItems().flatMap((situation) => [
+      {
+        kind: 'situation' as const,
+        key: `situation:${situation.id}`,
+        situation
+      },
+      ...situation.messages.map((action, actionIndex) => ({
+        kind: 'publishing-action' as const,
+        key: `action:${situation.id}:${action.actionRef}:${actionIndex}`,
+        parentId: situation.id,
+        situation,
+        action,
+        actionIndex
+      }))
+    ])
+  );
+
+  protected readonly selectedActionView = computed(() => {
+    const selection = this.selectedAction();
+    if (!selection) return undefined;
+    const situation = this.store.items().find((item) => item.id === selection.parentId);
+    const action = situation?.messages[selection.actionIndex];
+    return situation && action?.actionRef === selection.actionRef
+      ? { situation, action }
+      : undefined;
+  });
+
+  protected readonly detailMessages = computed(() => {
+    const selectedAction = this.selectedActionView();
+    return selectedAction ? [selectedAction.action] : (this.store.selected()?.messages ?? []);
   });
 
   public ngOnInit(): void {
@@ -171,14 +232,7 @@ export class AppComponent implements OnInit {
 
   protected updateSearch(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);
-    const selectedOperator = this.operatorFilter();
-    if (selectedOperator && !this.operatorOptions().some((option) => option.ref === selectedOperator)) {
-      this.operatorFilter.set('');
-    }
-    const selectedCause = this.causeFilter();
-    if (selectedCause && !this.causeOptions().some((option) => option.cause === selectedCause)) {
-      this.causeFilter.set('');
-    }
+    this.reconcileFacetSelections();
   }
 
   protected updateLanguage(event: Event): void {
@@ -187,29 +241,48 @@ export class AppComponent implements OnInit {
 
   protected updateOperator(event: Event): void {
     this.operatorFilter.set((event.target as HTMLSelectElement).value);
-    const selectedCause = this.causeFilter();
-    if (selectedCause && !this.causeOptions().some((option) => option.cause === selectedCause)) {
-      this.causeFilter.set('');
-    }
+    this.reconcileFacetSelections();
   }
 
   protected updateCause(event: Event): void {
     this.causeFilter.set((event.target as HTMLSelectElement).value);
-    const selectedOperator = this.operatorFilter();
-    if (selectedOperator && !this.operatorOptions().some((option) => option.ref === selectedOperator)) {
-      this.operatorFilter.set('');
-    }
+    this.reconcileFacetSelections();
+  }
+
+  protected updateActionCount(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.actionCountFilter.set(value === '' ? null : Number(value));
+    this.reconcileFacetSelections();
   }
 
   protected updateValidationIssuesOnly(event: Event): void {
     this.validationIssuesOnly.set((event.target as HTMLInputElement).checked);
-    const selectedOperator = this.operatorFilter();
-    if (selectedOperator && !this.operatorOptions().some((option) => option.ref === selectedOperator)) {
-      this.operatorFilter.set('');
-    }
-    const selectedCause = this.causeFilter();
-    if (selectedCause && !this.causeOptions().some((option) => option.cause === selectedCause)) {
-      this.causeFilter.set('');
+    this.reconcileFacetSelections();
+  }
+
+  private reconcileFacetSelections(): void {
+    for (let pass = 0; pass < 3; pass += 1) {
+      let changed = false;
+      const operator = this.operatorFilter();
+      if (operator && !this.operatorOptions().some((option) => option.ref === operator)) {
+        this.operatorFilter.set('');
+        changed = true;
+      }
+
+      const cause = this.causeFilter();
+      if (cause && !this.causeOptions().some((option) => option.cause === cause)) {
+        this.causeFilter.set('');
+        changed = true;
+      }
+
+      const actionCount = this.actionCountFilter();
+      if (actionCount !== null
+        && !this.actionCountOptions().some((option) => option.actionCount === actionCount)) {
+        this.actionCountFilter.set(null);
+        changed = true;
+      }
+
+      if (!changed) return;
     }
   }
 
@@ -226,6 +299,16 @@ export class AppComponent implements OnInit {
 
   protected select(item: PtSituationListItem): void {
     this.store.select(item.id);
+    this.selectedAction.set(null);
+  }
+
+  protected selectAction(row: PublishingActionResultRow): void {
+    this.store.select(row.parentId);
+    this.selectedAction.set({
+      parentId: row.parentId,
+      actionRef: row.action.actionRef,
+      actionIndex: row.actionIndex
+    });
   }
 
   protected summary(item: PtSituationListItem): string {
@@ -247,6 +330,22 @@ export class AppComponent implements OnInit {
     return message.content[size];
   }
 
+  protected actionSummary(action: PassengerMessageView): string {
+    for (const size of ['medium', 'small', 'large'] as const) {
+      const summary = action.content[size]?.summary;
+      const value = summary ? localizedValue(summary, this.language()) : undefined;
+      if (value) return value;
+    }
+    return action.actionRef;
+  }
+
+  protected isActionSelected(row: PublishingActionResultRow): boolean {
+    const selected = this.selectedAction();
+    return selected?.parentId === row.parentId
+      && selected.actionRef === row.action.actionRef
+      && selected.actionIndex === row.actionIndex;
+  }
+
   protected formatPeriod(periods: readonly { start: Date; end: Date }[]): string {
     if (periods.length === 0) return 'No period';
     const start = periods.reduce((value, period) => period.start < value ? period.start : value, periods[0].start);
@@ -255,6 +354,30 @@ export class AppComponent implements OnInit {
   }
 
   protected readonly trackItem = (_index: number, item: PtSituationListItem): string => item.id;
+  protected readonly trackResultRow = (_index: number, row: SituationResultRow): string => row.key;
+}
+
+interface SituationParentResultRow {
+  kind: 'situation';
+  key: string;
+  situation: PtSituationListItem;
+}
+
+interface PublishingActionResultRow {
+  kind: 'publishing-action';
+  key: string;
+  parentId: string;
+  situation: PtSituationListItem;
+  action: PassengerMessageView;
+  actionIndex: number;
+}
+
+type SituationResultRow = SituationParentResultRow | PublishingActionResultRow;
+
+interface ActionSelection {
+  parentId: string;
+  actionRef: string;
+  actionIndex: number;
 }
 
 interface ParseState {

@@ -76,6 +76,20 @@
       </select>
 
       <select
+        class="form-select form-select-sm action-count-select"
+        aria-label="Filter by publishing action count"
+        [value]="actionCountFilter() ?? ''"
+        (change)="updateActionCount($event)"
+      >
+        <option value="">All action counts ({{ actionCountFacetItems().length }})</option>
+        @for (option of actionCountOptions(); track option.actionCount) {
+          <option [value]="option.actionCount">
+            {{ option.actionCount }} {{ option.actionCount === 1 ? 'action' : 'actions' }} ({{ option.situationCount }})
+          </option>
+        }
+      </select>
+
+      <select
         class="form-select form-select-sm language-select"
         aria-label="Message language"
         [value]="language()"
@@ -128,43 +142,69 @@
             </div>
 
             <cdk-virtual-scroll-viewport class="message-viewport flex-grow-1" itemSize="96">
-              <button
-                *cdkVirtualFor="let item of filteredItems(); trackBy: trackItem"
-                type="button"
-                class="message-row d-flex w-100 gap-3 border-0 border-bottom p-3 text-start"
-                [class.selected]="store.selectedId() === item.id"
-                [class.has-validation-issues]="item.validationIssues.length > 0"
-                (click)="select(item)"
-              >
-                <span class="result-badges d-flex flex-column align-items-start gap-1">
-                  <span class="priority-badge badge" [class.text-bg-danger]="item.priority >= 4" [class.text-bg-secondary]="item.priority < 4">
-                    P{{ item.priority }}
-                  </span>
-                  @if (item.affectedOperatorRefs.length) {
-                    <span class="operator-badge badge text-bg-primary text-truncate" [title]="operatorCodes(item)">
-                      {{ operatorCodes(item) }}
+              <ng-container *cdkVirtualFor="let row of resultRows(); trackBy: trackResultRow">
+                @if (row.kind === 'situation') {
+                  <button
+                    type="button"
+                    class="message-row situation-row d-flex w-100 gap-3 border-0 border-bottom p-3 text-start"
+                    [class.selected]="store.selectedId() === row.situation.id && !selectedAction()"
+                    [class.has-validation-issues]="row.situation.validationIssues.length > 0"
+                    (click)="select(row.situation)"
+                  >
+                    <span class="result-badges d-flex flex-column align-items-start gap-1">
+                      <span class="priority-badge badge" [class.text-bg-danger]="row.situation.priority >= 4" [class.text-bg-secondary]="row.situation.priority < 4">
+                        P{{ row.situation.priority }}
+                      </span>
+                      @if (row.situation.affectedOperatorRefs.length) {
+                        <span class="operator-badge badge text-bg-primary text-truncate" [title]="operatorCodes(row.situation)">
+                          {{ operatorCodes(row.situation) }}
+                        </span>
+                      }
+                      <span class="cause-badge badge text-bg-info text-truncate" [title]="row.situation.alertCause">
+                        {{ row.situation.alertCause }}
+                      </span>
                     </span>
-                  }
-                  <span class="cause-badge badge text-bg-info text-truncate" [title]="item.alertCause">
-                    {{ item.alertCause }}
-                  </span>
-                </span>
-                <span class="min-w-0 flex-grow-1">
-                  <strong class="message-summary d-block text-truncate">{{ summary(item) }}</strong>
-                  <span class="message-description d-block text-secondary text-truncate">
-                    {{ description(item) || item.alertCause }}
-                  </span>
-                  <span class="message-meta d-block text-secondary text-truncate">
-                    {{ formatPeriod(item.validityPeriods) }}
-                    @if (item.affectedLineNames.length) { · {{ item.affectedLineNames.join(', ') }} }
-                  </span>
-                </span>
-                @if (item.validationIssues.length) {
-                  <span class="badge text-bg-warning" title="Validation issues">
-                    ! {{ item.validationIssues.length }}
-                  </span>
+                    <span class="min-w-0 flex-grow-1">
+                      <strong class="message-summary d-block text-truncate">{{ summary(row.situation) }}</strong>
+                      <span class="message-description d-block text-secondary text-truncate">
+                        {{ description(row.situation) || row.situation.alertCause }}
+                      </span>
+                      <span class="message-meta d-block text-secondary text-truncate">
+                        {{ row.situation.messages.length }} publishing action(s) · {{ formatPeriod(row.situation.validityPeriods) }}
+                      </span>
+                    </span>
+                    @if (row.situation.validationIssues.length) {
+                      <span class="badge text-bg-warning" title="Validation issues">
+                        ! {{ row.situation.validationIssues.length }}
+                      </span>
+                    }
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="message-row action-row d-flex w-100 gap-3 border-0 border-bottom p-3 text-start"
+                    [class.selected]="isActionSelected(row)"
+                    (click)="selectAction(row)"
+                  >
+                    <span class="action-indent" aria-hidden="true">↳</span>
+                    <span class="action-badges d-flex flex-column align-items-start gap-1">
+                      <span class="badge text-bg-dark">ACTION</span>
+                      <span class="badge text-bg-secondary text-truncate" [title]="row.action.scopeType">
+                        {{ row.action.scopeType }}
+                      </span>
+                    </span>
+                    <span class="min-w-0 flex-grow-1">
+                      <strong class="message-summary d-block text-truncate">{{ actionSummary(row.action) }}</strong>
+                      <span class="message-description d-block text-secondary text-truncate">
+                        {{ row.action.actionRef }}
+                      </span>
+                      <span class="message-meta d-block text-secondary text-truncate">
+                        {{ row.action.perspectives.join(' · ') }}
+                      </span>
+                    </span>
+                  </button>
                 }
-              </button>
+              </ng-container>
             </cdk-virtual-scroll-viewport>
           </section>
 
@@ -172,13 +212,22 @@
             @if (store.selected(); as item) {
               <div class="d-flex align-items-start gap-3 mb-4">
                 <div class="min-w-0 flex-grow-1">
-                  <h2 class="h4 mb-2">{{ summary(item) }}</h2>
-                  <div class="text-secondary text-break">{{ item.id }} · version {{ item.version }}</div>
+                  @if (selectedActionView(); as selected) {
+                    <div class="small text-uppercase text-primary fw-semibold mb-1">Publishing action</div>
+                    <h2 class="h4 mb-2">{{ actionSummary(selected.action) }}</h2>
+                    <div class="text-secondary text-break">
+                      {{ selected.action.actionRef }} · parent {{ item.id }}
+                    </div>
+                  } @else {
+                    <div class="small text-uppercase text-secondary fw-semibold mb-1">PT situation</div>
+                    <h2 class="h4 mb-2">{{ summary(item) }}</h2>
+                    <div class="text-secondary text-break">{{ item.id }} · version {{ item.version }}</div>
+                  }
                 </div>
                 <span class="badge text-bg-secondary">P{{ item.priority }}</span>
               </div>
 
-              @if (description(item)) {
+              @if (!selectedActionView() && description(item)) {
                 <p class="lead">{{ description(item) }}</p>
               }
 
@@ -201,7 +250,7 @@
                 <dd class="col-sm-9">{{ item.affectedJourneyCount }}</dd>
               </dl>
 
-              @for (message of item.messages; track message.actionRef) {
+              @for (message of detailMessages(); track message.actionRef) {
                 <section class="mt-4">
                   <h3 class="h6">Passenger information · {{ message.actionRef }}</h3>
                   <div class="small text-secondary mb-2">
