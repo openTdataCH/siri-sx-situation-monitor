@@ -90,6 +90,20 @@
       </select>
 
       <select
+        class="form-select form-select-sm scope-type-select"
+        aria-label="Filter by publishing action scope type"
+        [value]="scopeTypeFilter()"
+        (change)="updateScopeType($event)"
+      >
+        <option value="">All scopes ({{ scopeTypeFacetItems().length }})</option>
+        @for (option of scopeTypeOptions(); track option.scopeType) {
+          <option [value]="option.scopeType">
+            {{ option.scopeType }} ({{ option.situationCount }})
+          </option>
+        }
+      </select>
+
+      <select
         class="form-select form-select-sm language-select"
         aria-label="Message language"
         [value]="language()"
@@ -241,7 +255,12 @@
                 <dt class="col-sm-3">Operators</dt>
                 <dd class="col-sm-9">
                   @for (operator of item.affectedOperatorRefs; track operator; let last = $last) {
-                    {{ operatorName(operator) }}@if (!last) {, }
+                    {{ operatorName(operator) }}
+                    <a
+                      [href]="operatorAtlasUrl(operator)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >({{ operator }})</a>@if (!last) {, }
                   } @empty { — }
                 </dd>
                 <dt class="col-sm-3">Stops</dt>

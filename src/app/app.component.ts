@@ -1,5 +1,5 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { BusinessOrganisationService } from './business-organisations';
@@ -33,6 +33,7 @@ export class AppComponent implements OnInit {
   protected readonly operatorFilter = signal('');
   protected readonly causeFilter = signal('');
   protected readonly actionCountFilter = signal<number | null>(null);
+  protected readonly scopeTypeFilter = signal('');
   protected readonly validationIssuesOnly = signal(false);
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly selectedAction = signal<ActionSelection | null>(null);
@@ -65,27 +66,44 @@ export class AppComponent implements OnInit {
   protected readonly operatorFacetItems = computed(() => {
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
+    const scopeType = this.scopeTypeFilter();
     return this.facetBaseItems().filter((item) =>
       (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
+      && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
     );
   });
 
   protected readonly causeFacetItems = computed(() => {
     const operator = this.operatorFilter();
     const actionCount = this.actionCountFilter();
+    const scopeType = this.scopeTypeFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
       && (actionCount === null || item.messages.length === actionCount)
+      && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
     );
   });
 
   protected readonly actionCountFacetItems = computed(() => {
     const operator = this.operatorFilter();
     const cause = this.causeFilter();
+    const scopeType = this.scopeTypeFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
       && (!cause || item.alertCause === cause)
+      && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
+    );
+  });
+
+  protected readonly scopeTypeFacetItems = computed(() => {
+    const operator = this.operatorFilter();
+    const cause = this.causeFilter();
+    const actionCount = this.actionCountFilter();
+    return this.facetBaseItems().filter((item) =>
+      (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!cause || item.alertCause === cause)
+      && (actionCount === null || item.messages.length === actionCount)
     );
   });
 
@@ -129,14 +147,29 @@ export class AppComponent implements OnInit {
       .sort((left, right) => left.actionCount - right.actionCount);
   });
 
+  protected readonly scopeTypeOptions = computed(() => {
+    const counts = new Map<string, number>();
+    for (const item of this.scopeTypeFacetItems()) {
+      for (const scopeType of new Set(item.messages.map((action) => action.scopeType))) {
+        counts.set(scopeType, (counts.get(scopeType) ?? 0) + 1);
+      }
+    }
+
+    return [...counts.entries()]
+      .map(([scopeType, situationCount]) => ({ scopeType, situationCount }))
+      .sort((left, right) => left.scopeType.localeCompare(right.scopeType));
+  });
+
   protected readonly filteredItems = computed(() => {
     const operator = this.operatorFilter();
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
+    const scopeType = this.scopeTypeFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
       && (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
+      && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
     );
   });
 
@@ -171,6 +204,15 @@ export class AppComponent implements OnInit {
   protected readonly detailMessages = computed(() => {
     const selectedAction = this.selectedActionView();
     return selectedAction ? [selectedAction.action] : (this.store.selected()?.messages ?? []);
+  });
+
+  private readonly synchronizeFilteredSelection = effect(() => {
+    const items = this.filteredItems();
+    const selectedId = this.store.selectedId();
+    if (selectedId && items.some((item) => item.id === selectedId)) return;
+
+    this.store.select(items[0]?.id ?? null);
+    this.selectedAction.set(null);
   });
 
   public ngOnInit(): void {
@@ -255,6 +297,11 @@ export class AppComponent implements OnInit {
     this.reconcileFacetSelections();
   }
 
+  protected updateScopeType(event: Event): void {
+    this.scopeTypeFilter.set((event.target as HTMLSelectElement).value);
+    this.reconcileFacetSelections();
+  }
+
   protected updateValidationIssuesOnly(event: Event): void {
     this.validationIssuesOnly.set((event.target as HTMLInputElement).checked);
     this.reconcileFacetSelections();
@@ -282,12 +329,23 @@ export class AppComponent implements OnInit {
         changed = true;
       }
 
+      const scopeType = this.scopeTypeFilter();
+      if (scopeType
+        && !this.scopeTypeOptions().some((option) => option.scopeType === scopeType)) {
+        this.scopeTypeFilter.set('');
+        changed = true;
+      }
+
       if (!changed) return;
     }
   }
 
   protected operatorName(sboid: string): string {
     return this.businessOrganisations.displayName(sboid, this.language());
+  }
+
+  protected operatorAtlasUrl(sboid: string): string {
+    return `https://atlas.app.sbb.ch/business-organisation-directory/business-organisations/${sboid}`;
   }
 
   protected operatorCodes(item: PtSituationListItem): string {
