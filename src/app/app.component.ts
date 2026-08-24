@@ -33,6 +33,7 @@ export class AppComponent implements OnInit {
   protected readonly causeFilter = signal('');
   protected readonly actionCountFilter = signal<number | null>(null);
   protected readonly scopeTypeFilter = signal('');
+  protected readonly perspectiveCombinationFilter = signal('');
   protected readonly validationIssuesOnly = signal(false);
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly selectedAction = signal<ActionSelection | null>(null);
@@ -66,10 +67,13 @@ export class AppComponent implements OnInit {
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
     const scopeType = this.scopeTypeFilter();
+    const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
+      && (!perspectiveCombination || item.messages.some((action) =>
+        this.perspectiveCombinationKey(action) === perspectiveCombination))
     );
   });
 
@@ -77,10 +81,13 @@ export class AppComponent implements OnInit {
     const operator = this.operatorFilter();
     const actionCount = this.actionCountFilter();
     const scopeType = this.scopeTypeFilter();
+    const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
       && (actionCount === null || item.messages.length === actionCount)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
+      && (!perspectiveCombination || item.messages.some((action) =>
+        this.perspectiveCombinationKey(action) === perspectiveCombination))
     );
   });
 
@@ -88,10 +95,13 @@ export class AppComponent implements OnInit {
     const operator = this.operatorFilter();
     const cause = this.causeFilter();
     const scopeType = this.scopeTypeFilter();
+    const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
       && (!cause || item.alertCause === cause)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
+      && (!perspectiveCombination || item.messages.some((action) =>
+        this.perspectiveCombinationKey(action) === perspectiveCombination))
     );
   });
 
@@ -99,10 +109,26 @@ export class AppComponent implements OnInit {
     const operator = this.operatorFilter();
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
+    const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
       && (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
+      && (!perspectiveCombination || item.messages.some((action) =>
+        this.perspectiveCombinationKey(action) === perspectiveCombination))
+    );
+  });
+
+  protected readonly perspectiveCombinationFacetItems = computed(() => {
+    const operator = this.operatorFilter();
+    const cause = this.causeFilter();
+    const actionCount = this.actionCountFilter();
+    const scopeType = this.scopeTypeFilter();
+    return this.facetBaseItems().filter((item) =>
+      (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!cause || item.alertCause === cause)
+      && (actionCount === null || item.messages.length === actionCount)
+      && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
     );
   });
 
@@ -159,16 +185,39 @@ export class AppComponent implements OnInit {
       .sort((left, right) => left.scopeType.localeCompare(right.scopeType));
   });
 
+  protected readonly perspectiveCombinationOptions = computed(() => {
+    const counts = new Map<string, number>();
+    for (const item of this.perspectiveCombinationFacetItems()) {
+      const combinations = new Set(
+        item.messages.map((action) => this.perspectiveCombinationKey(action))
+      );
+      for (const combination of combinations) {
+        counts.set(combination, (counts.get(combination) ?? 0) + 1);
+      }
+    }
+
+    return [...counts.entries()]
+      .map(([combination, situationCount]) => ({
+        combination,
+        label: this.perspectiveCombinationLabel(combination),
+        situationCount
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label));
+  });
+
   protected readonly filteredItems = computed(() => {
     const operator = this.operatorFilter();
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
     const scopeType = this.scopeTypeFilter();
+    const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
       && (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
+      && (!perspectiveCombination || item.messages.some((action) =>
+        this.perspectiveCombinationKey(action) === perspectiveCombination))
     );
   });
 
@@ -301,6 +350,11 @@ export class AppComponent implements OnInit {
     this.reconcileFacetSelections();
   }
 
+  protected updatePerspectiveCombination(event: Event): void {
+    this.perspectiveCombinationFilter.set((event.target as HTMLSelectElement).value);
+    this.reconcileFacetSelections();
+  }
+
   protected updateValidationIssuesOnly(event: Event): void {
     this.validationIssuesOnly.set((event.target as HTMLInputElement).checked);
     this.reconcileFacetSelections();
@@ -332,6 +386,14 @@ export class AppComponent implements OnInit {
       if (scopeType
         && !this.scopeTypeOptions().some((option) => option.scopeType === scopeType)) {
         this.scopeTypeFilter.set('');
+        changed = true;
+      }
+
+      const perspectiveCombination = this.perspectiveCombinationFilter();
+      if (perspectiveCombination
+        && !this.perspectiveCombinationOptions().some((option) =>
+          option.combination === perspectiveCombination)) {
+        this.perspectiveCombinationFilter.set('');
         changed = true;
       }
 
@@ -394,6 +456,14 @@ export class AppComponent implements OnInit {
       if (value) return value;
     }
     return action.actionRef;
+  }
+
+  protected perspectiveCombinationKey(action: PassengerMessageView): string {
+    return [...new Set(action.perspectives)].sort().join('|');
+  }
+
+  protected perspectiveCombinationLabel(combination: string): string {
+    return combination.split('|').join(' + ');
   }
 
   protected isActionSelected(row: PublishingActionResultRow): boolean {

@@ -104,6 +104,20 @@
       </select>
 
       <select
+        class="form-select form-select-sm perspective-select"
+        aria-label="Filter by perspective combination"
+        [value]="perspectiveCombinationFilter()"
+        (change)="updatePerspectiveCombination($event)"
+      >
+        <option value="">All perspectives ({{ perspectiveCombinationFacetItems().length }})</option>
+        @for (option of perspectiveCombinationOptions(); track option.combination) {
+          <option [value]="option.combination">
+            {{ option.label }} ({{ option.situationCount }})
+          </option>
+        }
+      </select>
+
+      <select
         class="form-select form-select-sm language-select"
         aria-label="Message language"
         [value]="language()"
