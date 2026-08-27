@@ -558,6 +558,16 @@ export class AppComponent implements OnInit {
       .join(', ');
   }
 
+  protected actionOwnerCode(action: PassengerMessageView): string {
+    return this.businessOrganisations.shortName(action.ownerRef, this.language());
+  }
+
+  protected actionOwnerRefs(item: PtSituationListItem): readonly string[] {
+    return item.messages
+      .map((action) => action.ownerRef)
+      .filter((owner, index, owners) => owners.indexOf(owner) === index);
+  }
+
   protected select(item: PtSituationListItem): void {
     this.store.select(item.id);
     this.selectedAction.set(null);

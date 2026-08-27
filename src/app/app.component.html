@@ -276,6 +276,10 @@
                     <span class="action-indent" aria-hidden="true">↳</span>
                     <span class="action-badges d-flex flex-column align-items-start gap-1">
                       <span class="badge text-bg-dark">ACTION</span>
+                      <span
+                        class="badge text-bg-primary text-truncate"
+                        [title]="operatorName(row.action.ownerRef)"
+                      >{{ actionOwnerCode(row.action) }}</span>
                       <span class="badge text-bg-secondary text-truncate" [title]="row.action.scopeType">
                         {{ row.action.scopeType }}
                       </span>
@@ -325,10 +329,6 @@
                 </span>
               </div>
 
-              @if (!selectedActionView() && description(item)) {
-                <p class="lead">{{ description(item) }}</p>
-              }
-
               <dl class="row small border rounded-3 p-3 mx-0">
                 <dt class="col-sm-3">Validity</dt>
                 <dd class="col-sm-9">
@@ -363,6 +363,17 @@
                       target="_blank"
                       rel="noopener noreferrer"
                     >({{ operator }})</a>@if (!last) {, }
+                  } @empty { — }
+                </dd>
+                <dt class="col-sm-3">Action owners</dt>
+                <dd class="col-sm-9">
+                  @for (owner of actionOwnerRefs(item); track owner; let last = $last) {
+                    {{ operatorName(owner) }}
+                    <a
+                      [href]="operatorAtlasUrl(owner)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >({{ owner }})</a>@if (!last) {, }
                   } @empty { — }
                 </dd>
                 <dt class="col-sm-3">Stops</dt>
