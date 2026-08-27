@@ -52,6 +52,18 @@
       >
 
       <select
+        class="form-select form-select-sm priority-select"
+        aria-label="Filter by priority"
+        [value]="priorityFilter() ?? ''"
+        (change)="updatePriority($event)"
+      >
+        <option value="">All priorities ({{ priorityFacetItems().length }})</option>
+        @for (option of priorityOptions(); track option.priority) {
+          <option [value]="option.priority">P{{ option.priority }} ({{ option.situationCount }})</option>
+        }
+      </select>
+
+      <select
         class="form-select form-select-sm operator-select"
         aria-label="Filter by operator"
         [value]="operatorFilter()"
