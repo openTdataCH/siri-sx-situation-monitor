@@ -76,6 +76,18 @@
       </select>
 
       <select
+        class="form-select form-select-sm owner-select"
+        aria-label="Filter by action owner"
+        [value]="ownerFilter()"
+        (change)="updateOwner($event)"
+      >
+        <option value="">All action owners ({{ ownerFacetItems().length }})</option>
+        @for (owner of ownerOptions(); track owner.ref) {
+          <option [value]="owner.ref">{{ owner.label }} ({{ owner.situationCount }})</option>
+        }
+      </select>
+
+      <select
         class="form-select form-select-sm cause-select"
         aria-label="Filter by alert cause"
         [value]="causeFilter()"

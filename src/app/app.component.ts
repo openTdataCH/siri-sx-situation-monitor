@@ -34,6 +34,7 @@ export class AppComponent implements OnInit {
   protected readonly messageSize = signal<TextContentSize>('large');
   protected readonly priorityFilter = signal<number | null>(null);
   protected readonly operatorFilter = signal('');
+  protected readonly ownerFilter = signal('');
   protected readonly causeFilter = signal('');
   protected readonly actionCountFilter = signal<number | null>(null);
   protected readonly scopeTypeFilter = signal('');
@@ -60,6 +61,10 @@ export class AppComponent implements OnInit {
       ...item.affectedOperatorRefs.map((ref) =>
         this.businessOrganisations.displayName(ref, language)
       ),
+      ...item.messages.map((action) => action.ownerRef),
+      ...item.messages.map((action) =>
+        this.businessOrganisations.displayName(action.ownerRef, language)
+      ),
       ...item.affectedLineNames,
       ...item.affectedStopNames
     ].some((value) => value?.toLocaleLowerCase().includes(query)));
@@ -75,12 +80,14 @@ export class AppComponent implements OnInit {
 
   protected readonly operatorFacetItems = computed(() => {
     const priority = this.priorityFilter();
+    const owner = this.ownerFilter();
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
     const scopeType = this.scopeTypeFilter();
     const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (priority === null || item.priority === priority)
+      && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
@@ -92,12 +99,14 @@ export class AppComponent implements OnInit {
   protected readonly causeFacetItems = computed(() => {
     const priority = this.priorityFilter();
     const operator = this.operatorFilter();
+    const owner = this.ownerFilter();
     const actionCount = this.actionCountFilter();
     const scopeType = this.scopeTypeFilter();
     const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (priority === null || item.priority === priority)
       && (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (actionCount === null || item.messages.length === actionCount)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
       && (!perspectiveCombination || item.messages.some((action) =>
@@ -108,12 +117,14 @@ export class AppComponent implements OnInit {
   protected readonly actionCountFacetItems = computed(() => {
     const priority = this.priorityFilter();
     const operator = this.operatorFilter();
+    const owner = this.ownerFilter();
     const cause = this.causeFilter();
     const scopeType = this.scopeTypeFilter();
     const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (priority === null || item.priority === priority)
       && (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (!cause || item.alertCause === cause)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
       && (!perspectiveCombination || item.messages.some((action) =>
@@ -124,12 +135,14 @@ export class AppComponent implements OnInit {
   protected readonly scopeTypeFacetItems = computed(() => {
     const priority = this.priorityFilter();
     const operator = this.operatorFilter();
+    const owner = this.ownerFilter();
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
     const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (priority === null || item.priority === priority)
       && (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
       && (!perspectiveCombination || item.messages.some((action) =>
@@ -140,12 +153,14 @@ export class AppComponent implements OnInit {
   protected readonly perspectiveCombinationFacetItems = computed(() => {
     const priority = this.priorityFilter();
     const operator = this.operatorFilter();
+    const owner = this.ownerFilter();
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
     const scopeType = this.scopeTypeFilter();
     return this.facetBaseItems().filter((item) =>
       (priority === null || item.priority === priority)
       && (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
@@ -154,12 +169,32 @@ export class AppComponent implements OnInit {
 
   protected readonly priorityFacetItems = computed(() => {
     const operator = this.operatorFilter();
+    const owner = this.ownerFilter();
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
     const scopeType = this.scopeTypeFilter();
     const perspectiveCombination = this.perspectiveCombinationFilter();
     return this.facetBaseItems().filter((item) =>
       (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!owner || item.messages.some((action) => action.ownerRef === owner))
+      && (!cause || item.alertCause === cause)
+      && (actionCount === null || item.messages.length === actionCount)
+      && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
+      && (!perspectiveCombination || item.messages.some((action) =>
+        this.perspectiveCombinationKey(action) === perspectiveCombination))
+    );
+  });
+
+  protected readonly ownerFacetItems = computed(() => {
+    const priority = this.priorityFilter();
+    const operator = this.operatorFilter();
+    const cause = this.causeFilter();
+    const actionCount = this.actionCountFilter();
+    const scopeType = this.scopeTypeFilter();
+    const perspectiveCombination = this.perspectiveCombinationFilter();
+    return this.facetBaseItems().filter((item) =>
+      (priority === null || item.priority === priority)
+      && (!operator || item.affectedOperatorRefs.includes(operator))
       && (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
@@ -185,6 +220,24 @@ export class AppComponent implements OnInit {
     for (const item of this.operatorFacetItems()) {
       for (const operator of new Set(item.affectedOperatorRefs)) {
         counts.set(operator, (counts.get(operator) ?? 0) + 1);
+      }
+    }
+
+    return [...counts.entries()]
+      .map(([ref, situationCount]) => ({
+        ref,
+        label: this.businessOrganisations.displayName(ref, language),
+        situationCount
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label, language));
+  });
+
+  protected readonly ownerOptions = computed(() => {
+    const counts = new Map<string, number>();
+    const language = this.language();
+    for (const item of this.ownerFacetItems()) {
+      for (const owner of new Set(item.messages.map((action) => action.ownerRef))) {
+        counts.set(owner, (counts.get(owner) ?? 0) + 1);
       }
     }
 
@@ -255,6 +308,7 @@ export class AppComponent implements OnInit {
   protected readonly filteredItems = computed(() => {
     const priority = this.priorityFilter();
     const operator = this.operatorFilter();
+    const owner = this.ownerFilter();
     const cause = this.causeFilter();
     const actionCount = this.actionCountFilter();
     const scopeType = this.scopeTypeFilter();
@@ -262,6 +316,7 @@ export class AppComponent implements OnInit {
     return this.facetBaseItems().filter((item) =>
       (priority === null || item.priority === priority)
       && (!operator || item.affectedOperatorRefs.includes(operator))
+      && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (!cause || item.alertCause === cause)
       && (actionCount === null || item.messages.length === actionCount)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
@@ -392,6 +447,11 @@ export class AppComponent implements OnInit {
     this.reconcileFacetSelections();
   }
 
+  protected updateOwner(event: Event): void {
+    this.ownerFilter.set((event.target as HTMLSelectElement).value);
+    this.reconcileFacetSelections();
+  }
+
   protected updatePriority(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.priorityFilter.set(value === '' ? null : Number(value));
@@ -442,6 +502,12 @@ export class AppComponent implements OnInit {
       const operator = this.operatorFilter();
       if (operator && !this.operatorOptions().some((option) => option.ref === operator)) {
         this.operatorFilter.set('');
+        changed = true;
+      }
+
+      const owner = this.ownerFilter();
+      if (owner && !this.ownerOptions().some((option) => option.ref === owner)) {
+        this.ownerFilter.set('');
         changed = true;
       }
 
