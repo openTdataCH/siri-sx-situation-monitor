@@ -564,7 +564,41 @@ export class AppComponent implements OnInit {
     if (periods.length === 0) return 'No period';
     const start = periods.reduce((value, period) => period.start < value ? period.start : value, periods[0].start);
     const end = periods.reduce((value, period) => period.end > value ? period.end : value, periods[0].end);
-    return `${start.toLocaleString()} – ${end.toLocaleString()}`;
+    return `${this.formatDateTime(start)} – ${this.formatDateTime(end)}`;
+  }
+
+  protected formatInterval(period: { start: Date; end: Date }): string {
+    return `${this.formatDateTime(period.start)} – ${this.formatDateTime(period.end)}`;
+  }
+
+  private formatDateTime(date: Date): string {
+    const part = (value: number): string => value.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${part(date.getMonth() + 1)}-${part(date.getDate())}`
+      + ` ${part(date.getHours())}:${part(date.getMinutes())}`;
+  }
+
+  protected sharedValidityTime(
+    periods: readonly { start: Date; end: Date }[]
+  ): string | undefined {
+    if (periods.length < 2) return undefined;
+    const time = (date: Date): string => date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const start = time(periods[0].start);
+    const end = time(periods[0].end);
+    const isDailySequence = periods.every((period, index) => {
+      if (index === 0) return true;
+      const expected = new Date(periods[index - 1].start);
+      expected.setDate(expected.getDate() + 1);
+      return period.start.getFullYear() === expected.getFullYear()
+        && period.start.getMonth() === expected.getMonth()
+        && period.start.getDate() === expected.getDate();
+    });
+    return isDailySequence
+      && periods.every((period) => time(period.start) === start && time(period.end) === end)
+      ? `${start}–${end}`
+      : undefined;
   }
 
   protected readonly trackItem = (_index: number, item: PtSituationListItem): string => item.id;

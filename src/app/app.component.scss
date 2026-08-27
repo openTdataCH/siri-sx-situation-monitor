@@ -168,6 +168,16 @@
   font-size: 0.78rem;
 }
 
+.validity-periods summary {
+  color: #0d6efd;
+  cursor: pointer;
+}
+
+.validity-periods ol {
+  max-height: 18rem;
+  overflow: auto;
+}
+
 .min-w-0 {
   min-width: 0;
 }

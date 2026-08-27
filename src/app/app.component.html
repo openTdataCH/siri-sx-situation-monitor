@@ -243,7 +243,7 @@
                         {{ description(row.situation) || row.situation.alertCause }}
                       </span>
                       <span class="message-meta d-block text-secondary text-truncate">
-                        {{ row.situation.messages.length }} publishing action(s) · {{ formatPeriod(row.situation.validityPeriods) }}
+                        {{ row.situation.messages.length }} publishing action(s) · {{ formatPeriod(row.situation.validityPeriods) }}@if (row.situation.validityPeriods.length > 1) { ({{ row.situation.validityPeriods.length }} validity periods) }
                       </span>
                     </span>
                     <span class="row-status-badges d-flex flex-column align-items-end gap-1">
@@ -319,7 +319,25 @@
 
               <dl class="row small border rounded-3 p-3 mx-0">
                 <dt class="col-sm-3">Validity</dt>
-                <dd class="col-sm-9">{{ formatPeriod(item.validityPeriods) }}</dd>
+                <dd class="col-sm-9">
+                  @if (item.validityPeriods.length > 1) {
+                    <strong>{{ item.validityPeriods.length }} validity periods</strong>
+                    <div class="text-secondary">Overall: {{ formatPeriod(item.validityPeriods) }}</div>
+                    @if (sharedValidityTime(item.validityPeriods); as dailyTime) {
+                      <div class="text-secondary">Each day: {{ dailyTime }}</div>
+                    }
+                    <details class="validity-periods mt-2">
+                      <summary>Show individual periods</summary>
+                      <ol class="mb-0 mt-2 ps-4">
+                        @for (period of item.validityPeriods; track $index) {
+                          <li>{{ formatInterval(period) }}</li>
+                        }
+                      </ol>
+                    </details>
+                  } @else {
+                    {{ formatPeriod(item.validityPeriods) }}
+                  }
+                </dd>
                 <dt class="col-sm-3">Cause</dt>
                 <dd class="col-sm-9">{{ item.alertCause }}</dd>
                 <dt class="col-sm-3">Lines</dt>
