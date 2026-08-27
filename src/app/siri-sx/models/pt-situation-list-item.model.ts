@@ -87,10 +87,7 @@ export class PtSituationListItem {
         perspectives: action.perspectives,
         content: action.content
       })),
-      [
-        ...operatorRefs,
-        ...situation.publishingActions.map((action) => action.ownerRef)
-      ].filter((value, index, values) => values.indexOf(value) === index),
+      [...operatorRefs],
       [...lineNames],
       [...stopNames],
       affectedJourneyCount,
