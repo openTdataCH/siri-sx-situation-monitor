@@ -169,7 +169,7 @@
               {{ filteredItems().length }} of {{ store.items().length }} messages
             </div>
 
-            <cdk-virtual-scroll-viewport class="message-viewport flex-grow-1" itemSize="96">
+            <cdk-virtual-scroll-viewport class="message-viewport flex-grow-1" itemSize="128">
               <ng-container *cdkVirtualFor="let row of resultRows(); trackBy: trackResultRow">
                 @if (row.kind === 'situation') {
                   <button
