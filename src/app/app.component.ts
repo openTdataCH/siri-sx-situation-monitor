@@ -1,5 +1,5 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 
 import { BusinessOrganisationService } from './business-organisations';
 import {
@@ -7,6 +7,7 @@ import {
   PassengerMessageView,
   PassengerTextContent,
   PtSituationListItem,
+  SituationTemporalStatus,
   SupportedLanguage,
   TextContentSize,
   localizedValue
@@ -22,6 +23,7 @@ import { PtSituationStore, SiriSxStreamService } from './siri-sx/services';
 })
 export class AppComponent implements OnInit {
   private readonly siriSxStream = inject(SiriSxStreamService);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly businessOrganisations = inject(BusinessOrganisationService);
   protected readonly store = inject(PtSituationStore);
 
@@ -35,6 +37,8 @@ export class AppComponent implements OnInit {
   protected readonly scopeTypeFilter = signal('');
   protected readonly perspectiveCombinationFilter = signal('');
   protected readonly validationIssuesOnly = signal(false);
+  protected readonly activeNowOnly = signal(false);
+  protected readonly now = signal(new Date());
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly selectedAction = signal<ActionSelection | null>(null);
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
@@ -59,9 +63,13 @@ export class AppComponent implements OnInit {
     ].some((value) => value?.toLocaleLowerCase().includes(query)));
   });
 
-  protected readonly facetBaseItems = computed(() => this.validationIssuesOnly()
-    ? this.textFilteredItems().filter((item) => item.validationIssues.length > 0)
-    : this.textFilteredItems());
+  protected readonly facetBaseItems = computed(() => {
+    const now = this.now();
+    return this.textFilteredItems().filter((item) =>
+      (!this.validationIssuesOnly() || item.validationIssues.length > 0)
+      && (!this.activeNowOnly() || item.temporalStatus(now) === 'active')
+    );
+  });
 
   protected readonly operatorFacetItems = computed(() => {
     const cause = this.causeFilter();
@@ -263,6 +271,11 @@ export class AppComponent implements OnInit {
     this.selectedAction.set(null);
   });
 
+  public constructor() {
+    const clock = setInterval(() => this.now.set(new Date()), 60_000);
+    this.destroyRef.onDestroy(() => clearInterval(clock));
+  }
+
   public ngOnInit(): void {
     void this.loadInitialData();
   }
@@ -357,6 +370,11 @@ export class AppComponent implements OnInit {
 
   protected updateValidationIssuesOnly(event: Event): void {
     this.validationIssuesOnly.set((event.target as HTMLInputElement).checked);
+    this.reconcileFacetSelections();
+  }
+
+  protected updateActiveNowOnly(event: Event): void {
+    this.activeNowOnly.set((event.target as HTMLInputElement).checked);
     this.reconcileFacetSelections();
   }
 
@@ -471,6 +489,17 @@ export class AppComponent implements OnInit {
     return selected?.parentId === row.parentId
       && selected.actionRef === row.action.actionRef
       && selected.actionIndex === row.actionIndex;
+  }
+
+  protected temporalStatus(item: PtSituationListItem): SituationTemporalStatus {
+    return item.temporalStatus(this.now());
+  }
+
+  protected temporalStatusLabel(status: SituationTemporalStatus): string {
+    if (status === 'active') return 'Active now';
+    if (status === 'upcoming') return 'Upcoming';
+    if (status === 'expired') return 'Expired';
+    return 'Invalid validity';
   }
 
   protected formatPeriod(periods: readonly { start: Date; end: Date }[]): string {

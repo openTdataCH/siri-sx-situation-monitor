@@ -142,6 +142,19 @@
         </label>
       </div>
 
+      <div class="form-check ms-1">
+        <input
+          id="active-now-only"
+          type="checkbox"
+          class="form-check-input"
+          [checked]="activeNowOnly()"
+          (change)="updateActiveNowOnly($event)"
+        >
+        <label class="form-check-label small" for="active-now-only">
+          Active now only
+        </label>
+      </div>
+
       @if (parseState().status === 'error') {
         <span class="text-danger small">{{ parseState().message }}</span>
       }
@@ -188,6 +201,15 @@
                           {{ operatorCodes(row.situation) }}
                         </span>
                       }
+                      @if (temporalStatus(row.situation); as status) {
+                        <span
+                          class="badge"
+                          [class.text-bg-success]="status === 'active'"
+                          [class.text-bg-primary]="status === 'upcoming'"
+                          [class.text-bg-secondary]="status === 'expired'"
+                          [class.text-bg-danger]="status === 'invalid'"
+                        >{{ temporalStatusLabel(status) }}</span>
+                      }
                       <span class="cause-badge badge text-bg-info text-truncate" [title]="row.situation.alertCause">
                         {{ row.situation.alertCause }}
                       </span>
@@ -201,11 +223,13 @@
                         {{ row.situation.messages.length }} publishing action(s) · {{ formatPeriod(row.situation.validityPeriods) }}
                       </span>
                     </span>
-                    @if (row.situation.validationIssues.length) {
-                      <span class="badge text-bg-warning" title="Validation issues">
-                        ! {{ row.situation.validationIssues.length }}
-                      </span>
-                    }
+                    <span class="row-status-badges d-flex flex-column align-items-end gap-1">
+                      @if (row.situation.validationIssues.length) {
+                        <span class="badge text-bg-warning" title="Validation issues">
+                          ! {{ row.situation.validationIssues.length }}
+                        </span>
+                      }
+                    </span>
                   </button>
                 } @else {
                   <button
@@ -238,21 +262,32 @@
 
           <aside class="detail-pane flex-grow-1 overflow-auto bg-white p-4" aria-label="Selected situation detail">
             @if (store.selected(); as item) {
-              <div class="d-flex align-items-start gap-3 mb-4">
+              <div class="detail-header d-flex flex-wrap align-items-start gap-3 mb-4">
                 <div class="min-w-0 flex-grow-1">
                   @if (selectedActionView(); as selected) {
                     <div class="small text-uppercase text-primary fw-semibold mb-1">Publishing action</div>
-                    <h2 class="h4 mb-2">{{ actionSummary(selected.action) }}</h2>
+                    <h2 class="detail-heading h4 mb-2">{{ actionSummary(selected.action) }}</h2>
                     <div class="text-secondary text-break">
                       {{ selected.action.actionRef }} · parent {{ item.id }}
                     </div>
                   } @else {
                     <div class="small text-uppercase text-secondary fw-semibold mb-1">PT situation</div>
-                    <h2 class="h4 mb-2">{{ summary(item) }}</h2>
+                    <h2 class="detail-heading h4 mb-2">{{ summary(item) }}</h2>
                     <div class="text-secondary text-break">{{ item.id }} · version {{ item.version }}</div>
                   }
                 </div>
-                <span class="badge text-bg-secondary">P{{ item.priority }}</span>
+                <span class="detail-status d-flex flex-column align-items-end gap-1">
+                  <span class="badge text-bg-secondary">P{{ item.priority }}</span>
+                  @if (temporalStatus(item); as status) {
+                    <span
+                      class="badge"
+                      [class.text-bg-success]="status === 'active'"
+                      [class.text-bg-primary]="status === 'upcoming'"
+                      [class.text-bg-secondary]="status === 'expired'"
+                      [class.text-bg-danger]="status === 'invalid'"
+                    >{{ temporalStatusLabel(status) }}</span>
+                  }
+                </span>
               </div>
 
               @if (!selectedActionView() && description(item)) {
