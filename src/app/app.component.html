@@ -251,9 +251,6 @@
                     </span>
                     <span class="min-w-0 flex-grow-1">
                       <strong class="message-summary d-block text-truncate">{{ summary(row.situation) }}</strong>
-                      <span class="message-description d-block text-secondary text-truncate">
-                        {{ description(row.situation) || row.situation.alertCause }}
-                      </span>
                       <span class="message-meta d-block text-secondary text-truncate">
                         {{ row.situation.messages.length }} publishing action(s) · {{ formatPeriod(row.situation.validityPeriods) }}@if (row.situation.validityPeriods.length > 1) { ({{ row.situation.validityPeriods.length }} validity periods) }
                       </span>
