@@ -31,6 +31,7 @@ export class AppComponent implements OnInit {
   protected readonly parseState = signal<ParseState>({ status: 'idle' });
   protected readonly searchTerm = signal('');
   protected readonly language = signal<SupportedLanguage>('de');
+  protected readonly messageSize = signal<TextContentSize>('large');
   protected readonly priorityFilter = signal<number | null>(null);
   protected readonly operatorFilter = signal('');
   protected readonly causeFilter = signal('');
@@ -43,7 +44,7 @@ export class AppComponent implements OnInit {
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly selectedAction = signal<ActionSelection | null>(null);
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
-  protected readonly contentSizes: readonly TextContentSize[] = ['small', 'medium', 'large'];
+  protected readonly contentSizes: readonly TextContentSize[] = ['large', 'medium', 'small'];
 
   protected readonly textFilteredItems = computed(() => {
     const query = this.searchTerm().trim().toLocaleLowerCase();
@@ -380,6 +381,10 @@ export class AppComponent implements OnInit {
 
   protected updateLanguage(event: Event): void {
     this.language.set((event.target as HTMLSelectElement).value as SupportedLanguage);
+  }
+
+  protected updateMessageSize(event: Event): void {
+    this.messageSize.set((event.target as HTMLSelectElement).value as TextContentSize);
   }
 
   protected updateOperator(event: Event): void {

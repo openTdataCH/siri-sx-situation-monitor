@@ -141,6 +141,17 @@
         <option value="it">Italiano</option>
       </select>
 
+      <select
+        class="form-select form-select-sm message-size-select"
+        aria-label="Passenger message size"
+        [value]="messageSize()"
+        (change)="updateMessageSize($event)"
+      >
+        @for (size of contentSizes; track size) {
+          <option [value]="size">{{ size }}</option>
+        }
+      </select>
+
       <div class="form-check ms-1">
         <input
           id="validation-issues-only"
@@ -337,27 +348,27 @@
                     {{ message.scopeType }} · {{ message.perspectives.join(', ') }}
                   </div>
 
-                  <div class="accordion" [id]="'content-' + $index">
-                    @for (size of contentSizes; track size) {
-                      @if (messageContent(message, size); as content) {
-                        <details class="border rounded-2 mb-2" [open]="size === 'medium'">
-                          <summary class="fw-semibold p-3 text-uppercase">{{ size }}</summary>
-                          <div class="border-top p-3">
-                            <p><strong>Summary:</strong> {{ localized(content.summary) || '—' }}</p>
-                            @if (localized(content.reason)) { <p><strong>Reason:</strong> {{ localized(content.reason) }}</p> }
-                            @if (localized(content.description)) { <p><strong>Description:</strong> {{ localized(content.description) }}</p> }
-                            @if (localized(content.consequence)) { <p><strong>Consequence:</strong> {{ localized(content.consequence) }}</p> }
-                            @if (localized(content.recommendation)) { <p><strong>Recommendation:</strong> {{ localized(content.recommendation) }}</p> }
-                            @if (localized(content.duration)) { <p><strong>Duration:</strong> {{ localized(content.duration) }}</p> }
-                            @if (localized(content.remark)) { <p><strong>Remark:</strong> {{ localized(content.remark) }}</p> }
-                            @for (link of content.infoLinks; track link.uri) {
-                              <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ localized(link.labels) || link.uri }}</a>
-                            }
-                          </div>
-                        </details>
-                      }
-                    }
-                  </div>
+                  @if (messageContent(message, messageSize()); as content) {
+                    <div class="border rounded-2 mb-2">
+                      <div class="fw-semibold p-3 text-uppercase">{{ messageSize() }}</div>
+                      <div class="border-top p-3">
+                        <p><strong>Summary:</strong> {{ localized(content.summary) || '—' }}</p>
+                        @if (localized(content.reason)) { <p><strong>Reason:</strong> {{ localized(content.reason) }}</p> }
+                        @if (localized(content.description)) { <p><strong>Description:</strong> {{ localized(content.description) }}</p> }
+                        @if (localized(content.consequence)) { <p><strong>Consequence:</strong> {{ localized(content.consequence) }}</p> }
+                        @if (localized(content.recommendation)) { <p><strong>Recommendation:</strong> {{ localized(content.recommendation) }}</p> }
+                        @if (localized(content.duration)) { <p><strong>Duration:</strong> {{ localized(content.duration) }}</p> }
+                        @if (localized(content.remark)) { <p><strong>Remark:</strong> {{ localized(content.remark) }}</p> }
+                        @for (link of content.infoLinks; track link.uri) {
+                          <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ localized(link.labels) || link.uri }}</a>
+                        }
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="text-secondary border rounded-2 p-3">
+                      No {{ messageSize() }} passenger information is available.
+                    </div>
+                  }
                 </section>
               }
 
