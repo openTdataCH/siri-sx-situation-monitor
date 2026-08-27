@@ -18,6 +18,8 @@ export interface PassengerMessageView {
   content: Readonly<Partial<Record<TextContentSize, PassengerTextContent>>>;
 }
 
+export type SituationTemporalStatus = 'active' | 'upcoming' | 'expired' | 'invalid';
+
 export class PtSituationListItem {
   private constructor(
     public readonly id: string,
@@ -106,6 +108,14 @@ export class PtSituationListItem {
   public description(language: SupportedLanguage): string | undefined {
     return localizedValue(this.descriptions, language)
       ?? this.messageText(language, 'description');
+  }
+
+  public temporalStatus(at: Date): SituationTemporalStatus {
+    const validPeriods = this.validityPeriods.filter((period) => period.isChronologicallyValid);
+    if (validPeriods.length === 0) return 'invalid';
+    if (validPeriods.some((period) => period.contains(at))) return 'active';
+    if (validPeriods.some((period) => period.start > at)) return 'upcoming';
+    return 'expired';
   }
 
   private messageText(
