@@ -226,14 +226,6 @@
                     (click)="select(row.situation)"
                   >
                     <span class="result-badges d-flex flex-column align-items-start gap-1">
-                      <span class="priority-badge badge" [class.text-bg-danger]="row.situation.priority >= 4" [class.text-bg-secondary]="row.situation.priority < 4">
-                        P{{ row.situation.priority }}
-                      </span>
-                      @if (row.situation.affectedOperatorRefs.length) {
-                        <span class="operator-badge badge text-bg-primary text-truncate" [title]="operatorCodes(row.situation)">
-                          {{ operatorCodes(row.situation) }}
-                        </span>
-                      }
                       @if (temporalStatus(row.situation); as status) {
                         <span
                           class="badge"
@@ -242,6 +234,14 @@
                           [class.text-bg-secondary]="status === 'expired'"
                           [class.text-bg-danger]="status === 'invalid'"
                         >{{ temporalStatusLabel(status) }}</span>
+                      }
+                      <span class="priority-badge badge" [class.text-bg-danger]="row.situation.priority >= 4" [class.text-bg-secondary]="row.situation.priority < 4">
+                        P{{ row.situation.priority }}
+                      </span>
+                      @if (row.situation.affectedOperatorRefs.length) {
+                        <span class="operator-badge badge text-bg-primary text-truncate" [title]="operatorCodes(row.situation)">
+                          {{ operatorCodes(row.situation) }}
+                        </span>
                       }
                       <span class="cause-badge badge text-bg-info text-truncate" [title]="row.situation.alertCause">
                         {{ row.situation.alertCause }}
