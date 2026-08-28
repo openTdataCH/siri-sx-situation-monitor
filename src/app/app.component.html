@@ -88,6 +88,18 @@
       </select>
 
       <select
+        class="form-select form-select-sm source-select"
+        aria-label="Filter by source"
+        [value]="sourceFilter()"
+        (change)="updateSource($event)"
+      >
+        <option value="">All sources ({{ sourceFacetItems().length }})</option>
+        @for (source of sourceOptions(); track source.name) {
+          <option [value]="source.name">{{ source.name }} ({{ source.situationCount }})</option>
+        }
+      </select>
+
+      <select
         class="form-select form-select-sm cause-select"
         aria-label="Filter by alert cause"
         [value]="causeFilter()"
@@ -311,6 +323,11 @@
                 </dd>
                 <dt class="col-sm-3">Cause</dt>
                 <dd class="col-sm-9">{{ item.alertCause }}</dd>
+                <dt class="col-sm-3">Source</dt>
+                <dd class="col-sm-9">
+                  {{ item.source.name }} · {{ item.source.sourceType }}
+                  @if (item.source.externalCode) { · {{ item.source.externalCode }} }
+                </dd>
                 <dt class="col-sm-3">Operators</dt>
                 <dd class="col-sm-9">
                   @for (operator of item.affectedOperatorRefs; track operator; let last = $last) {
