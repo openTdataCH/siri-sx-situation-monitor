@@ -409,11 +409,6 @@
               }
 
               <section class="publishing-actions mt-4">
-                <h3 class="h6 mb-3">
-                  Publishing actions
-                  <span class="badge text-bg-secondary ms-2">{{ detailMessages().length }}</span>
-                </h3>
-
                 @for (message of detailMessages(); track message.actionRef) {
                   <article class="publishing-action border rounded-3 mb-3">
                     <header class="p-3">
