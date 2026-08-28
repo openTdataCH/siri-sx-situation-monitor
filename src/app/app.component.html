@@ -439,6 +439,9 @@
                           @if (localized(content.duration)) {
                             <div class="passenger-text-row"><dt>Duration</dt><dd>{{ localized(content.duration) }}</dd></div>
                           }
+                          @if (localized(content.description)) {
+                            <div class="passenger-text-row"><dt>Description</dt><dd>{{ localized(content.description) }}</dd></div>
+                          }
                           @if (localized(content.consequence)) {
                             <div class="passenger-text-row"><dt>Consequence</dt><dd>{{ localized(content.consequence) }}</dd></div>
                           }
