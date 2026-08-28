@@ -177,6 +177,10 @@
   cursor: pointer;
 }
 
+.situation-metadata {
+  --bs-gutter-x: 0;
+}
+
 .affected-journeys summary {
   color: #0d6efd;
   cursor: pointer;

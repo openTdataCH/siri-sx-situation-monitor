@@ -287,21 +287,9 @@
                     <div class="text-secondary text-break">{{ item.id }} · version {{ item.version }}</div>
                   }
                 </div>
-                <span class="detail-status d-flex flex-column align-items-end gap-1">
-                  <span class="badge text-bg-secondary">P{{ item.priority }}</span>
-                  @if (temporalStatus(item); as status) {
-                    <span
-                      class="badge"
-                      [class.text-bg-success]="status === 'active'"
-                      [class.text-bg-primary]="status === 'upcoming'"
-                      [class.text-bg-secondary]="status === 'expired'"
-                      [class.text-bg-danger]="status === 'invalid'"
-                    >{{ temporalStatusLabel(status) }}</span>
-                  }
-                </span>
               </div>
 
-              <dl class="row small border rounded-3 p-3 mx-0">
+              <dl class="situation-metadata row small border rounded-3 p-3 mx-0">
                 <dt class="col-sm-3">Validity</dt>
                 <dd class="col-sm-9">
                   @if (item.validityPeriods.length > 1) {
@@ -348,19 +336,21 @@
                 </dd>
               </dl>
 
-              @if (item.affectedLineNames.length > 1
-                || item.affectedStopNames.length > 1
-                || item.affectedJourneyCount > 1) {
+              @if (item.affectedLineNames.length > 0
+                || item.affectedStopNames.length > 0
+                || item.affectedJourneyCount > 0) {
                 <section class="affected-objects border rounded-3 px-3 mt-3">
-                  @if (item.affectedLineNames.length > 1) {
+                  @if (item.affectedLineNames.length > 0) {
                     <div class="affected-object-group py-3">
-                      <strong>Lines affected</strong>
-                      <span class="badge text-bg-secondary ms-2">{{ item.affectedLineNames.length }}</span>
+                      <strong>{{ item.affectedLineNames.length === 1 ? 'Line affected' : 'Lines affected' }}</strong>
+                      @if (item.affectedLineNames.length > 1) {
+                        <span class="badge text-bg-secondary ms-2">{{ item.affectedLineNames.length }}</span>
+                      }
                       <div class="text-secondary mt-1">{{ item.affectedLineNames.join(', ') }}</div>
                     </div>
                   }
 
-                  @if (item.affectedStopNames.length > 1) {
+                  @if (item.affectedStopNames.length > 0) {
                     <div class="affected-object-group py-3">
                       <strong>Stops affected</strong>
                       <span class="badge text-bg-secondary ms-2">{{ item.affectedStopNames.length }}</span>
@@ -371,7 +361,7 @@
                   }
 
                   @if (affectedJourneysToday(); as journeys) {
-                    @if (item.affectedJourneyCount > 1) {
+                    @if (item.affectedJourneyCount > 0) {
                     <div class="affected-object-group py-3">
                       <strong>Vehicle journeys affected today</strong>
                       <span class="badge text-bg-secondary ms-2">{{ journeys.length }}</span>
@@ -418,17 +408,26 @@
                 </section>
               }
 
-              @for (message of detailMessages(); track message.actionRef) {
-                <section class="mt-4">
-                  <h3 class="h6">Passenger information · {{ message.actionRef }}</h3>
-                  <div class="small text-secondary mb-2">
-                    {{ message.scopeType }} · {{ message.perspectives.join(', ') }}
-                  </div>
+              <section class="publishing-actions mt-4">
+                <h3 class="h6 mb-3">
+                  Publishing actions
+                  <span class="badge text-bg-secondary ms-2">{{ detailMessages().length }}</span>
+                </h3>
 
-                  @if (messageContent(message, messageSize()); as content) {
-                    <div class="border rounded-2 mb-2">
-                      <div class="fw-semibold p-3 text-uppercase">{{ messageSize() }}</div>
-                      <div class="border-top p-3">
+                @for (message of detailMessages(); track message.actionRef) {
+                  <article class="publishing-action border rounded-3 mb-3">
+                    <header class="p-3">
+                      <span class="fw-semibold">ActionRef {{ message.actionRef }}</span>
+                      <span class="badge text-bg-primary ms-2">{{ actionOwnerCode(message) }}</span>
+                      <span class="badge text-bg-secondary ms-1">{{ message.scopeType }}</span>
+                      <div class="small text-secondary mt-1">
+                        Perspectives: {{ message.perspectives.join(' · ') || '—' }}
+                      </div>
+                    </header>
+
+                    <div class="border-top p-3">
+                      <div class="small fw-semibold text-uppercase mb-3">{{ messageSize() }} passenger information</div>
+                      @if (messageContent(message, messageSize()); as content) {
                         <p><strong>Summary:</strong> {{ localized(content.summary) || '—' }}</p>
                         @if (localized(content.reason)) { <p><strong>Reason:</strong> {{ localized(content.reason) }}</p> }
                         @if (localized(content.description)) { <p><strong>Description:</strong> {{ localized(content.description) }}</p> }
@@ -439,15 +438,15 @@
                         @for (link of content.infoLinks; track link.uri) {
                           <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ localized(link.labels) || link.uri }}</a>
                         }
-                      </div>
+                      } @else {
+                        <div class="text-secondary">
+                          No {{ messageSize() }} passenger information is available.
+                        </div>
+                      }
                     </div>
-                  } @else {
-                    <div class="text-secondary border rounded-2 p-3">
-                      No {{ messageSize() }} passenger information is available.
-                    </div>
-                  }
-                </section>
-              }
+                  </article>
+                }
+              </section>
 
               @if (item.validationIssues.length) {
                 <section class="alert alert-warning mt-4">
