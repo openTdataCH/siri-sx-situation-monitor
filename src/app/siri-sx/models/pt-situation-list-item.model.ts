@@ -6,6 +6,7 @@ import {
   PtSituationValidationIssue,
   SituationAffect,
   SituationConsequence,
+  SituationSource,
   SupportedLanguage,
   TextContentSize,
   TimeInterval
@@ -29,6 +30,7 @@ export class PtSituationListItem {
     public readonly planned: boolean,
     public readonly progress: string,
     public readonly alertCause: string,
+    public readonly source: SituationSource,
     public readonly severity: string | undefined,
     public readonly validityPeriods: readonly TimeInterval[],
     public readonly publicationWindows: readonly TimeInterval[],
@@ -80,6 +82,7 @@ export class PtSituationListItem {
       situation.planned,
       situation.progress,
       situation.alertCause,
+      situation.source,
       situation.severity,
       situation.validityPeriods,
       situation.publicationWindows,
