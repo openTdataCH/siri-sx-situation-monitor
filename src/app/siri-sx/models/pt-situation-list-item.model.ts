@@ -5,6 +5,7 @@ import {
   PtSituation,
   PtSituationValidationIssue,
   SituationAffect,
+  SituationConsequence,
   SupportedLanguage,
   TextContentSize,
   TimeInterval
@@ -39,6 +40,7 @@ export class PtSituationListItem {
     public readonly affectedStopNames: readonly string[],
     public readonly affectedJourneyRefs: readonly string[],
     public readonly affectedJourneyCount: number,
+    public readonly consequences: readonly SituationConsequence[],
     public readonly consequenceCount: number,
     public readonly validationIssues: readonly PtSituationValidationIssue[]
   ) {}
@@ -95,6 +97,7 @@ export class PtSituationListItem {
       [...stopNames],
       [...journeyRefs],
       journeyRefs.size,
+      situation.consequences,
       situation.consequences.length,
       situation.validationIssues
     );
