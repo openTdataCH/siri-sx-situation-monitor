@@ -349,8 +349,6 @@
                 </dd>
                 <dt class="col-sm-3">Cause</dt>
                 <dd class="col-sm-9">{{ item.alertCause }}</dd>
-                <dt class="col-sm-3">Lines</dt>
-                <dd class="col-sm-9">{{ item.affectedLineNames.join(', ') || '—' }}</dd>
                 <dt class="col-sm-3">Operators</dt>
                 <dd class="col-sm-9">
                   @for (operator of item.affectedOperatorRefs; track operator; let last = $last) {
@@ -373,11 +371,77 @@
                     >({{ owner }})</a>@if (!last) {, }
                   } @empty { — }
                 </dd>
-                <dt class="col-sm-3">Stops</dt>
-                <dd class="col-sm-9">{{ item.affectedStopNames.join(', ') || '—' }}</dd>
-                <dt class="col-sm-3">Journeys</dt>
-                <dd class="col-sm-9">{{ item.affectedJourneyCount }}</dd>
               </dl>
+
+              @if (item.affectedLineNames.length > 1
+                || item.affectedStopNames.length > 1
+                || item.affectedJourneyCount > 1) {
+                <section class="affected-objects border rounded-3 px-3 mt-3">
+                  @if (item.affectedLineNames.length > 1) {
+                    <div class="affected-object-group py-3">
+                      <strong>Lines affected</strong>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedLineNames.length }}</span>
+                      <div class="text-secondary mt-1">{{ item.affectedLineNames.join(', ') }}</div>
+                    </div>
+                  }
+
+                  @if (item.affectedStopNames.length > 1) {
+                    <div class="affected-object-group py-3">
+                      <strong>Stops affected</strong>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedStopNames.length }}</span>
+                      <div class="affected-object-list text-secondary mt-1">
+                        {{ item.affectedStopNames.join(', ') }}
+                      </div>
+                    </div>
+                  }
+
+                  @if (affectedJourneysToday(); as journeys) {
+                    @if (item.affectedJourneyCount > 1) {
+                    <div class="affected-object-group py-3">
+                      <strong>Vehicle journeys affected today</strong>
+                      <span class="badge text-bg-secondary ms-2">{{ journeys.length }}</span>
+                      <div class="text-secondary mt-1">
+                        {{ journeys.length }} today@if (item.affectedJourneyCount > journeys.length) { · {{ item.affectedJourneyCount - journeys.length }} more on other dates }
+                      </div>
+                      @if (journeys.length > 0) {
+                        <details class="affected-journeys mt-2">
+                          <summary>Show today’s affected vehicle journeys</summary>
+                          <ol class="mb-0 mt-2 ps-5">
+                            @for (journey of journeys.slice(0, 100); track journey) {
+                              <li><code>{{ journey }}</code></li>
+                            }
+                          </ol>
+                          @if (journeys.length > 100) {
+                            <div class="text-secondary mt-2">
+                              Showing the first 100; {{ journeys.length - 100 }} more affected vehicle journeys for today are not shown.
+                            </div>
+                          }
+                        </details>
+                      } @else {
+                        <div class="text-secondary mt-2">No affected vehicle journeys are dated today.</div>
+                      }
+                      @if (affectedJourneysOtherDates(); as otherJourneys) {
+                        @if (otherJourneys.length > 0) {
+                          <details class="affected-journeys mt-2">
+                            <summary>Show affected vehicle journeys on other dates</summary>
+                            <ol class="mb-0 mt-2 ps-5">
+                              @for (journey of otherJourneys.slice(0, 100); track journey) {
+                                <li><code>{{ journey }}</code></li>
+                              }
+                            </ol>
+                            @if (otherJourneys.length > 100) {
+                              <div class="text-secondary mt-2">
+                                Showing the first 100; {{ otherJourneys.length - 100 }} more affected vehicle journeys on other dates are not shown.
+                              </div>
+                            }
+                          </details>
+                        }
+                      }
+                    </div>
+                    }
+                  }
+                </section>
+              }
 
               @for (message of detailMessages(); track message.actionRef) {
                 <section class="mt-4">

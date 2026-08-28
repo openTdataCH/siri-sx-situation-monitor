@@ -358,6 +358,20 @@ export class AppComponent implements OnInit {
     return selectedAction ? [selectedAction.action] : (this.store.selected()?.messages ?? []);
   });
 
+  protected readonly affectedJourneysToday = computed(() => {
+    const item = this.store.selected();
+    if (!item) return [];
+    const today = this.formatDateKey(this.now());
+    return item.affectedJourneyRefs.filter((journey) => journey.startsWith(`${today} · `));
+  });
+
+  protected readonly affectedJourneysOtherDates = computed(() => {
+    const item = this.store.selected();
+    if (!item) return [];
+    const today = this.formatDateKey(this.now());
+    return item.affectedJourneyRefs.filter((journey) => !journey.startsWith(`${today} · `));
+  });
+
   private readonly synchronizeFilteredSelection = effect(() => {
     const items = this.filteredItems();
     const selectedId = this.store.selectedId();
@@ -648,9 +662,16 @@ export class AppComponent implements OnInit {
   }
 
   private formatDateTime(date: Date): string {
-    const part = (value: number): string => value.toString().padStart(2, '0');
-    return `${date.getFullYear()}-${part(date.getMonth() + 1)}-${part(date.getDate())}`
-      + ` ${part(date.getHours())}:${part(date.getMinutes())}`;
+    return `${this.formatDateKey(date)}`
+      + ` ${this.datePart(date.getHours())}:${this.datePart(date.getMinutes())}`;
+  }
+
+  private formatDateKey(date: Date): string {
+    return `${date.getFullYear()}-${this.datePart(date.getMonth() + 1)}-${this.datePart(date.getDate())}`;
+  }
+
+  private datePart(value: number): string {
+    return value.toString().padStart(2, '0');
   }
 
   protected sharedValidityTime(

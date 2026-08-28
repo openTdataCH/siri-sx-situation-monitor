@@ -177,9 +177,24 @@
   cursor: pointer;
 }
 
-.validity-periods ol {
+.affected-journeys summary {
+  color: #0d6efd;
+  cursor: pointer;
+}
+
+.validity-periods ol,
+.affected-journeys ol {
   max-height: 18rem;
   overflow: auto;
+}
+
+.affected-object-list {
+  max-height: 10rem;
+  overflow: auto;
+}
+
+.affected-object-group + .affected-object-group {
+  border-top: 1px solid #dee2e6;
 }
 
 .min-w-0 {
