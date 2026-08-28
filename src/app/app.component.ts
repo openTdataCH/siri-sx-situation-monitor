@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, injec
 
 import { BusinessOrganisationService } from './business-organisations';
 import {
+  InfoLink,
   LocalizedText,
   PassengerMessageView,
   PassengerTextContent,
@@ -596,6 +597,10 @@ export class AppComponent implements OnInit {
 
   protected localized(text: LocalizedText | undefined): string | undefined {
     return text ? localizedValue(text, this.language()) : undefined;
+  }
+
+  protected infoLinkLabel(link: InfoLink): string {
+    return (this.localized(link.labels) ?? link.uri).replace(/<[^>]*>/g, '').trim();
   }
 
   protected messageContent(

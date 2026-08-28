@@ -201,6 +201,25 @@
   border-top: 1px solid #dee2e6;
 }
 
+.passenger-text-row {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.passenger-text-row dd {
+  min-width: 0;
+  margin: 0;
+}
+
+@media (max-width: 767.98px) {
+  .passenger-text-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}
+
 .min-w-0 {
   min-width: 0;
 }

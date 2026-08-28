@@ -427,19 +427,34 @@
                     <div class="border-top p-3">
                       <div class="small fw-semibold text-uppercase mb-3">{{ messageSize() }} passenger information</div>
                       @if (messageContent(message, messageSize()); as content) {
-                        <p><strong>Summary:</strong> {{ localized(content.summary) || '—' }}</p>
-                        @if (localized(content.reason)) { <p><strong>Reason:</strong> {{ localized(content.reason) }}</p> }
-                        @if (localized(content.duration)) { <p><strong>Duration:</strong> {{ localized(content.duration) }}</p> }
-                        @if (localized(content.consequence)) { <p><strong>Consequence:</strong> {{ localized(content.consequence) }}</p> }
-                        @if (localized(content.recommendation)) { <p><strong>Recommendation:</strong> {{ localized(content.recommendation) }}</p> }
-                        @if (content.infoLinks.length > 0) {
-                          <p>
-                            <strong>InfoLink:</strong>
-                            @for (link of content.infoLinks; track link.uri; let last = $last) {
-                              <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ localized(link.labels) || link.uri }}</a>@if (!last) {, }
-                            }
-                          </p>
-                        }
+                        <dl class="passenger-text mb-0">
+                          <div class="passenger-text-row">
+                            <dt>Summary</dt>
+                            <dd>{{ localized(content.summary) || '—' }}</dd>
+                          </div>
+                          @if (localized(content.reason)) {
+                            <div class="passenger-text-row"><dt>Reason</dt><dd>{{ localized(content.reason) }}</dd></div>
+                          }
+                          @if (localized(content.duration)) {
+                            <div class="passenger-text-row"><dt>Duration</dt><dd>{{ localized(content.duration) }}</dd></div>
+                          }
+                          @if (localized(content.consequence)) {
+                            <div class="passenger-text-row"><dt>Consequence</dt><dd>{{ localized(content.consequence) }}</dd></div>
+                          }
+                          @if (localized(content.recommendation)) {
+                            <div class="passenger-text-row"><dt>Recommendation</dt><dd>{{ localized(content.recommendation) }}</dd></div>
+                          }
+                          @if (content.infoLinks.length > 0) {
+                            <div class="passenger-text-row">
+                              <dt>InfoLink</dt>
+                              <dd>
+                                @for (link of content.infoLinks; track link.uri; let last = $last) {
+                                  <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ infoLinkLabel(link) }}</a>@if (!last) {, }
+                                }
+                              </dd>
+                            </div>
+                          }
+                        </dl>
                       } @else {
                         <div class="text-secondary">
                           No {{ messageSize() }} passenger information is available.
