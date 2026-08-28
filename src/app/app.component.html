@@ -344,10 +344,8 @@
                 <section class="affected-objects border rounded-3 px-3 mt-3">
                   @if (item.affectedLineNames.length > 0) {
                     <div class="affected-object-group py-3">
-                      <strong>{{ item.affectedLineNames.length === 1 ? 'Line affected' : 'Lines affected' }}</strong>
-                      @if (item.affectedLineNames.length > 1) {
-                        <span class="badge text-bg-secondary ms-2">{{ item.affectedLineNames.length }}</span>
-                      }
+                      <strong>Lines affected</strong>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedLineNames.length }}</span>
                       <div class="text-secondary mt-1">{{ item.affectedLineNames.join(', ') }}</div>
                     </div>
                   }
