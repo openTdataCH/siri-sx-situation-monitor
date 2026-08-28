@@ -37,6 +37,7 @@ export class PtSituationListItem {
     public readonly affectedOperatorRefs: readonly string[],
     public readonly affectedLineNames: readonly string[],
     public readonly affectedStopNames: readonly string[],
+    public readonly affectedJourneyRefs: readonly string[],
     public readonly affectedJourneyCount: number,
     public readonly consequenceCount: number,
     public readonly validationIssues: readonly PtSituationValidationIssue[]
@@ -47,7 +48,7 @@ export class PtSituationListItem {
     const lineNames = new Set<string>();
     const operatorRefs = new Set<string>();
     const stopNames = new Set<string>();
-    let affectedJourneyCount = 0;
+    const journeyRefs = new Set<string>();
 
     for (const affect of affects) {
       if (affect.type === 'line' || affect.type === 'partial-line') {
@@ -64,7 +65,9 @@ export class PtSituationListItem {
         stopNames.add(affect.stopPoint.name || affect.stopPoint.ref);
       }
       if (affect.type === 'vehicle-journey') {
-        affectedJourneyCount += 1;
+        journeyRefs.add(
+          `${affect.journey.dataFrameRef} · ${affect.journey.datedVehicleJourneyRef}`
+        );
       }
     }
 
@@ -90,7 +93,8 @@ export class PtSituationListItem {
       [...operatorRefs],
       [...lineNames],
       [...stopNames],
-      affectedJourneyCount,
+      [...journeyRefs],
+      journeyRefs.size,
       situation.consequences.length,
       situation.validationIssues
     );
