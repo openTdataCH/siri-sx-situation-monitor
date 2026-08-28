@@ -326,21 +326,11 @@ export class AppComponent implements OnInit {
   });
 
   protected readonly resultRows = computed<SituationResultRow[]>(() =>
-    this.filteredItems().flatMap((situation) => [
-      {
-        kind: 'situation' as const,
-        key: `situation:${situation.id}`,
-        situation
-      },
-      ...situation.messages.map((action, actionIndex) => ({
-        kind: 'publishing-action' as const,
-        key: `action:${situation.id}:${action.actionRef}:${actionIndex}`,
-        parentId: situation.id,
-        situation,
-        action,
-        actionIndex
-      }))
-    ])
+    this.filteredItems().map((situation) => ({
+      kind: 'situation' as const,
+      key: `situation:${situation.id}`,
+      situation
+    }))
   );
 
   protected readonly selectedActionView = computed(() => {
@@ -630,6 +620,10 @@ export class AppComponent implements OnInit {
 
   protected perspectiveCombinationLabel(combination: string): string {
     return combination.split('|').join(' + ');
+  }
+
+  protected situationPerspectives(item: PtSituationListItem): string {
+    return [...new Set(item.messages.flatMap((action) => action.perspectives))].join(' · ');
   }
 
   protected isActionSelected(row: PublishingActionResultRow): boolean {

@@ -254,6 +254,9 @@
                       <span class="message-meta d-block text-secondary text-truncate">
                         {{ row.situation.messages.length }} publishing action(s) · {{ formatPeriod(row.situation.validityPeriods) }}@if (row.situation.validityPeriods.length > 1) { ({{ row.situation.validityPeriods.length }} validity periods) }
                       </span>
+                      <span class="message-meta d-block text-secondary text-truncate">
+                        Perspectives: {{ situationPerspectives(row.situation) || '—' }}
+                      </span>
                     </span>
                     <span class="row-status-badges d-flex flex-column align-items-end gap-1">
                       @if (row.situation.validationIssues.length) {
@@ -261,34 +264,6 @@
                           ! {{ row.situation.validationIssues.length }}
                         </span>
                       }
-                    </span>
-                  </button>
-                } @else {
-                  <button
-                    type="button"
-                    class="message-row action-row d-flex w-100 gap-3 border-0 border-bottom p-3 text-start"
-                    [class.selected]="isActionSelected(row)"
-                    (click)="selectAction(row)"
-                  >
-                    <span class="action-indent" aria-hidden="true">↳</span>
-                    <span class="action-badges d-flex flex-column align-items-start gap-1">
-                      <span class="badge text-bg-dark">ACTION</span>
-                      <span
-                        class="badge text-bg-primary text-truncate"
-                        [title]="operatorName(row.action.ownerRef)"
-                      >{{ actionOwnerCode(row.action) }}</span>
-                      <span class="badge text-bg-secondary text-truncate" [title]="row.action.scopeType">
-                        {{ row.action.scopeType }}
-                      </span>
-                    </span>
-                    <span class="min-w-0 flex-grow-1">
-                      <strong class="message-summary d-block text-truncate">{{ actionSummary(row.action) }}</strong>
-                      <span class="message-description d-block text-secondary text-truncate">
-                        {{ row.action.actionRef }}
-                      </span>
-                      <span class="message-meta d-block text-secondary text-truncate">
-                        {{ row.action.perspectives.join(' · ') }}
-                      </span>
                     </span>
                   </button>
                 }
