@@ -112,20 +112,6 @@
       </select>
 
       <select
-        class="form-select form-select-sm action-count-select"
-        aria-label="Filter by publishing action count"
-        [value]="actionCountFilter() ?? ''"
-        (change)="updateActionCount($event)"
-      >
-        <option value="">All action counts ({{ actionCountFacetItems().length }})</option>
-        @for (option of actionCountOptions(); track option.actionCount) {
-          <option [value]="option.actionCount">
-            {{ option.actionCount }} {{ option.actionCount === 1 ? 'action' : 'actions' }} ({{ option.situationCount }})
-          </option>
-        }
-      </select>
-
-      <select
         class="form-select form-select-sm scope-type-select"
         aria-label="Filter by publishing action scope type"
         [value]="scopeTypeFilter()"
