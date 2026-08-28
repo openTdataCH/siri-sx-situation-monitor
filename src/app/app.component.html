@@ -429,13 +429,16 @@
                       @if (messageContent(message, messageSize()); as content) {
                         <p><strong>Summary:</strong> {{ localized(content.summary) || '—' }}</p>
                         @if (localized(content.reason)) { <p><strong>Reason:</strong> {{ localized(content.reason) }}</p> }
-                        @if (localized(content.description)) { <p><strong>Description:</strong> {{ localized(content.description) }}</p> }
+                        @if (localized(content.duration)) { <p><strong>Duration:</strong> {{ localized(content.duration) }}</p> }
                         @if (localized(content.consequence)) { <p><strong>Consequence:</strong> {{ localized(content.consequence) }}</p> }
                         @if (localized(content.recommendation)) { <p><strong>Recommendation:</strong> {{ localized(content.recommendation) }}</p> }
-                        @if (localized(content.duration)) { <p><strong>Duration:</strong> {{ localized(content.duration) }}</p> }
-                        @if (localized(content.remark)) { <p><strong>Remark:</strong> {{ localized(content.remark) }}</p> }
-                        @for (link of content.infoLinks; track link.uri) {
-                          <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ localized(link.labels) || link.uri }}</a>
+                        @if (content.infoLinks.length > 0) {
+                          <p>
+                            <strong>InfoLink:</strong>
+                            @for (link of content.infoLinks; track link.uri; let last = $last) {
+                              <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ localized(link.labels) || link.uri }}</a>@if (!last) {, }
+                            }
+                          </p>
                         }
                       } @else {
                         <div class="text-secondary">
