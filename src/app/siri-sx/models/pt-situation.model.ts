@@ -166,6 +166,8 @@ export interface VehicleJourney {
   operatorRef: string;
   origin: StopPlace;
   destination: StopPlace;
+  originAimedDepartureTime: Date;
+  destinationAimedArrivalTime: Date;
   callStopRefs: readonly string[];
 }
 
@@ -356,6 +358,8 @@ function parseVehicleJourney(element: Element): VehicleJourney {
     operatorRef: requiredText(operator, 'OperatorRef'),
     origin: parseStopPlace(requiredChild(element, 'Origins')),
     destination: parseStopPlace(requiredChild(element, 'Destinations')),
+    originAimedDepartureTime: requiredDate(element, 'OriginAimedDepartureTime'),
+    destinationAimedArrivalTime: requiredDate(element, 'DestinationAimedArrivalTime'),
     callStopRefs: calls
       ? children(calls, 'Call')
           .map((call) => optionalText(call, 'StopPlaceRef') ?? optionalText(call, 'StopPointRef'))
