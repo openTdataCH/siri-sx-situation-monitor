@@ -9,6 +9,14 @@ export const SIRI_SX_ENDPOINT = new InjectionToken<string>('SIRI_SX_ENDPOINT', {
   }
 });
 
+export const SIRI_SX_ENDPOINTS = new InjectionToken<readonly string[]>('SIRI_SX_ENDPOINTS', {
+  providedIn: 'root',
+  factory: () => [
+    inject(SIRI_SX_ENDPOINT),
+    'https://tools.opentransportdata.swiss/data/siri-sx/siri_sx-unplanned-latest-prod.xml'
+  ]
+});
+
 @Injectable({ providedIn: 'root' })
 export class SiriSxHttpService {
   private readonly http = inject(HttpClient);
