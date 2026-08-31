@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, injec
 
 import { BusinessOrganisationService } from './business-organisations';
 import {
+  AffectedJourneyView,
+  AffectedStopView,
   InfoLink,
   LocalizedText,
   PassengerMessageView,
@@ -355,14 +357,14 @@ export class AppComponent implements OnInit {
     const item = this.store.selected();
     if (!item) return [];
     const today = this.formatDateKey(this.now());
-    return item.affectedJourneyRefs.filter((journey) => journey.startsWith(`${today} · `));
+    return item.affectedJourneys.filter((journey) => journey.dataFrameRef === today);
   });
 
   protected readonly affectedJourneysOtherDates = computed(() => {
     const item = this.store.selected();
     if (!item) return [];
     const today = this.formatDateKey(this.now());
-    return item.affectedJourneyRefs.filter((journey) => !journey.startsWith(`${today} · `));
+    return item.affectedJourneys.filter((journey) => journey.dataFrameRef !== today);
   });
 
   private readonly synchronizeFilteredSelection = effect(() => {
