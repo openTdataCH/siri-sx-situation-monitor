@@ -20,6 +20,23 @@ export interface PassengerMessageView {
   content: Readonly<Partial<Record<TextContentSize, PassengerTextContent>>>;
 }
 
+export interface AffectedJourneyView {
+  key: string;
+  dataFrameRef: string;
+  journeyRef: string;
+  originRef: string;
+  originName: string;
+  destinationRef: string;
+  destinationName: string;
+  originAimedDepartureTime: Date;
+  destinationAimedArrivalTime: Date;
+}
+
+export interface AffectedStopView {
+  ref: string;
+  name: string;
+}
+
 export type SituationTemporalStatus = 'active' | 'upcoming' | 'expired' | 'invalid';
 
 export class PtSituationListItem {
@@ -39,8 +56,9 @@ export class PtSituationListItem {
     public readonly messages: readonly PassengerMessageView[],
     public readonly affectedOperatorRefs: readonly string[],
     public readonly affectedLineNames: readonly string[],
+    public readonly affectedStops: readonly AffectedStopView[],
     public readonly affectedStopNames: readonly string[],
-    public readonly affectedJourneyRefs: readonly string[],
+    public readonly affectedJourneys: readonly AffectedJourneyView[],
     public readonly affectedJourneyCount: number,
     public readonly consequences: readonly SituationConsequence[],
     public readonly consequenceCount: number,
@@ -51,8 +69,8 @@ export class PtSituationListItem {
     const affects = collectAffects(situation);
     const lineNames = new Set<string>();
     const operatorRefs = new Set<string>();
-    const stopNames = new Set<string>();
-    const journeyRefs = new Set<string>();
+    const stops = new Map<string, AffectedStopView>();
+    const journeys = new Map<string, AffectedJourneyView>();
 
     for (const affect of affects) {
       if (affect.type === 'line' || affect.type === 'partial-line') {
@@ -60,18 +78,33 @@ export class PtSituationListItem {
         operatorRefs.add(affect.line.operatorRef);
       }
       if (affect.type === 'partial-line') {
-        affect.stops.forEach((stop) => stopNames.add(stop.name || stop.ref));
+        affect.stops.forEach((stop) => stops.set(stop.ref, { ref: stop.ref, name: stop.name || stop.ref }));
       }
       if (affect.type === 'stop-place') {
-        stopNames.add(affect.stopPlace.name || affect.stopPlace.ref);
+        stops.set(affect.stopPlace.ref, {
+          ref: affect.stopPlace.ref,
+          name: affect.stopPlace.name || affect.stopPlace.ref
+        });
       }
       if (affect.type === 'stop-point') {
-        stopNames.add(affect.stopPoint.name || affect.stopPoint.ref);
+        stops.set(affect.stopPoint.ref, {
+          ref: affect.stopPoint.ref,
+          name: affect.stopPoint.name || affect.stopPoint.ref
+        });
       }
       if (affect.type === 'vehicle-journey') {
-        journeyRefs.add(
-          `${affect.journey.dataFrameRef} · ${affect.journey.datedVehicleJourneyRef}`
-        );
+        const key = `${affect.journey.dataFrameRef} · ${affect.journey.datedVehicleJourneyRef}`;
+        journeys.set(key, {
+          key,
+          dataFrameRef: affect.journey.dataFrameRef,
+          journeyRef: affect.journey.datedVehicleJourneyRef,
+          originRef: affect.journey.origin.ref,
+          originName: affect.journey.origin.name || affect.journey.origin.ref,
+          destinationRef: affect.journey.destination.ref,
+          destinationName: affect.journey.destination.name || affect.journey.destination.ref,
+          originAimedDepartureTime: affect.journey.originAimedDepartureTime,
+          destinationAimedArrivalTime: affect.journey.destinationAimedArrivalTime
+        });
       }
     }
 
@@ -97,9 +130,10 @@ export class PtSituationListItem {
       })),
       [...operatorRefs],
       [...lineNames],
-      [...stopNames],
-      [...journeyRefs],
-      journeyRefs.size,
+      [...stops.values()].sort((left, right) => left.name.localeCompare(right.name)),
+      [...stops.values()].map((stop) => stop.name).sort(),
+      [...journeys.values()],
+      journeys.size,
       situation.consequences,
       situation.consequences.length,
       situation.validationIssues
