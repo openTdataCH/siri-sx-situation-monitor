@@ -363,8 +363,26 @@
                   @if (item.affectedLineNames.length > 0) {
                     <div class="affected-object-group py-3">
                       <strong>Lines affected</strong>
-                      <span class="badge text-bg-secondary ms-2">{{ item.affectedLineNames.length }}</span>
-                      <div class="text-secondary mt-1">{{ item.affectedLineNames.join(', ') }}</div>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedLines.length }}</span>
+                      <div class="affected-object-list text-secondary mt-1">
+                        @for (line of item.affectedLines; track line.key) {
+                          <div>
+                            Line: {{ line.name }} – <code>{{ line.ref }}</code>
+                            @if (affectedLineLinkState(item, line); as linkState) {
+                              @if (linkState.status === 'ready') {
+                                · <a [href]="linkState.url" target="_blank" rel="noopener">Open trip in OJP</a>
+                              } @else if (linkState.status === 'loading') {
+                                · <span>Fetching trips…</span>
+                              } @else {
+                                · <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="buildAffectedLineLink(item, line)">Retry</button>
+                                <span class="text-danger ms-1">{{ linkState.message }}</span>
+                              }
+                            } @else {
+                              · <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="buildAffectedLineLink(item, line)">Build OJP link</button>
+                            }
+                          </div>
+                        }
+                      </div>
                     </div>
                   }
 

@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, injec
 import { BusinessOrganisationService } from './business-organisations';
 import {
   AffectedJourneyView,
+  AffectedLineView,
   AffectedStopView,
   InfoLink,
   LocalizedText,
@@ -15,7 +16,7 @@ import {
   TextContentSize,
   localizedValue
 } from './siri-sx/models';
-import { PtSituationStore, SiriSxStreamService } from './siri-sx/services';
+import { AffectedLineLinkService, PtSituationStore, SiriSxStreamService } from './siri-sx/services';
 
 @Component({
   selector: 'app-siri-sx-browser',
@@ -26,6 +27,7 @@ import { PtSituationStore, SiriSxStreamService } from './siri-sx/services';
 })
 export class AppComponent implements OnInit {
   private readonly siriSxStream = inject(SiriSxStreamService);
+  private readonly affectedLineLinks = inject(AffectedLineLinkService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly businessOrganisations = inject(BusinessOrganisationService);
   protected readonly store = inject(PtSituationStore);
@@ -48,6 +50,7 @@ export class AppComponent implements OnInit {
   protected readonly now = signal(new Date());
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly selectedAction = signal<ActionSelection | null>(null);
+  protected readonly affectedLineLinkStates = signal<ReadonlyMap<string, AffectedLineLinkState>>(new Map());
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
   protected readonly contentSizes: readonly TextContentSize[] = ['large', 'medium', 'small'];
 
@@ -696,6 +699,48 @@ export class AppComponent implements OnInit {
     return `https://opentdatach.github.io/ojp-demo-app/board?${parameters.toString()}`;
   }
 
+  protected affectedLineLinkState(
+    item: PtSituationListItem,
+    line: AffectedLineView
+  ): AffectedLineLinkState | undefined {
+    return this.affectedLineLinkStates().get(this.affectedLineKey(item, line));
+  }
+
+  protected async buildAffectedLineLink(
+    item: PtSituationListItem,
+    line: AffectedLineView
+  ): Promise<void> {
+    const key = this.affectedLineKey(item, line);
+    this.setAffectedLineLinkState(key, { status: 'loading' });
+    try {
+      const url = await this.affectedLineLinks.build(
+        line,
+        item,
+        this.affectedObjectDay(item),
+        this.language(),
+        this.now()
+      );
+      this.setAffectedLineLinkState(key, { status: 'ready', url });
+    } catch (error: unknown) {
+      this.setAffectedLineLinkState(key, {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unable to build the OJP link.'
+      });
+    }
+  }
+
+  private affectedLineKey(item: PtSituationListItem, line: AffectedLineView): string {
+    return `${item.id}|${line.key}`;
+  }
+
+  private setAffectedLineLinkState(key: string, state: AffectedLineLinkState): void {
+    this.affectedLineLinkStates.update((states) => {
+      const updated = new Map(states);
+      updated.set(key, state);
+      return updated;
+    });
+  }
+
   private affectedObjectDay(item: PtSituationListItem): string {
     const now = this.now();
     const active = item.validityPeriods.find((period) => period.start <= now && now <= period.end);
@@ -777,3 +822,8 @@ interface ParseState {
   validationIssueCount?: number;
   message?: string;
 }
+
+type AffectedLineLinkState =
+  | { status: 'loading' }
+  | { status: 'ready'; url: string }
+  | { status: 'error'; message: string };
