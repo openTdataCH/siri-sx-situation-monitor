@@ -662,7 +662,44 @@ export class AppComponent implements OnInit {
     return `${this.formatDateTime(period.start)} – ${this.formatDateTime(period.end)}`;
   }
 
-  private formatDateTime(date: Date): string {
+  protected affectedJourneyTripUrl(journey: AffectedJourneyView): string {
+    const parameters = new URLSearchParams({
+      from: journey.originRef,
+      to: journey.destinationRef,
+      trip_datetime: this.formatDateTime(journey.originAimedDepartureTime),
+      lang: this.language(),
+      do_search: 'yes'
+    });
+    return `https://opentdatach.github.io/ojp-demo-app/search?${parameters.toString()}`;
+  }
+
+  protected affectedJourneyDetailsUrl(journey: AffectedJourneyView): string {
+    const parameters = new URLSearchParams({
+      ref: journey.journeyRef,
+      day: journey.dataFrameRef
+    });
+    return `https://opentdatach.github.io/ojp-demo-app/trip?${parameters.toString()}`;
+  }
+
+  protected affectedStopBoardUrl(stop: AffectedStopView, item: PtSituationListItem): string {
+    const parameters = new URLSearchParams({
+      stop_id: stop.ref,
+      day: this.affectedObjectDay(item)
+    });
+    return `https://opentdatach.github.io/ojp-demo-app/board?${parameters.toString()}`;
+  }
+
+  private affectedObjectDay(item: PtSituationListItem): string {
+    const now = this.now();
+    const active = item.validityPeriods.find((period) => period.start <= now && now <= period.end);
+    if (active) return this.formatDateKey(now);
+
+    const next = item.validityPeriods.find((period) => period.start > now);
+    const period = next ?? item.validityPeriods.at(-1);
+    return this.formatDateKey(period?.start ?? now);
+  }
+
+  protected formatDateTime(date: Date): string {
     return `${this.formatDateKey(date)}`
       + ` ${this.datePart(date.getHours())}:${this.datePart(date.getMinutes())}`;
   }
