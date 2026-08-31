@@ -367,37 +367,66 @@
                   @if (affectedJourneysToday(); as journeys) {
                     @if (item.affectedJourneyCount > 0) {
                     <div class="affected-object-group py-3">
-                      <strong>Vehicle journeys affected today</strong>
-                      <span class="badge text-bg-secondary ms-2">{{ journeys.length }}</span>
-                      <div class="text-secondary mt-1">
-                        {{ journeys.length }} today@if (item.affectedJourneyCount > journeys.length) { · {{ item.affectedJourneyCount - journeys.length }} more on other dates }
-                      </div>
+                      <strong>Vehicle journeys affected</strong>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedJourneyCount }}</span>
                       @if (journeys.length > 0) {
-                        <details class="affected-journeys mt-2">
-                          <summary>Show today’s affected vehicle journeys</summary>
-                          <ol class="mb-0 mt-2 ps-5">
-                            @for (journey of journeys.slice(0, 100); track journey) {
-                              <li><code>{{ journey }}</code></li>
-                            }
-                          </ol>
+                        <details class="affected-journeys mt-2" open>
+                          <summary>Today ({{ journeys.length }})</summary>
+                          <div class="journey-table-wrapper mt-2">
+                            <table class="table table-sm align-middle mb-0">
+                              <thead><tr><th>Departure</th><th>Journey ID</th><th>From → To</th></tr></thead>
+                              <tbody>
+                                @for (journey of journeys.slice(0, 100); track journey.key) {
+                                  <tr>
+                                    <td class="text-nowrap">{{ formatDateTime(journey.originAimedDepartureTime) }}</td>
+                                    <td>
+                                      <a [href]="affectedJourneyDetailsUrl(journey)" target="_blank" rel="noopener">
+                                        <code>{{ journey.journeyRef }}</code>
+                                      </a>
+                                    </td>
+                                    <td>
+                                      <a [href]="affectedJourneyTripUrl(journey)" target="_blank" rel="noopener">
+                                        {{ journey.originName }} <span aria-hidden="true">→</span> {{ journey.destinationName }}
+                                      </a>
+                                    </td>
+                                  </tr>
+                                }
+                              </tbody>
+                            </table>
+                          </div>
                           @if (journeys.length > 100) {
                             <div class="text-secondary mt-2">
                               Showing the first 100; {{ journeys.length - 100 }} more affected vehicle journeys for today are not shown.
                             </div>
                           }
                         </details>
-                      } @else {
-                        <div class="text-secondary mt-2">No affected vehicle journeys are dated today.</div>
                       }
                       @if (affectedJourneysOtherDates(); as otherJourneys) {
                         @if (otherJourneys.length > 0) {
                           <details class="affected-journeys mt-2">
-                            <summary>Show affected vehicle journeys on other dates</summary>
-                            <ol class="mb-0 mt-2 ps-5">
-                              @for (journey of otherJourneys.slice(0, 100); track journey) {
-                                <li><code>{{ journey }}</code></li>
-                              }
-                            </ol>
+                            <summary>Show affected vehicle journeys on other dates ({{ otherJourneys.length }})</summary>
+                            <div class="journey-table-wrapper mt-2">
+                              <table class="table table-sm align-middle mb-0">
+                                <thead><tr><th>Departure</th><th>Journey ID</th><th>From → To</th></tr></thead>
+                                <tbody>
+                                  @for (journey of otherJourneys.slice(0, 100); track journey.key) {
+                                    <tr>
+                                      <td class="text-nowrap">{{ formatDateTime(journey.originAimedDepartureTime) }}</td>
+                                      <td>
+                                        <a [href]="affectedJourneyDetailsUrl(journey)" target="_blank" rel="noopener">
+                                          <code>{{ journey.journeyRef }}</code>
+                                        </a>
+                                      </td>
+                                      <td>
+                                        <a [href]="affectedJourneyTripUrl(journey)" target="_blank" rel="noopener">
+                                          {{ journey.originName }} <span aria-hidden="true">→</span> {{ journey.destinationName }}
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                            </div>
                             @if (otherJourneys.length > 100) {
                               <div class="text-secondary mt-2">
                                 Showing the first 100; {{ otherJourneys.length - 100 }} more affected vehicle journeys on other dates are not shown.
