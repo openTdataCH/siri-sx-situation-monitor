@@ -188,6 +188,19 @@
         </label>
       </div>
 
+      <div class="form-check ms-1">
+        <input
+          id="unplanned-only"
+          type="checkbox"
+          class="form-check-input"
+          [checked]="unplannedOnly()"
+          (change)="updateUnplannedOnly($event)"
+        >
+        <label class="form-check-label small" for="unplanned-only">
+          Unplanned only
+        </label>
+      </div>
+
       @if (parseState().status === 'error') {
         <span class="text-danger small">{{ parseState().message }}</span>
       }
@@ -220,7 +233,7 @@
                 @if (row.kind === 'situation') {
                   <button
                     type="button"
-                    class="message-row situation-row d-flex w-100 gap-3 border-0 border-bottom p-3 text-start"
+                    class="message-row situation-row d-flex align-items-center w-100 gap-2 border-0 border-bottom px-3 py-2 text-start"
                     [class.selected]="store.selectedId() === row.situation.id && !selectedAction()"
                     [class.has-validation-issues]="row.situation.validationIssues.length > 0"
                     (click)="select(row.situation)"
@@ -240,6 +253,9 @@
                     </span>
                     <span class="min-w-0 flex-grow-1">
                       <span class="d-flex flex-wrap gap-1 mb-1">
+                        @if (!row.situation.planned) {
+                          <span class="badge text-bg-warning">Unplanned</span>
+                        }
                         @if (temporalStatus(row.situation); as status) {
                           <span
                             class="badge"

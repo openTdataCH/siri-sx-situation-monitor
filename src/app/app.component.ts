@@ -44,6 +44,7 @@ export class AppComponent implements OnInit {
   protected readonly perspectiveCombinationFilter = signal('');
   protected readonly validationIssuesOnly = signal(false);
   protected readonly activeNowOnly = signal(false);
+  protected readonly unplannedOnly = signal(false);
   protected readonly now = signal(new Date());
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
   protected readonly selectedAction = signal<ActionSelection | null>(null);
@@ -80,6 +81,7 @@ export class AppComponent implements OnInit {
     return this.textFilteredItems().filter((item) =>
       (!this.validationIssuesOnly() || item.validationIssues.length > 0)
       && (!this.activeNowOnly() || item.temporalStatus(now) === 'active')
+      && (!this.unplannedOnly() || !item.planned)
     );
   });
 
@@ -494,6 +496,11 @@ export class AppComponent implements OnInit {
 
   protected updateActiveNowOnly(event: Event): void {
     this.activeNowOnly.set((event.target as HTMLInputElement).checked);
+    this.reconcileFacetSelections();
+  }
+
+  protected updateUnplannedOnly(event: Event): void {
+    this.unplannedOnly.set((event.target as HTMLInputElement).checked);
     this.reconcileFacetSelections();
   }
 
