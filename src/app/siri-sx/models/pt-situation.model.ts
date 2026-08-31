@@ -99,7 +99,7 @@ export class PtSituation {
       requiredText(element, 'Progress'),
       requiredText(element, 'AlertCause'),
       requiredInteger(element, 'Priority'),
-      requiredBoolean(element, 'Planned'),
+      optionalBoolean(element, 'Planned') === true,
       validityPeriods,
       publicationWindows,
       publishingActions,
@@ -463,8 +463,9 @@ function requiredDate(parent: Element, name: string): Date {
   return value;
 }
 
-function requiredBoolean(parent: Element, name: string): boolean {
-  const value = requiredText(parent, name);
+function optionalBoolean(parent: Element, name: string): boolean | undefined {
+  const value = optionalText(parent, name);
+  if (value === undefined) return undefined;
   if (value === 'true' || value === '1') return true;
   if (value === 'false' || value === '0') return false;
   throw new Error(`${parent.localName}.${name} is not a valid boolean.`);
