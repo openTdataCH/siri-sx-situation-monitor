@@ -352,12 +352,14 @@
                     </div>
                   }
 
-                  @if (item.affectedStopNames.length > 0) {
+                  @if (item.affectedStops.length > 0) {
                     <div class="affected-object-group py-3">
                       <strong>Stops affected</strong>
-                      <span class="badge text-bg-secondary ms-2">{{ item.affectedStopNames.length }}</span>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedStops.length }}</span>
                       <div class="affected-object-list text-secondary mt-1">
-                        {{ item.affectedStopNames.join(', ') }}
+                        @for (stop of item.affectedStops; track stop.ref; let last = $last) {
+                          <a [href]="affectedStopBoardUrl(stop, item)" target="_blank" rel="noopener">{{ stop.name }}</a>@if (!last) {, }
+                        }
                       </div>
                     </div>
                   }
