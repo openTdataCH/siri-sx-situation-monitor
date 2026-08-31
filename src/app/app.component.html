@@ -226,15 +226,6 @@
                     (click)="select(row.situation)"
                   >
                     <span class="result-badges d-flex flex-column align-items-start gap-1">
-                      @if (temporalStatus(row.situation); as status) {
-                        <span
-                          class="badge"
-                          [class.text-bg-success]="status === 'active'"
-                          [class.text-bg-primary]="status === 'upcoming'"
-                          [class.text-bg-secondary]="status === 'expired'"
-                          [class.text-bg-danger]="status === 'invalid'"
-                        >{{ temporalStatusLabel(status) }}</span>
-                      }
                       <span class="priority-badge badge" [class.text-bg-danger]="row.situation.priority >= 4" [class.text-bg-secondary]="row.situation.priority < 4">
                         P{{ row.situation.priority }}
                       </span>
@@ -248,6 +239,17 @@
                       </span>
                     </span>
                     <span class="min-w-0 flex-grow-1">
+                      <span class="d-flex flex-wrap gap-1 mb-1">
+                        @if (temporalStatus(row.situation); as status) {
+                          <span
+                            class="badge"
+                            [class.text-bg-success]="status === 'active'"
+                            [class.text-bg-primary]="status === 'upcoming'"
+                            [class.text-bg-secondary]="status === 'expired'"
+                            [class.text-bg-danger]="status === 'invalid'"
+                          >{{ temporalStatusLabel(status) }}</span>
+                        }
+                      </span>
                       <strong class="message-summary d-block text-truncate">{{ summary(row.situation) }}</strong>
                       <span class="message-meta d-block text-secondary text-truncate">
                         {{ row.situation.messages.length }} publishing action(s) · {{ formatPeriod(row.situation.validityPeriods) }}@if (row.situation.validityPeriods.length > 1) { ({{ row.situation.validityPeriods.length }} validity periods) }
