@@ -37,6 +37,14 @@ export interface AffectedStopView {
   name: string;
 }
 
+export interface AffectedLineView {
+  key: string;
+  ref: string;
+  name: string;
+  operatorRef: string;
+  affectedStopRefs: readonly string[];
+}
+
 export type SituationTemporalStatus = 'active' | 'upcoming' | 'expired' | 'invalid';
 
 export class PtSituationListItem {
@@ -55,6 +63,7 @@ export class PtSituationListItem {
     public readonly descriptions: LocalizedText,
     public readonly messages: readonly PassengerMessageView[],
     public readonly affectedOperatorRefs: readonly string[],
+    public readonly affectedLines: readonly AffectedLineView[],
     public readonly affectedLineNames: readonly string[],
     public readonly affectedStops: readonly AffectedStopView[],
     public readonly affectedStopNames: readonly string[],
@@ -68,6 +77,7 @@ export class PtSituationListItem {
   public static initFromSituation(situation: PtSituation): PtSituationListItem {
     const affects = collectAffects(situation);
     const lineNames = new Set<string>();
+    const lines = new Map<string, AffectedLineView>();
     const operatorRefs = new Set<string>();
     const stops = new Map<string, AffectedStopView>();
     const journeys = new Map<string, AffectedJourneyView>();
@@ -76,6 +86,21 @@ export class PtSituationListItem {
       if (affect.type === 'line' || affect.type === 'partial-line') {
         lineNames.add(affect.line.name || affect.line.ref);
         operatorRefs.add(affect.line.operatorRef);
+        const key = `${affect.line.operatorRef}|${affect.line.ref}|${affect.line.name}`;
+        const existing = lines.get(key);
+        const affectedStopRefs = affect.type === 'partial-line'
+          ? affect.stops.map((stop) => stop.ref)
+          : [];
+        lines.set(key, {
+          key,
+          ref: affect.line.ref,
+          name: affect.line.name || affect.line.ref,
+          operatorRef: affect.line.operatorRef,
+          affectedStopRefs: [...new Set([
+            ...(existing?.affectedStopRefs ?? []),
+            ...affectedStopRefs
+          ])]
+        });
       }
       if (affect.type === 'partial-line') {
         affect.stops.forEach((stop) => stops.set(stop.ref, { ref: stop.ref, name: stop.name || stop.ref }));
@@ -129,6 +154,7 @@ export class PtSituationListItem {
         content: action.content
       })),
       [...operatorRefs],
+      [...lines.values()],
       [...lineNames],
       [...stops.values()].sort((left, right) => left.name.localeCompare(right.name)),
       [...stops.values()].map((stop) => stop.name).sort(),
