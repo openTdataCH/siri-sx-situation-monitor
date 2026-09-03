@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
+import { EMPTY, catchError, interval, startWith, switchMap } from 'rxjs';
 
 import {
   InfoLink,
@@ -45,8 +46,24 @@ export class HomePageComponent implements OnInit {
       return;
     }
 
-    this.stream.streamSituations(this.owner, this.stage)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    interval(60_000)
+      .pipe(
+        startWith(0),
+        switchMap(() => {
+          this.messages.set([]);
+          this.state.set({ status: 'loading' });
+          return this.stream.streamSituations(this.owner, this.stage).pipe(
+            catchError((error: unknown) => {
+              this.state.set({
+                status: 'error',
+                message: error instanceof Error ? error.message : 'Unable to load SIRI-SX messages.'
+              });
+              return EMPTY;
+            })
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (event) => {
           if (event.type === 'situation') {
@@ -54,11 +71,7 @@ export class HomePageComponent implements OnInit {
           } else if (event.type === 'complete') {
             this.state.set({ status: 'complete' });
           }
-        },
-        error: (error: unknown) => this.state.set({
-          status: 'error',
-          message: error instanceof Error ? error.message : 'Unable to load SIRI-SX messages.'
-        })
+        }
       });
   }
 
