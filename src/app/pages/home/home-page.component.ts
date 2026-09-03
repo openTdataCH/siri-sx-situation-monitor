@@ -12,7 +12,7 @@ import {
   TextContentSize,
   localizedValue
 } from '../../siri-sx/models';
-import { SiriSxStreamService } from '../../siri-sx/services';
+import { SiriSxStage, SiriSxStreamService } from '../../siri-sx/services';
 
 @Component({
   selector: 'app-home-page',
@@ -28,17 +28,24 @@ export class HomePageComponent implements OnInit {
   protected readonly owner = this.route.snapshot.queryParamMap.get('owner')?.trim() ?? '';
   protected readonly language = queryLanguage(this.route.snapshot.queryParamMap.get('lang'));
   protected readonly textSize = queryTextSize(this.route.snapshot.queryParamMap.get('text_size'));
+  protected readonly stage = queryStage(this.route.snapshot.queryParamMap.get('stage'));
   protected readonly loadingMessagesText = LOADING_MESSAGES_TEXT[this.language];
   protected readonly noMessagesText = NO_MESSAGES_TEXT[this.language];
   protected readonly messages = signal<readonly EmbeddedMessage[]>([]);
   protected readonly state = signal<EmbedState>(
-    this.owner ? { status: 'loading' } : { status: 'error', message: 'Missing required owner query parameter.' }
+    !this.owner
+      ? { status: 'error', message: 'Missing required owner query parameter.' }
+      : !this.stage
+        ? { status: 'error', message: 'Invalid stage query parameter. Use prod or int.' }
+        : { status: 'loading' }
   );
 
   public ngOnInit(): void {
-    if (!this.owner) return;
+    if (!this.owner || !this.stage) {
+      return;
+    }
 
-    this.stream.streamSituations(this.owner)
+    this.stream.streamSituations(this.owner, this.stage)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (event) => {
@@ -89,6 +96,14 @@ export class HomePageComponent implements OnInit {
       this.messages.update((messages) => [...messages, ...owned]);
     }
   }
+}
+
+function queryStage(value: string | null): SiriSxStage | undefined {
+  if (value === null || value.trim() === '') {
+    return 'prod';
+  }
+  const stage = value.trim().toLowerCase();
+  return stage === 'prod' || stage === 'int' ? stage : undefined;
 }
 
 interface EmbeddedMessage {
