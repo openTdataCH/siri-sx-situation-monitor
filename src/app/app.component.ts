@@ -1,5 +1,6 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 import { BusinessOrganisationService } from './business-organisations';
 import {
@@ -16,7 +17,7 @@ import {
   TextContentSize,
   localizedValue
 } from './siri-sx/models';
-import { AffectedLineLinkService, PtSituationStore, SiriSxStreamService } from './siri-sx/services';
+import { AffectedLineLinkService, PtSituationStore, SiriSxStage, SiriSxStreamService } from './siri-sx/services';
 
 @Component({
   selector: 'app-siri-sx-browser',
@@ -37,6 +38,7 @@ export class AppComponent implements OnInit {
   protected readonly searchTerm = signal('');
   protected readonly language = signal<SupportedLanguage>('de');
   protected readonly messageSize = signal<TextContentSize>('large');
+  protected readonly stage = signal<SiriSxStage>('prod');
   protected readonly priorityFilter = signal<number | null>(null);
   protected readonly operatorFilter = signal('');
   protected readonly ownerFilter = signal('');
@@ -53,6 +55,7 @@ export class AppComponent implements OnInit {
   protected readonly affectedLineLinkStates = signal<ReadonlyMap<string, AffectedLineLinkState>>(new Map());
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
   protected readonly contentSizes: readonly TextContentSize[] = ['large', 'medium', 'small'];
+  private streamSubscription?: Subscription;
 
   protected readonly textFilteredItems = computed(() => {
     const query = this.searchTerm().trim().toLocaleLowerCase();
@@ -383,7 +386,10 @@ export class AppComponent implements OnInit {
 
   public constructor() {
     const clock = setInterval(() => this.now.set(new Date()), 60_000);
-    this.destroyRef.onDestroy(() => clearInterval(clock));
+    this.destroyRef.onDestroy(() => {
+      clearInterval(clock);
+      this.streamSubscription?.unsubscribe();
+    });
   }
 
   public ngOnInit(): void {
@@ -396,6 +402,7 @@ export class AppComponent implements OnInit {
   }
 
   protected parseFeed(): void {
+    this.streamSubscription?.unsubscribe();
     this.store.reset();
     this.activeView.set('messages');
     this.parseState.set({
@@ -405,7 +412,7 @@ export class AppComponent implements OnInit {
       validationIssueCount: 0
     });
 
-    this.siriSxStream.streamSituations().subscribe({
+    this.streamSubscription = this.siriSxStream.streamSituations(undefined, this.stage()).subscribe({
       next: (event) => {
         if (event.type === 'situation') {
           this.store.enqueue(event.situation);
@@ -441,6 +448,14 @@ export class AppComponent implements OnInit {
         });
       }
     });
+  }
+
+  protected updateStage(stage: SiriSxStage): void {
+    if (stage === this.stage()) {
+      return;
+    }
+    this.stage.set(stage);
+    this.parseFeed();
   }
 
   protected updateSearch(event: Event): void {
@@ -587,11 +602,15 @@ export class AppComponent implements OnInit {
 
   protected ownerMessagesPreviewUrl(owner: string): string {
     const url = new URL('.', document.baseURI);
-    url.search = new URLSearchParams({
+    const query = new URLSearchParams({
       owner,
       lang: this.language(),
       text_size: this.messageSize()
-    }).toString();
+    });
+    if (this.stage() === 'int') {
+      query.set('stage', 'int');
+    }
+    url.search = query.toString();
     return url.toString();
   }
 

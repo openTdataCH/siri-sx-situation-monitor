@@ -2,6 +2,32 @@
   <header class="app-header d-flex align-items-center gap-3 px-4 py-3">
     <h1 class="h5 mb-0 me-auto">{{ title }}</h1>
 
+    <fieldset class="d-flex align-items-center gap-3 mb-0">
+      <legend class="visually-hidden">SIRI-SX stage</legend>
+      <div class="form-check mb-0">
+        <input
+          id="stage-prod"
+          class="form-check-input"
+          type="radio"
+          name="stage"
+          [checked]="stage() === 'prod'"
+          (change)="updateStage('prod')"
+        >
+        <label class="form-check-label small" for="stage-prod">PROD</label>
+      </div>
+      <div class="form-check mb-0">
+        <input
+          id="stage-int"
+          class="form-check-input"
+          type="radio"
+          name="stage"
+          [checked]="stage() === 'int'"
+          (change)="updateStage('int')"
+        >
+        <label class="form-check-label small" for="stage-int">INT</label>
+      </div>
+    </fieldset>
+
     @if (parseState().status === 'loading') {
       <span class="small">
         <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
