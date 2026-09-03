@@ -585,6 +585,16 @@ export class AppComponent implements OnInit {
       .filter((owner, index, owners) => owners.indexOf(owner) === index);
   }
 
+  protected ownerMessagesPreviewUrl(owner: string): string {
+    const url = new URL('.', document.baseURI);
+    url.search = new URLSearchParams({
+      owner,
+      lang: this.language(),
+      text_size: this.messageSize()
+    }).toString();
+    return url.toString();
+  }
+
   protected select(item: PtSituationListItem): void {
     this.store.select(item.id);
     this.selectedAction.set(null);

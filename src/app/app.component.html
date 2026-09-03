@@ -351,7 +351,12 @@
                       [href]="operatorAtlasUrl(owner)"
                       target="_blank"
                       rel="noopener noreferrer"
-                    >({{ owner }})</a>@if (!last) {, }
+                    >({{ owner }})</a>
+                    · <a
+                      [href]="ownerMessagesPreviewUrl(owner)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >Preview messages</a>@if (!last) {, }
                   } @empty { — }
                 </dd>
               </dl>
