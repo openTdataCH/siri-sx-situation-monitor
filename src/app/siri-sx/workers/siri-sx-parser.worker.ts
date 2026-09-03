@@ -113,6 +113,17 @@ async function parseResponse(url: string): Promise<void> {
   }
 }
 
+function containsOwnerRef(xml: string, ownerRef: string): boolean {
+  const value = escapeRegExp(escapeText(ownerRef));
+  return new RegExp(
+    `<(?:[\\w.-]+:)?OwnerRef(?:\\s[^>]*)?>\\s*${value}\\s*</(?:[\\w.-]+:)?OwnerRef>`
+  ).test(xml);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function escapeText(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
