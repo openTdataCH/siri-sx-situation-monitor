@@ -1,11 +1,4 @@
 <main class="message-list p-3" [attr.aria-busy]="state().status === 'loading'">
-  @if (state().status === 'loading') {
-    <div class="small text-secondary mb-1" role="status">{{ loadingMessagesText }}</div>
-    <div class="message-progress mb-3" role="progressbar" [attr.aria-label]="loadingMessagesText">
-      <div class="message-progress-bar"></div>
-    </div>
-  }
-
   @if (state(); as viewState) {
   @if (viewState.status === 'error') {
     <div class="alert alert-danger mb-0" role="alert">{{ viewState.message }}</div>
@@ -51,6 +44,12 @@
           }
         </div>
       </article>
+    }
+
+    @if (state().status === 'loading') {
+      <div class="message-progress mb-3" role="progressbar" [attr.aria-label]="loadingMessagesText">
+        <div class="message-progress-bar"></div>
+      </div>
     }
 
     @if (state().status === 'complete' && messages().length === 0) {
