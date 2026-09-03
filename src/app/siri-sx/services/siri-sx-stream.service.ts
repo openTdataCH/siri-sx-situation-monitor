@@ -28,7 +28,7 @@ export class SiriSxStreamService {
 
   public readonly invalidSituations = this.invalidPoolState.asReadonly();
 
-  public streamSituations(): Observable<SiriSxStreamEvent> {
+  public streamSituations(ownerRef?: string): Observable<SiriSxStreamEvent> {
     return new Observable((subscriber) => {
       this.invalidPoolState.set([]);
       let validCount = 0;
@@ -99,7 +99,7 @@ export class SiriSxStreamService {
           worker?.terminate();
         };
 
-        worker.postMessage({ type: 'parse', url: endpoint });
+        worker.postMessage({ type: 'parse', url: endpoint, ownerRef });
       };
 
       startNextEndpoint();

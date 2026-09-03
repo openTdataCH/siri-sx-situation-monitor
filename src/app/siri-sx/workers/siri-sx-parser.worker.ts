@@ -7,15 +7,16 @@ const SIRI_NAMESPACE = 'http://www.siri.org.uk/siri';
 interface ParseRequest {
   type: 'parse';
   url: string;
+  ownerRef?: string;
 }
 
 addEventListener('message', ({ data }: MessageEvent<ParseRequest>) => {
   if (data.type === 'parse') {
-    void parseResponse(data.url);
+    void parseResponse(data.url, data.ownerRef);
   }
 });
 
-async function parseResponse(url: string): Promise<void> {
+async function parseResponse(url: string, ownerRef?: string): Promise<void> {
   let situationCount = 0;
   let capturedXml = '';
   let captureDepth = 0;
@@ -65,7 +66,9 @@ async function parseResponse(url: string): Promise<void> {
 
       if (captureDepth === 0) {
         situationCount += 1;
-        postMessage({ type: 'situation', xml: capturedXml, index: situationCount });
+        if (!ownerRef || containsOwnerRef(capturedXml, ownerRef)) {
+          postMessage({ type: 'situation', xml: capturedXml, index: situationCount });
+        }
         capturedXml = '';
       }
     });
