@@ -28,6 +28,8 @@ export class HomePageComponent implements OnInit {
   protected readonly owner = this.route.snapshot.queryParamMap.get('owner')?.trim() ?? '';
   protected readonly language = queryLanguage(this.route.snapshot.queryParamMap.get('lang'));
   protected readonly textSize = queryTextSize(this.route.snapshot.queryParamMap.get('text_size'));
+  protected readonly loadingMessagesText = LOADING_MESSAGES_TEXT[this.language];
+  protected readonly noMessagesText = NO_MESSAGES_TEXT[this.language];
   protected readonly messages = signal<readonly EmbeddedMessage[]>([]);
   protected readonly state = signal<EmbedState>(
     this.owner ? { status: 'loading' } : { status: 'error', message: 'Missing required owner query parameter.' }
@@ -107,3 +109,17 @@ function queryLanguage(value: string | null): SupportedLanguage {
 function queryTextSize(value: string | null): TextContentSize {
   return value === 'small' || value === 'medium' || value === 'large' ? value : 'large';
 }
+
+const NO_MESSAGES_TEXT: Readonly<Record<SupportedLanguage, string>> = {
+  de: 'Keine Meldungen gefunden',
+  en: 'No messages found',
+  fr: 'Aucun message trouvé',
+  it: 'Nessun messaggio trovato'
+};
+
+const LOADING_MESSAGES_TEXT: Readonly<Record<SupportedLanguage, string>> = {
+  de: 'Meldungen werden geladen…',
+  en: 'Loading messages…',
+  fr: 'Chargement des messages…',
+  it: 'Caricamento dei messaggi…'
+};
