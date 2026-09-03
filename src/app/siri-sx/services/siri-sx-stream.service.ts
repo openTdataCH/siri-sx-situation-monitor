@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { PtSituation } from '../models';
-import { SIRI_SX_ENDPOINTS } from './siri-sx-http.service';
+import { SIRI_SX_STAGE_ENDPOINTS, SiriSxStage } from './siri-sx-http.service';
 
 export type SiriSxStreamEvent =
   | { type: 'situation'; situation: PtSituation; index: number }
@@ -23,13 +23,14 @@ type WorkerResponse =
 
 @Injectable({ providedIn: 'root' })
 export class SiriSxStreamService {
-  private readonly endpoints = inject(SIRI_SX_ENDPOINTS);
+  private readonly stageEndpoints = inject(SIRI_SX_STAGE_ENDPOINTS);
   private readonly invalidPoolState = signal<readonly InvalidPtSituation[]>([]);
 
   public readonly invalidSituations = this.invalidPoolState.asReadonly();
 
-  public streamSituations(ownerRef?: string): Observable<SiriSxStreamEvent> {
+  public streamSituations(ownerRef?: string, stage: SiriSxStage = 'prod'): Observable<SiriSxStreamEvent> {
     return new Observable((subscriber) => {
+      const endpoints = this.stageEndpoints[stage];
       this.invalidPoolState.set([]);
       let validCount = 0;
       let processedCount = 0;
@@ -38,7 +39,7 @@ export class SiriSxStreamService {
       const seenSituations = new Set<string>();
 
       const startNextEndpoint = (): void => {
-        const endpoint = this.endpoints[endpointIndex];
+        const endpoint = endpoints[endpointIndex];
         if (!endpoint) {
           subscriber.next({
             type: 'complete',
