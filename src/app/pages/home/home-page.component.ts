@@ -101,7 +101,7 @@ type EmbedState =
   | { status: 'error'; message: string };
 
 function queryLanguage(value: string | null): SupportedLanguage {
-  return value === 'de' || value === 'fr' || value === 'it' || value === 'en' ? value : 'en';
+  return value === 'de' || value === 'fr' || value === 'it' || value === 'en' ? value : 'de';
 }
 
 function queryTextSize(value: string | null): TextContentSize {
