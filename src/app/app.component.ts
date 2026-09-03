@@ -39,6 +39,7 @@ export class AppComponent implements OnInit {
   protected readonly language = signal<SupportedLanguage>('de');
   protected readonly messageSize = signal<TextContentSize>('large');
   protected readonly stage = signal<SiriSxStage>('prod');
+  protected readonly filtersExpanded = signal(false);
   protected readonly priorityFilter = signal<number | null>(null);
   protected readonly operatorFilter = signal('');
   protected readonly ownerFilter = signal('');
@@ -456,6 +457,10 @@ export class AppComponent implements OnInit {
     }
     this.stage.set(stage);
     this.parseFeed();
+  }
+
+  protected toggleFilters(): void {
+    this.filtersExpanded.update((expanded) => !expanded);
   }
 
   protected updateSearch(event: Event): void {

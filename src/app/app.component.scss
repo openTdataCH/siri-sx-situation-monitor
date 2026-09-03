@@ -23,6 +23,10 @@
   flex: 0 0 auto;
 }
 
+.filter-controls {
+  display: contents;
+}
+
 .search-input {
   width: min(30rem, 45vw);
 }
@@ -225,6 +229,22 @@
 }
 
 @media (max-width: 767.98px) {
+  .filter-controls {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-controls.mobile-collapsed {
+    display: none;
+  }
+
+  .filter-toggle {
+    width: 2.25rem;
+  }
+
   .passenger-text-row {
     grid-template-columns: 1fr;
     gap: 0.25rem;

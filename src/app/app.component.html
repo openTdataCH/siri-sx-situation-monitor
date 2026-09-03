@@ -68,6 +68,22 @@
         </button>
       </div>
 
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm d-md-none ms-auto filter-toggle"
+        [attr.aria-expanded]="filtersExpanded()"
+        aria-controls="message-filters"
+        [attr.aria-label]="filtersExpanded() ? 'Collapse filters' : 'Expand filters'"
+        (click)="toggleFilters()"
+      >
+        <span aria-hidden="true">{{ filtersExpanded() ? '▲' : '▼' }}</span>
+      </button>
+
+      <div
+        id="message-filters"
+        class="filter-controls"
+        [class.mobile-collapsed]="!filtersExpanded()"
+      >
       <input
         type="search"
         class="form-control form-control-sm search-input"
@@ -235,6 +251,7 @@
           Operator names unavailable: {{ businessOrganisations.error() }}
         </span>
       }
+      </div>
     </div>
 
     @if (activeView() === 'messages') {
