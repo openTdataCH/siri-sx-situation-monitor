@@ -37,7 +37,7 @@ export class AffectedLineLinkService {
     const matchingTrips = line.affectedStopRefs.length === 0
       ? trips
       : trips.filter((trip) => trip.stopIds.some((stopId) =>
-          line.affectedStopRefs.includes(stopId.split(':')[0])));
+          line.affectedStopRefs.some((affectedStopId) => sameStop(stopId, affectedStopId))));
     const candidateTrips = matchingTrips.length > 0 ? matchingTrips : trips;
     const validityPeriod = situation.validityPeriods.find((period) =>
       formatDateKey(period.start) === serviceDay) ?? situation.validityPeriods[0];
@@ -50,11 +50,19 @@ export class AffectedLineLinkService {
     const trip = candidateTrips.find((candidate) =>
       candidate.departureTime.substring(0, 5) >= targetTime) ?? defaultTrip;
 
-    const from = trip.stopIds[0];
-    const defaultTo = trip.stopIds.at(-1)!;
-    const to = line.affectedStopRefs.length === 0 || line.affectedStopRefs.includes(from)
-      ? defaultTo
-      : line.affectedStopRefs[0];
+    const from = canonicalStopId(trip.stopIds[0]);
+    const lastStop = canonicalStopId(trip.stopIds.at(-1)!);
+    const defaultTo = lastStop === from ? trip.stopIds.at(-2) : lastStop;
+    if (!defaultTo || sameStop(defaultTo, from)) {
+      throw new Error('The selected GTFS trip has no destination distinct from its origin.');
+    }
+    const affectedTo = line.affectedStopRefs.find((stopId) => !sameStop(stopId, from));
+    const originIsAffected = line.affectedStopRefs.some((stopId) => sameStop(stopId, from));
+    const to = canonicalStopId(
+      line.affectedStopRefs.length === 0 || originIsAffected
+        ? defaultTo
+        : affectedTo ?? defaultTo
+    );
     const parameters = new URLSearchParams({
       from,
       to,
@@ -100,6 +108,14 @@ function normalizeGtfsTime(value: string): string {
   const [hoursText, minutes = '00'] = value.split(':');
   const hours = Number(hoursText);
   return `${String(hours >= 24 ? hours - 24 : hours).padStart(2, '0')}:${minutes}`;
+}
+
+function sameStop(left: string, right: string): boolean {
+  return canonicalStopId(left) === canonicalStopId(right);
+}
+
+function canonicalStopId(stopId: string): string {
+  return /^(ch:[^:]+:sloid:[^:_]+)/.exec(stopId)?.[1] ?? stopId;
 }
 
 function formatDateKey(date: Date): string {
