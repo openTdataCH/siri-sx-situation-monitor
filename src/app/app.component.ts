@@ -602,13 +602,15 @@ export class AppComponent implements OnInit {
 
   protected ownerMessagesPreviewUrl(owner: string): string {
     const url = new URL('.', document.baseURI);
-    const query = new URLSearchParams({
-      owner,
-      lang: this.language(),
-      text_size: this.messageSize()
-    });
+    const query = new URLSearchParams({ owner });
     if (this.stage() === 'int') {
       query.set('stage', 'int');
+    }
+    if (this.language() !== 'de') {
+      query.set('lang', this.language());
+    }
+    if (this.messageSize() !== 'large') {
+      query.set('text_size', this.messageSize());
     }
     url.search = query.toString();
     return url.toString();
