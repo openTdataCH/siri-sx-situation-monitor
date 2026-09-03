@@ -1,0 +1,61 @@
+<main class="message-list p-3" [attr.aria-busy]="state().status === 'loading'">
+  @if (state().status === 'loading') {
+    <div class="small text-secondary mb-1" role="status">{{ loadingMessagesText }}</div>
+    <div class="message-progress mb-3" role="progressbar" [attr.aria-label]="loadingMessagesText">
+      <div class="message-progress-bar"></div>
+    </div>
+  }
+
+  @if (state(); as viewState) {
+  @if (viewState.status === 'error') {
+    <div class="alert alert-danger mb-0" role="alert">{{ viewState.message }}</div>
+  } @else {
+    @for (message of messages(); track message.key) {
+      <article class="card message-card mb-3">
+        <div class="card-body">
+          <h2 class="card-title h5">
+            {{ title(message) }}
+            @if (!message.situation.planned) {
+              <span class="badge text-bg-warning ms-1">Unplanned</span>
+            }
+          </h2>
+
+          @if (content(message); as passengerContent) {
+            <ul class="card-text mb-0">
+              <li>{{ localized(passengerContent.summary) || '—' }}</li>
+              @if (localized(passengerContent.reason); as value) {
+                <li>{{ value }}</li>
+              }
+              @if (localized(passengerContent.duration); as value) {
+                <li>{{ value }}</li>
+              }
+              @if (localized(passengerContent.description); as value) {
+                <li>{{ value }}</li>
+              }
+              @if (localized(passengerContent.consequence); as value) {
+                <li>{{ value }}</li>
+              }
+              @if (localized(passengerContent.recommendation); as value) {
+                <li>{{ value }}</li>
+              }
+              @if (passengerContent.infoLinks.length > 0) {
+                <li>
+                  @for (link of passengerContent.infoLinks; track link.uri; let last = $last) {
+                    <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ infoLinkLabel(link) }}</a>@if (!last) {, }
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="text-secondary mb-0">No {{ textSize }} passenger information is available.</p>
+          }
+        </div>
+      </article>
+    }
+
+    @if (state().status === 'complete' && messages().length === 0) {
+      <div class="alert alert-light border mb-0" role="status">{{ noMessagesText }}</div>
+    }
+  }
+  }
+</main>
