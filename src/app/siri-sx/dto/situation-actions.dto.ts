@@ -62,7 +62,7 @@ export interface PtConsequenceDto {
     endTime?: SiriDateTimeDto;
   };
   conditions?: SituationConditionDto[];
-  severity: SeverityDto;
+  severity?: SeverityDto;
   affects?: AffectsScopeDto;
   advice?: NaturalLanguageStringDto[];
 }

@@ -173,7 +173,7 @@ export interface VehicleJourney {
 
 export interface SituationConsequence {
   conditions: readonly string[];
-  severity: string;
+  severity?: string;
   affects: readonly SituationAffect[];
 }
 
@@ -275,7 +275,7 @@ function parseConsequences(container?: Element): readonly SituationConsequence[]
 
   return children(container, 'Consequence').map((element) => ({
     conditions: children(element, 'Condition').map(textContent),
-    severity: requiredText(element, 'Severity'),
+    severity: optionalText(element, 'Severity'),
     affects: optionalChild(element, 'Affects') ? parseAffects(requiredChild(element, 'Affects')) : []
   }));
 }
