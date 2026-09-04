@@ -1,6 +1,8 @@
 # SIRI-SX Situation Monitor
 
-Angular application for inspecting SIRI-SX situation messages and embedding the
+Demo URL: https://opentdatach.github.io/siri-sx/monitor/setup
+
+This is an application for inspecting SIRI-SX situation messages and embedding the
 passenger information published by one action owner.
 
 The application downloads and parses SIRI-SX XML in a Web Worker so that large
