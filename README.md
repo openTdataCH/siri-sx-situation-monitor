@@ -5,9 +5,8 @@ Demo URL: https://opentdatach.github.io/siri-sx/monitor/setup
 This is an application for inspecting SIRI-SX situation messages and embedding the
 passenger information published by one action owner.
 
-The application downloads and parses SIRI-SX XML in a Web Worker so that large
-feeds do not block the user interface. In PROD, the unplanned feed is parsed
-before the planned feed. Invalid situations are kept separately for inspection.
+It provides an overview of passenger-information messages, highlights invalid
+data and offers a simple view that can be embedded in other websites.
 
 ## References
 
