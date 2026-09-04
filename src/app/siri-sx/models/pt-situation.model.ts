@@ -6,7 +6,7 @@ export type LocalizedText = Partial<Record<SupportedLanguage, string>>;
 export type TextContentSize = 'small' | 'medium' | 'large';
 
 export interface SituationSource {
-  countryRef: string;
+  countryRef?: string;
   sourceType: string;
   name: string;
   externalCode?: string;
@@ -208,7 +208,7 @@ export interface InfoLink {
 
 function parseSource(element: Element): SituationSource {
   return {
-    countryRef: requiredText(element, 'CountryRef'),
+    countryRef: optionalText(element, 'CountryRef'),
     sourceType: requiredText(element, 'SourceType'),
     name: requiredText(element, 'Name'),
     externalCode: optionalText(element, 'ExternalCode')

@@ -1,7 +1,7 @@
 import { PtSituation } from './pt-situation.model';
 
 describe('PtSituation', () => {
-  it('accepts a consequence without Severity', () => {
+  it('accepts optional consequence severity and source country reference', () => {
     const situation = PtSituation.initFromXml(`
       <PtSituationElement>
         <CreationTime>2026-09-04T08:00:00Z</CreationTime>
@@ -10,7 +10,6 @@ describe('PtSituation', () => {
         <SituationNumber>situation-with-optional-consequence-severity</SituationNumber>
         <Version>1</Version>
         <Source>
-          <CountryRef>ch</CountryRef>
           <SourceType>directReport</SourceType>
           <Name>Test source</Name>
         </Source>
@@ -59,6 +58,7 @@ describe('PtSituation', () => {
       severity: undefined,
       affects: []
     }]);
+    expect(situation.source.countryRef).toBeUndefined();
   });
 });
 
