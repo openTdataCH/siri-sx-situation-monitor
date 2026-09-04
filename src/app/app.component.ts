@@ -34,6 +34,13 @@ export class AppComponent implements OnInit {
   protected readonly store = inject(PtSituationStore);
 
   protected readonly title = 'SIRI-SX Browser';
+  protected readonly buildInfo = readBuildInfo();
+  protected readonly buildCommitUrl = this.buildInfo
+    ? `https://github.com/openTdataCH/siri-sx-situation-monitor/commit/${this.buildInfo.commit}`
+    : undefined;
+  protected readonly buildTimeLabel = this.buildInfo
+    ? `${this.buildInfo.builtAt.slice(0, 16).replace('T', ' ')} UTC`
+    : undefined;
   protected readonly parseState = signal<ParseState>({ status: 'idle' });
   protected readonly searchTerm = signal('');
   protected readonly language = signal<SupportedLanguage>('de');
@@ -863,3 +870,19 @@ type AffectedLineLinkState =
   | { status: 'loading' }
   | { status: 'ready'; url: string }
   | { status: 'error'; message: string };
+
+interface AppBuildInfo {
+  commit: string;
+  builtAt: string;
+}
+
+function readBuildInfo(): AppBuildInfo | undefined {
+  const value = window.__SIRI_SX_BUILD_INFO__;
+  return value?.commit && value.builtAt ? value : undefined;
+}
+
+declare global {
+  interface Window {
+    __SIRI_SX_BUILD_INFO__?: AppBuildInfo;
+  }
+}
