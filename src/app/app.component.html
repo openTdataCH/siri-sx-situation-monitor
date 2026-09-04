@@ -612,29 +612,33 @@
 
   </main>
 
-  <footer class="app-footer d-flex flex-wrap align-items-center gap-3 px-4 py-2 small">
-    <span>{{ store.items().length }} valid</span>
-    <span>{{ invalidSituations().length }} invalid</span>
-    <span class="ms-auto">SIRI-SX Situation Monitor</span>
-    <span aria-hidden="true">·</span>
-    <a
-      class="link-light"
-      href="https://github.com/openTdataCH/siri-sx-situation-monitor"
-      target="_blank"
-      rel="noopener noreferrer"
-    >Source code</a>
-    <span aria-hidden="true">·</span>
-    @if (buildInfo && buildCommitUrl && buildTimeLabel) {
+  <footer class="app-footer d-flex align-items-center px-4 py-2 small">
+    <div class="d-flex gap-3">
+      <span>{{ store.items().length }} valid</span>
+      <span>{{ invalidSituations().length }} invalid</span>
+    </div>
+    <div class="footer-build-info d-flex flex-wrap align-items-center gap-1 ms-auto">
+      <span>SIRI-SX Situation Monitor</span>
+      <span aria-hidden="true">·</span>
       <a
-        class="link-light font-monospace"
-        [href]="buildCommitUrl"
+        class="link-light"
+        href="https://github.com/openTdataCH/siri-sx-situation-monitor"
         target="_blank"
         rel="noopener noreferrer"
-      >{{ buildInfo.commit.slice(0, 7) }}</a>
+      >Source code</a>
       <span aria-hidden="true">·</span>
-      <time [attr.datetime]="buildInfo.builtAt">built {{ buildTimeLabel }}</time>
-    } @else {
-      <span>development build</span>
-    }
+      @if (buildInfo && buildCommitUrl && buildTimeLabel) {
+        <a
+          class="link-light font-monospace"
+          [href]="buildCommitUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >{{ buildInfo.commit.slice(0, 7) }}</a>
+        <span aria-hidden="true">·</span>
+        <time [attr.datetime]="buildInfo.builtAt">built {{ buildTimeLabel }}</time>
+      } @else {
+        <span>development build</span>
+      }
+    </div>
   </footer>
 </div>

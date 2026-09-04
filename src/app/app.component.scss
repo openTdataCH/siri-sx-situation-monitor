@@ -229,6 +229,10 @@
 }
 
 @media (max-width: 767.98px) {
+  .footer-build-info {
+    display: none !important;
+  }
+
   .filter-controls {
     display: flex;
     width: 100%;
