@@ -1,0 +1,644 @@
+<div class="app-layout d-flex flex-column min-vh-100">
+  <header class="app-header d-flex align-items-center gap-3 px-4 py-3">
+    <h1 class="h5 mb-0 me-auto">{{ title }}</h1>
+
+    <fieldset class="d-flex align-items-center gap-3 mb-0">
+      <legend class="visually-hidden">SIRI-SX stage</legend>
+      <div class="form-check mb-0">
+        <input
+          id="stage-prod"
+          class="form-check-input"
+          type="radio"
+          name="stage"
+          [checked]="stage() === 'prod'"
+          (change)="updateStage('prod')"
+        >
+        <label class="form-check-label small" for="stage-prod">PROD</label>
+      </div>
+      <div class="form-check mb-0">
+        <input
+          id="stage-int"
+          class="form-check-input"
+          type="radio"
+          name="stage"
+          [checked]="stage() === 'int'"
+          (change)="updateStage('int')"
+        >
+        <label class="form-check-label small" for="stage-int">INT</label>
+      </div>
+    </fieldset>
+
+    @if (parseState().status === 'loading') {
+      <span class="small">
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        {{ parseState().situationCount }} processed
+      </span>
+    }
+
+    <button
+      type="button"
+      class="btn btn-light btn-sm"
+      [disabled]="parseState().status === 'loading'"
+      (click)="parseFeed()"
+    >
+      Reload
+    </button>
+  </header>
+
+  <main class="app-content d-flex flex-column flex-grow-1 overflow-hidden">
+    <div class="toolbar d-flex flex-wrap align-items-center gap-2 border-bottom bg-white px-3 py-2">
+      <div class="btn-group btn-group-sm" role="group" aria-label="Data view">
+        <button
+          type="button"
+          class="btn"
+          [class.btn-primary]="activeView() === 'messages'"
+          [class.btn-outline-primary]="activeView() !== 'messages'"
+          (click)="activeView.set('messages')"
+        >
+          Messages <span class="badge text-bg-light ms-1">{{ store.items().length }}</span>
+        </button>
+        <button
+          type="button"
+          class="btn"
+          [class.btn-danger]="activeView() === 'invalid'"
+          [class.btn-outline-danger]="activeView() !== 'invalid'"
+          (click)="activeView.set('invalid')"
+        >
+          Invalid <span class="badge text-bg-light ms-1">{{ invalidSituations().length }}</span>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm d-md-none ms-auto filter-toggle"
+        [attr.aria-expanded]="filtersExpanded()"
+        aria-controls="message-filters"
+        [attr.aria-label]="filtersExpanded() ? 'Collapse filters' : 'Expand filters'"
+        (click)="toggleFilters()"
+      >
+        <span aria-hidden="true">{{ filtersExpanded() ? '▲' : '▼' }}</span>
+      </button>
+
+      <div
+        id="message-filters"
+        class="filter-controls"
+        [class.mobile-collapsed]="!filtersExpanded()"
+      >
+      <input
+        type="search"
+        class="form-control form-control-sm search-input"
+        placeholder="Search messages, lines, stops…"
+        aria-label="Search messages"
+        [value]="searchTerm()"
+        (input)="updateSearch($event)"
+      >
+
+      <select
+        class="form-select form-select-sm priority-select"
+        aria-label="Filter by priority"
+        [value]="priorityFilter() ?? ''"
+        (change)="updatePriority($event)"
+      >
+        <option value="">All priorities ({{ priorityFacetItems().length }})</option>
+        @for (option of priorityOptions(); track option.priority) {
+          <option [value]="option.priority">P{{ option.priority }} ({{ option.situationCount }})</option>
+        }
+      </select>
+
+      <select
+        class="form-select form-select-sm operator-select"
+        aria-label="Filter by operator"
+        [value]="operatorFilter()"
+        (change)="updateOperator($event)"
+      >
+        <option value="">All operators ({{ operatorFacetItems().length }})</option>
+        @for (operator of operatorOptions(); track operator.ref) {
+          <option [value]="operator.ref">{{ operator.label }} ({{ operator.situationCount }})</option>
+        }
+      </select>
+
+      <select
+        class="form-select form-select-sm owner-select"
+        aria-label="Filter by action owner"
+        [value]="ownerFilter()"
+        (change)="updateOwner($event)"
+      >
+        <option value="">All action owners ({{ ownerFacetItems().length }})</option>
+        @for (owner of ownerOptions(); track owner.ref) {
+          <option [value]="owner.ref">{{ owner.label }} ({{ owner.situationCount }})</option>
+        }
+      </select>
+
+      <select
+        class="form-select form-select-sm source-select"
+        aria-label="Filter by source"
+        [value]="sourceFilter()"
+        (change)="updateSource($event)"
+      >
+        <option value="">All sources ({{ sourceFacetItems().length }})</option>
+        @for (source of sourceOptions(); track source.name) {
+          <option [value]="source.name">{{ source.name }} ({{ source.situationCount }})</option>
+        }
+      </select>
+
+      <select
+        class="form-select form-select-sm cause-select"
+        aria-label="Filter by alert cause"
+        [value]="causeFilter()"
+        (change)="updateCause($event)"
+      >
+        <option value="">All causes ({{ causeFacetItems().length }})</option>
+        @for (option of causeOptions(); track option.cause) {
+          <option [value]="option.cause">{{ option.cause }} ({{ option.situationCount }})</option>
+        }
+      </select>
+
+      <select
+        class="form-select form-select-sm scope-type-select"
+        aria-label="Filter by publishing action scope type"
+        [value]="scopeTypeFilter()"
+        (change)="updateScopeType($event)"
+      >
+        <option value="">All scopes ({{ scopeTypeFacetItems().length }})</option>
+        @for (option of scopeTypeOptions(); track option.scopeType) {
+          <option [value]="option.scopeType">
+            {{ option.scopeType }} ({{ option.situationCount }})
+          </option>
+        }
+      </select>
+
+      <select
+        class="form-select form-select-sm perspective-select"
+        aria-label="Filter by perspective combination"
+        [value]="perspectiveCombinationFilter()"
+        (change)="updatePerspectiveCombination($event)"
+      >
+        <option value="">All perspectives ({{ perspectiveCombinationFacetItems().length }})</option>
+        @for (option of perspectiveCombinationOptions(); track option.combination) {
+          <option [value]="option.combination">
+            {{ option.label }} ({{ option.situationCount }})
+          </option>
+        }
+      </select>
+
+      <select
+        class="form-select form-select-sm language-select"
+        aria-label="Message language"
+        [value]="language()"
+        (change)="updateLanguage($event)"
+      >
+        <option value="de">Deutsch</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="it">Italiano</option>
+      </select>
+
+      <select
+        class="form-select form-select-sm message-size-select"
+        aria-label="Passenger message size"
+        [value]="messageSize()"
+        (change)="updateMessageSize($event)"
+      >
+        @for (size of contentSizes; track size) {
+          <option [value]="size">{{ size }}</option>
+        }
+      </select>
+
+      <div class="form-check ms-1">
+        <input
+          id="validation-issues-only"
+          type="checkbox"
+          class="form-check-input"
+          [checked]="validationIssuesOnly()"
+          (change)="updateValidationIssuesOnly($event)"
+        >
+        <label class="form-check-label small" for="validation-issues-only">
+          Validation issues only
+        </label>
+      </div>
+
+      <div class="form-check ms-1">
+        <input
+          id="active-now-only"
+          type="checkbox"
+          class="form-check-input"
+          [checked]="activeNowOnly()"
+          (change)="updateActiveNowOnly($event)"
+        >
+        <label class="form-check-label small" for="active-now-only">
+          Active now only
+        </label>
+      </div>
+
+      <div class="form-check ms-1">
+        <input
+          id="unplanned-only"
+          type="checkbox"
+          class="form-check-input"
+          [checked]="unplannedOnly()"
+          (change)="updateUnplannedOnly($event)"
+        >
+        <label class="form-check-label small" for="unplanned-only">
+          Unplanned only
+        </label>
+      </div>
+
+      @if (parseState().status === 'error') {
+        <span class="text-danger small">{{ parseState().message }}</span>
+      }
+      @if (businessOrganisations.error()) {
+        <span class="text-warning-emphasis small">
+          Operator names unavailable: {{ businessOrganisations.error() }}
+        </span>
+      }
+      </div>
+    </div>
+
+    @if (activeView() === 'messages') {
+      @if (store.items().length === 0) {
+        <section class="empty-state d-flex flex-column flex-grow-1 align-items-center justify-content-center gap-3 p-4">
+          @if (parseState().status === 'loading') {
+            <span class="spinner-border text-primary" aria-hidden="true"></span>
+            <span class="text-secondary">Loading SIRI-SX messages…</span>
+          } @else {
+            <span class="text-secondary">No SIRI-SX messages are available.</span>
+          }
+        </section>
+      } @else {
+        <div class="workspace d-flex flex-grow-1 overflow-hidden">
+          <section class="list-pane d-flex flex-column border-end" aria-label="Situation messages">
+            <div class="small text-secondary border-bottom bg-white px-3 py-2">
+              {{ filteredItems().length }} of {{ store.items().length }} messages
+            </div>
+
+            <cdk-virtual-scroll-viewport class="message-viewport flex-grow-1" itemSize="104">
+              <ng-container *cdkVirtualFor="let row of resultRows(); trackBy: trackResultRow">
+                @if (row.kind === 'situation') {
+                  <button
+                    type="button"
+                    class="message-row situation-row d-flex align-items-center w-100 gap-2 border-0 border-bottom px-3 py-2 text-start"
+                    [class.selected]="store.selectedId() === row.situation.id && !selectedAction()"
+                    [class.has-validation-issues]="row.situation.validationIssues.length > 0"
+                    (click)="select(row.situation)"
+                  >
+                    <span class="result-badges d-flex flex-column align-items-start gap-1">
+                      <span class="priority-badge badge" [class.text-bg-danger]="row.situation.priority >= 4" [class.text-bg-secondary]="row.situation.priority < 4">
+                        P{{ row.situation.priority }}
+                      </span>
+                      @if (row.situation.affectedOperatorRefs.length) {
+                        <span class="operator-badge badge text-bg-primary text-truncate" [title]="operatorCodes(row.situation)">
+                          {{ operatorCodes(row.situation) }}
+                        </span>
+                      }
+                      <span class="cause-badge badge text-bg-info text-truncate" [title]="row.situation.alertCause">
+                        {{ row.situation.alertCause }}
+                      </span>
+                    </span>
+                    <span class="min-w-0 flex-grow-1">
+                      <span class="d-flex flex-wrap gap-1 mb-1">
+                        @if (!row.situation.planned) {
+                          <span class="badge text-bg-warning">Unplanned</span>
+                        }
+                        @if (temporalStatus(row.situation); as status) {
+                          <span
+                            class="badge"
+                            [class.text-bg-success]="status === 'active'"
+                            [class.text-bg-primary]="status === 'upcoming'"
+                            [class.text-bg-secondary]="status === 'expired'"
+                            [class.text-bg-danger]="status === 'invalid'"
+                          >{{ temporalStatusLabel(status) }}</span>
+                        }
+                      </span>
+                      <strong class="message-summary d-block text-truncate">{{ summary(row.situation) }}</strong>
+                      <span class="message-meta d-block text-secondary text-truncate">
+                        {{ row.situation.messages.length }} publishing action(s) · {{ formatPeriod(row.situation.validityPeriods) }}@if (row.situation.validityPeriods.length > 1) { ({{ row.situation.validityPeriods.length }} validity periods) }
+                      </span>
+                      <span class="message-meta d-block text-secondary text-truncate">
+                        Perspectives: {{ situationPerspectives(row.situation) || '—' }}
+                      </span>
+                    </span>
+                    <span class="row-status-badges d-flex flex-column align-items-end gap-1">
+                      @if (row.situation.validationIssues.length) {
+                        <span class="badge text-bg-warning" title="Validation issues">
+                          ! {{ row.situation.validationIssues.length }}
+                        </span>
+                      }
+                    </span>
+                  </button>
+                }
+              </ng-container>
+            </cdk-virtual-scroll-viewport>
+          </section>
+
+          <aside class="detail-pane flex-grow-1 overflow-auto bg-white p-4" aria-label="Selected situation detail">
+            @if (store.selected(); as item) {
+              <div class="detail-header d-flex flex-wrap align-items-start gap-3 mb-4">
+                <div class="min-w-0 flex-grow-1">
+                  @if (selectedActionView(); as selected) {
+                    <div class="small text-uppercase text-primary fw-semibold mb-1">Publishing action</div>
+                    <h2 class="detail-heading h4 mb-2">{{ actionSummary(selected.action) }}</h2>
+                    <div class="text-secondary text-break">
+                      {{ selected.action.actionRef }} · parent {{ item.id }}
+                    </div>
+                  } @else {
+                    <h2 class="detail-heading h4 mb-2">{{ summary(item) }}</h2>
+                    <div class="text-secondary text-break">{{ item.id }} · version {{ item.version }}</div>
+                  }
+                </div>
+              </div>
+
+              <dl class="situation-metadata row small border rounded-3 p-3 mx-0">
+                <dt class="col-sm-3">Validity</dt>
+                <dd class="col-sm-9">
+                  @if (item.validityPeriods.length > 1) {
+                    <strong>{{ item.validityPeriods.length }} validity periods</strong>
+                    <div class="text-secondary">Overall: {{ formatPeriod(item.validityPeriods) }}</div>
+                    @if (sharedValidityTime(item.validityPeriods); as dailyTime) {
+                      <div class="text-secondary">Each day: {{ dailyTime }}</div>
+                    }
+                    <details class="validity-periods mt-2">
+                      <summary>Show individual periods</summary>
+                      <ol class="mb-0 mt-2 ps-4">
+                        @for (period of item.validityPeriods; track $index) {
+                          <li>{{ formatInterval(period) }}</li>
+                        }
+                      </ol>
+                    </details>
+                  } @else {
+                    {{ formatPeriod(item.validityPeriods) }}
+                  }
+                </dd>
+                <dt class="col-sm-3">Cause</dt>
+                <dd class="col-sm-9">{{ item.alertCause }}</dd>
+                <dt class="col-sm-3">Source</dt>
+                <dd class="col-sm-9">
+                  {{ item.source.name }} · {{ item.source.sourceType }}
+                  @if (item.source.externalCode) { · {{ item.source.externalCode }} }
+                </dd>
+                <dt class="col-sm-3">Operators</dt>
+                <dd class="col-sm-9">
+                  @for (operator of item.affectedOperatorRefs; track operator; let last = $last) {
+                    {{ operatorName(operator) }}
+                    <a
+                      [href]="operatorAtlasUrl(operator)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >({{ operator }})</a>@if (!last) {, }
+                  } @empty { — }
+                </dd>
+                <dt class="col-sm-3">Action owners</dt>
+                <dd class="col-sm-9">
+                  @for (owner of actionOwnerRefs(item); track owner; let last = $last) {
+                    {{ operatorName(owner) }}
+                    <a
+                      [href]="operatorAtlasUrl(owner)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >({{ owner }})</a>
+                    · <a
+                      [href]="ownerMessagesPreviewUrl(owner)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >Preview messages</a>@if (!last) {, }
+                  } @empty { — }
+                </dd>
+              </dl>
+
+              @if (item.affectedLineNames.length > 0
+                || item.affectedStopNames.length > 0
+                || item.affectedJourneyCount > 0) {
+                <section class="affected-objects border rounded-3 px-3 mt-3">
+                  @if (item.affectedLineNames.length > 0) {
+                    <div class="affected-object-group py-3">
+                      <strong>Lines affected</strong>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedLines.length }}</span>
+                      <div class="affected-object-list text-secondary mt-1">
+                        @for (line of item.affectedLines; track line.key) {
+                          <div>
+                            Line: {{ line.name }} – <code>{{ line.ref }}</code>
+                            @if (affectedLineLinkState(item, line); as linkState) {
+                              @if (linkState.status === 'ready') {
+                                · <a [href]="linkState.url" target="_blank" rel="noopener">Open trip in OJP</a>
+                              } @else if (linkState.status === 'loading') {
+                                · <span>Fetching trips…</span>
+                              } @else {
+                                · <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="buildAffectedLineLink(item, line)">Retry</button>
+                                <span class="text-danger ms-1">{{ linkState.message }}</span>
+                              }
+                            } @else {
+                              · <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="buildAffectedLineLink(item, line)">Build OJP link</button>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (item.affectedStops.length > 0) {
+                    <div class="affected-object-group py-3">
+                      <strong>Stops affected</strong>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedStops.length }}</span>
+                      <div class="affected-object-list text-secondary mt-1">
+                        @for (stop of item.affectedStops; track stop.ref; let last = $last) {
+                          <a [href]="affectedStopBoardUrl(stop, item)" target="_blank" rel="noopener">{{ stop.name }}</a>@if (!last) {, }
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (affectedJourneysToday(); as journeys) {
+                    @if (item.affectedJourneyCount > 0) {
+                    <div class="affected-object-group py-3">
+                      <strong>Vehicle journeys affected</strong>
+                      <span class="badge text-bg-secondary ms-2">{{ item.affectedJourneyCount }}</span>
+                      @if (journeys.length > 0) {
+                        <details class="affected-journeys mt-2" open>
+                          <summary>Today ({{ journeys.length }})</summary>
+                          <div class="journey-table-wrapper mt-2">
+                            <table class="table table-sm align-middle mb-0">
+                              <thead><tr><th>Departure</th><th>Journey ID</th><th>From → To</th></tr></thead>
+                              <tbody>
+                                @for (journey of journeys.slice(0, 100); track journey.key) {
+                                  <tr>
+                                    <td class="text-nowrap">{{ formatDateTime(journey.originAimedDepartureTime) }}</td>
+                                    <td>
+                                      <a [href]="affectedJourneyDetailsUrl(journey)" target="_blank" rel="noopener">
+                                        <code>{{ journey.journeyRef }}</code>
+                                      </a>
+                                    </td>
+                                    <td>
+                                      <a [href]="affectedJourneyTripUrl(journey)" target="_blank" rel="noopener">
+                                        {{ journey.originName }} <span aria-hidden="true">→</span> {{ journey.destinationName }}
+                                      </a>
+                                    </td>
+                                  </tr>
+                                }
+                              </tbody>
+                            </table>
+                          </div>
+                          @if (journeys.length > 100) {
+                            <div class="text-secondary mt-2">
+                              Showing the first 100; {{ journeys.length - 100 }} more affected vehicle journeys for today are not shown.
+                            </div>
+                          }
+                        </details>
+                      }
+                      @if (affectedJourneysOtherDates(); as otherJourneys) {
+                        @if (otherJourneys.length > 0) {
+                          <details class="affected-journeys mt-2">
+                            <summary>Show affected vehicle journeys on other dates ({{ otherJourneys.length }})</summary>
+                            <div class="journey-table-wrapper mt-2">
+                              <table class="table table-sm align-middle mb-0">
+                                <thead><tr><th>Departure</th><th>Journey ID</th><th>From → To</th></tr></thead>
+                                <tbody>
+                                  @for (journey of otherJourneys.slice(0, 100); track journey.key) {
+                                    <tr>
+                                      <td class="text-nowrap">{{ formatDateTime(journey.originAimedDepartureTime) }}</td>
+                                      <td>
+                                        <a [href]="affectedJourneyDetailsUrl(journey)" target="_blank" rel="noopener">
+                                          <code>{{ journey.journeyRef }}</code>
+                                        </a>
+                                      </td>
+                                      <td>
+                                        <a [href]="affectedJourneyTripUrl(journey)" target="_blank" rel="noopener">
+                                          {{ journey.originName }} <span aria-hidden="true">→</span> {{ journey.destinationName }}
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                            </div>
+                            @if (otherJourneys.length > 100) {
+                              <div class="text-secondary mt-2">
+                                Showing the first 100; {{ otherJourneys.length - 100 }} more affected vehicle journeys on other dates are not shown.
+                              </div>
+                            }
+                          </details>
+                        }
+                      }
+                    </div>
+                    }
+                  }
+                </section>
+              }
+
+              <section class="publishing-actions mt-4">
+                @for (message of detailMessages(); track message.actionRef) {
+                  <article class="publishing-action border rounded-3 mb-3">
+                    <header class="p-3">
+                      <span class="fw-semibold">ActionRef {{ message.actionRef }}</span>
+                      <span class="badge text-bg-primary ms-2">{{ actionOwnerCode(message) }}</span>
+                      <span class="badge text-bg-secondary ms-1">{{ message.scopeType }}</span>
+                      <div class="small text-secondary mt-1">
+                        Perspectives: {{ message.perspectives.join(' · ') || '—' }}
+                      </div>
+                    </header>
+
+                    <div class="border-top p-3">
+                      <div class="small fw-semibold text-uppercase mb-3">{{ messageSize() }} passenger information</div>
+                      @if (messageContent(message, messageSize()); as content) {
+                        <dl class="passenger-text mb-0">
+                          <div class="passenger-text-row">
+                            <dt>Summary</dt>
+                            <dd>{{ localized(content.summary) || '—' }}</dd>
+                          </div>
+                          @if (localized(content.reason)) {
+                            <div class="passenger-text-row"><dt>Reason</dt><dd>{{ localized(content.reason) }}</dd></div>
+                          }
+                          @if (localized(content.duration)) {
+                            <div class="passenger-text-row"><dt>Duration</dt><dd>{{ localized(content.duration) }}</dd></div>
+                          }
+                          @if (localized(content.description)) {
+                            <div class="passenger-text-row"><dt>Description</dt><dd>{{ localized(content.description) }}</dd></div>
+                          }
+                          @if (localized(content.consequence)) {
+                            <div class="passenger-text-row"><dt>Consequence</dt><dd>{{ localized(content.consequence) }}</dd></div>
+                          }
+                          @if (localized(content.recommendation)) {
+                            <div class="passenger-text-row"><dt>Recommendation</dt><dd>{{ localized(content.recommendation) }}</dd></div>
+                          }
+                          @if (content.infoLinks.length > 0) {
+                            <div class="passenger-text-row">
+                              <dt>InfoLink</dt>
+                              <dd>
+                                @for (link of content.infoLinks; track link.uri; let last = $last) {
+                                  <a [href]="link.uri" target="_blank" rel="noopener noreferrer">{{ infoLinkLabel(link) }}</a>@if (!last) {, }
+                                }
+                              </dd>
+                            </div>
+                          }
+                        </dl>
+                      } @else {
+                        <div class="text-secondary">
+                          No {{ messageSize() }} passenger information is available.
+                        </div>
+                      }
+                    </div>
+                  </article>
+                }
+              </section>
+
+              @if (item.validationIssues.length) {
+                <section class="alert alert-warning mt-4">
+                  <h3 class="h6">Validation issues</h3>
+                  @for (issue of item.validationIssues; track issue.path) {
+                    <div><code>{{ issue.path }}</code>: {{ issue.message }}</div>
+                  }
+                </section>
+              }
+            } @else {
+              <p class="text-secondary">Select a message to inspect it.</p>
+            }
+          </aside>
+        </div>
+      }
+    } @else {
+      <section class="invalid-pane flex-grow-1 overflow-auto p-4">
+        @if (invalidSituations().length === 0) {
+          <div class="alert alert-success">No invalid situations have been captured.</div>
+        }
+        @for (invalid of invalidSituations(); track invalid.index) {
+          <details class="bg-white border rounded-3 mb-3">
+            <summary class="p-3">
+              <strong>{{ invalid.situationNumber || 'Unknown situation' }}</strong>
+              <span class="text-danger ms-2">{{ invalid.message }}</span>
+            </summary>
+            <pre class="invalid-xml border-top mb-0 p-3"><code>{{ invalid.xml }}</code></pre>
+          </details>
+        }
+      </section>
+    }
+
+  </main>
+
+  <footer class="app-footer d-flex align-items-center px-4 py-2 small">
+    <div class="d-flex gap-3">
+      <span>{{ store.items().length }} valid</span>
+      <span>{{ invalidSituations().length }} invalid</span>
+    </div>
+    <div class="footer-build-info d-flex flex-wrap align-items-center gap-1 ms-auto">
+      <span>SIRI-SX Situation Monitor</span>
+      <span aria-hidden="true">·</span>
+      <a
+        class="link-light"
+        href="https://github.com/openTdataCH/siri-sx-situation-monitor"
+        target="_blank"
+        rel="noopener noreferrer"
+      >Source code</a>
+      <span aria-hidden="true">·</span>
+      @if (buildInfo && buildCommitUrl && buildTimeLabel) {
+        <a
+          class="link-light font-monospace"
+          [href]="buildCommitUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >{{ buildInfo.commit.slice(0, 7) }}</a>
+        <span aria-hidden="true">·</span>
+        <time [attr.datetime]="buildInfo.builtAt">built {{ buildTimeLabel }}</time>
+      } @else {
+        <span>development build</span>
+      }
+    </div>
+  </footer>
+</div>
