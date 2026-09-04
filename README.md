@@ -15,6 +15,11 @@ public-transport implementation and the following official resources:
 - [Realization Guide SIRI-SX ÖV Schweiz, version 1.1](https://www.oev-info.ch/sites/default/files/2026-02/realization_guide_siri-sx_oev_schweiz_v1.1.pdf)
 - [ÖV-info.ch: Ereignisdaten](https://www.oev-info.ch/de/branchenstandard/technische-standards/ereignisdaten)
 
+TypeScript developers can browse the
+[SIRI-SX DTO definitions](https://github.com/openTdataCH/siri-sx-situation-monitor/tree/feature/v2/src/app/siri-sx/dto)
+used by this application. They are application-scoped source definitions, not a
+separately published npm package.
+
 ## Application pages
 
 ### Embedded message page (`/`)

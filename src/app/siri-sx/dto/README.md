@@ -33,3 +33,5 @@ whether a field is valid and whether it is required.
 These DTOs intentionally cover the SIRI-SX structures used by this application.
 They are not a complete generated representation of every type in the full SIRI
 2.0 schema.
+
+All public DTO types are exported from [`index.ts`](./index.ts).
