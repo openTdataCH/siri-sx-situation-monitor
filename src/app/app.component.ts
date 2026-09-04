@@ -39,7 +39,7 @@ export class AppComponent implements OnInit {
     ? `https://github.com/openTdataCH/siri-sx-situation-monitor/commit/${this.buildInfo.commit}`
     : undefined;
   protected readonly buildTimeLabel = this.buildInfo
-    ? `${this.buildInfo.builtAt.slice(0, 16).replace('T', ' ')} UTC`
+    ? formatBuildTime(this.buildInfo.builtAt)
     : undefined;
   protected readonly parseState = signal<ParseState>({ status: 'idle' });
   protected readonly searchTerm = signal('');
@@ -874,6 +874,23 @@ type AffectedLineLinkState =
 interface AppBuildInfo {
   commit: string;
   builtAt: string;
+}
+
+function formatBuildTime(timestamp: string): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Zurich',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZoneName: 'short'
+  }).formatToParts(new Date(timestamp));
+  const part = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find(candidate => candidate.type === type)?.value ?? '';
+
+  return `${part('year')}-${part('month')}-${part('day')} ${part('hour')}:${part('minute')} ${part('timeZoneName')}`;
 }
 
 function readBuildInfo(): AppBuildInfo | undefined {
