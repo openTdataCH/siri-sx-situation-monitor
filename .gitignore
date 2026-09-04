@@ -40,3 +40,5 @@ testem.log
 Thumbs.db
 
 .vscode
+
+/public/build-info.js
