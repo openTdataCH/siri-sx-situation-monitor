@@ -2,6 +2,7 @@ import { AffectsScopeDto } from './situation-affects.dto';
 import { PtConsequencesDto, PublishingActionsDto } from './situation-actions.dto';
 import {
   DefaultedTextDto,
+  NaturalLanguageStringDto,
   InfoLinkDto,
   ProgressDto,
   ScopeTypeDto,
@@ -17,10 +18,16 @@ import {
  *
  * Property cardinality follows the XSD: optional elements use `?` and
  * repeatable elements use arrays. Values are not normalized for the UI here.
+ *
+ * Swiss SIRI-SX implementation references:
+ * @see https://www.oev-info.ch/sites/default/files/2026-02/realization_guide_siri-sx_oev_schweiz_v1.1.pdf
+ * @see https://www.oev-info.ch/de/branchenstandard/technische-standards/ereignisdaten
  */
-export interface PtSituationElementDto {
+export type PtSituationElementDto = PtSituationElementBaseDto & SituationReasonDto;
+
+interface PtSituationElementBaseDto {
   creationTime: SiriDateTimeDto;
-  countryRef: SiriReferenceDto;
+  countryRef?: SiriReferenceDto;
   participantRef: SiriReferenceDto;
   situationNumber: SiriReferenceDto;
   updateCountryRef?: SiriReferenceDto;
@@ -30,22 +37,15 @@ export interface PtSituationElementDto {
   source: SituationSourceDto;
   versionedAtTime?: SiriDateTimeDto;
 
-  progress?: ProgressDto;
+  progress: ProgressDto;
   qualityIndex?: string;
   reality?: string;
 
   validityPeriods: TimeIntervalDto[];
-  publicationWindows: TimeIntervalDto[];
+  publicationWindows?: TimeIntervalDto[];
 
-  alertCause?: string;
-  unknownReason?: string;
-  miscellaneousReason?: string;
-  personnelReason?: string;
-  equipmentReason?: string;
-  environmentReason?: string;
-  undefinedReason?: string;
   publicEventReason?: string;
-  reasonName?: string;
+  reasonNames?: NaturalLanguageStringDto[];
   severity?: SeverityDto;
   priority?: number;
   sensitivity?: string;
@@ -69,3 +69,18 @@ export interface PtSituationElementDto {
   /** Vendor- or profile-specific extension content. */
   extensions?: unknown;
 }
+
+type SituationReasonField =
+  | 'alertCause'
+  | 'unknownReason'
+  | 'miscellaneousReason'
+  | 'personnelReason'
+  | 'equipmentReason'
+  | 'environmentReason'
+  | 'undefinedReason';
+
+export type SituationReasonDto = {
+  [Field in SituationReasonField]:
+    & Record<Field, string>
+    & Partial<Record<Exclude<SituationReasonField, Field>, never>>;
+}[SituationReasonField];

@@ -1,6 +1,7 @@
-import { SiriReferenceDto } from './situation-common.dto';
+import { NaturalLanguageStringDto, SiriReferenceDto } from './situation-common.dto';
 
 export interface AffectsScopeDto {
+  allOperators?: boolean;
   operators?: AffectedOperatorDto[];
   networks?: AffectedNetworkDto[];
   stopPoints?: AffectedStopPointDto[];
@@ -10,55 +11,64 @@ export interface AffectsScopeDto {
 }
 
 export interface AffectedOperatorDto {
-  operatorRef: SiriReferenceDto;
-  operatorName?: string;
+  operatorRef?: SiriReferenceDto;
+  operatorNames?: NaturalLanguageStringDto[];
 }
 
 export interface AffectedNetworkDto {
+  affectedOperators?: AffectedOperatorDto[];
   networkRef?: SiriReferenceDto;
-  networkName?: string;
+  networkNames?: NaturalLanguageStringDto[];
   vehicleMode?: string;
   allLines?: boolean;
   lines?: AffectedLineDto[];
 }
 
 export interface AffectedLineDto {
-  affectedOperator?: AffectedOperatorDto;
+  affectedOperators?: AffectedOperatorDto[];
   lineRef: SiriReferenceDto;
-  publishedLineName?: string;
-  direction?: AffectedDirectionDto;
+  publishedLineNames?: NaturalLanguageStringDto[];
+  directions?: AffectedDirectionDto[];
   routes?: AffectedRouteDto[];
   stopPoints?: AffectedStopPointDto[];
   stopPlaces?: AffectedStopPlaceDto[];
-  vehicleJourneys?: AffectedVehicleJourneyDto[];
 }
 
 export interface AffectedDirectionDto {
-  directionRef?: SiriReferenceDto;
-  directionName?: string[];
+  directionRef: SiriReferenceDto;
+  directionNames?: NaturalLanguageStringDto[];
 }
 
 export interface AffectedRouteDto {
-  routeRef: SiriReferenceDto;
-  routeName?: string;
+  routeRef?: SiriReferenceDto;
+  directions?: AffectedDirectionDto[];
 }
 
 export interface AffectedStopPlaceDto {
   stopPlaceRef: SiriReferenceDto;
-  placeName?: string;
+  placeNames?: NaturalLanguageStringDto[];
   stopConditions?: string[];
 }
 
 export interface AffectedStopPointDto {
-  stopPointRef: SiriReferenceDto;
-  stopPointName?: string;
+  stopPointRef?: SiriReferenceDto;
+  stopPointNames?: NaturalLanguageStringDto[];
   location?: LocationDto;
   stopConditions?: string[];
 }
 
-export interface LocationDto {
-  longitude?: number;
-  latitude?: number;
+export type LocationDto = Wgs84LocationDto | CoordinateLocationDto;
+
+export interface Wgs84LocationDto {
+  longitude: number;
+  latitude: number;
+  coordinates?: never;
+}
+
+export interface CoordinateLocationDto {
+  coordinates: unknown;
+  longitude?: never;
+  latitude?: never;
 }
 
 export interface FramedVehicleJourneyRefDto {
@@ -68,24 +78,24 @@ export interface FramedVehicleJourneyRefDto {
 
 export interface AffectedVehicleJourneyDto {
   framedVehicleJourneyRef?: FramedVehicleJourneyRefDto;
-  vehicleJourneyRef?: SiriReferenceDto;
+  vehicleJourneyRefs?: SiriReferenceDto[];
   operator?: AffectedOperatorDto;
   lineRef?: SiriReferenceDto;
-  publishedLineName?: string;
+  publishedLineNames?: NaturalLanguageStringDto[];
   directionRef?: SiriReferenceDto;
-  origin?: AffectedStopPlaceDto;
-  destination?: AffectedStopPlaceDto;
+  origins?: AffectedStopPointDto[];
+  destinations?: AffectedStopPointDto[];
   calls?: AffectedCallDto[];
 }
 
 export interface AffectedCallDto {
   stopPointRef?: SiriReferenceDto;
   stopPlaceRef?: SiriReferenceDto;
-  placeName?: string;
+  placeNames?: NaturalLanguageStringDto[];
   order?: number;
 }
 
 export interface AffectedVehicleDto {
   vehicleRef: SiriReferenceDto;
-  vehicleRegistrationNumber?: string;
+  vehicleRegistrationNumberPlates?: string[];
 }

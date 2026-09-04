@@ -10,20 +10,28 @@ export interface NaturalLanguageStringDto {
 }
 
 export interface DefaultedTextDto extends NaturalLanguageStringDto {
+  lang: string;
   overridden?: boolean;
 }
 
-export interface TimeIntervalDto {
+export interface HalfOpenTimeIntervalDto {
   startTime: SiriDateTimeDto;
   endTime?: SiriDateTimeDto;
 }
 
+export interface ClosedTimeIntervalDto {
+  startTime: SiriDateTimeDto;
+  endTime: SiriDateTimeDto;
+}
+
+export type TimeIntervalDto = HalfOpenTimeIntervalDto;
+
 export interface SituationSourceDto {
   countryRef?: SiriReferenceDto;
-  sourceType?: SourceTypeDto;
+  sourceType: SourceTypeDto;
   email?: string;
   phone?: string;
-  name?: string;
+  name?: NaturalLanguageStringDto;
   timeOfCommunication?: SiriDateTimeDto;
   externalCode?: string;
 }
@@ -55,6 +63,9 @@ export type LinkContentDto =
   | (string & {});
 
 export type ProgressDto =
+  | 'draft'
+  | 'pendingApproval'
+  | 'approvedDraft'
   | 'open'
   | 'published'
   | 'closed'
@@ -62,13 +73,21 @@ export type ProgressDto =
   | (string & {});
 
 export type SeverityDto =
+  | 'pti26_0'
   | 'unknown'
+  | 'pti26_1'
   | 'verySlight'
+  | 'pti26_2'
   | 'slight'
+  | 'pti26_3'
   | 'normal'
+  | 'pti26_4'
   | 'severe'
+  | 'pti26_5'
   | 'verySevere'
+  | 'pti26_6'
   | 'noImpact'
+  | 'pti26_255'
   | 'undefined'
   | (string & {});
 
@@ -80,19 +99,46 @@ export type ScopeTypeDto =
   | 'line'
   | 'place'
   | 'stopPlace'
+  | 'stopPlaceComponent'
   | 'stopPoint'
   | 'vehicleJourney'
+  | 'datedVehicleJourney'
+  | 'connectionLink'
+  | 'interchange'
+  | 'allPT'
+  | 'road'
   | (string & {});
 
 export type TextualContentSizeDto = 'S' | 'M' | 'L' | (string & {});
 
 export type SituationConditionDto =
   | 'unknown'
-  | 'altered'
-  | 'cancelled'
-  | 'delayed'
+  | 'delay'
+  | 'minorDelays'
+  | 'majorDelays'
+  | 'operationTimeExtension'
+  | 'onTime'
+  | 'disturbanceRectified'
+  | 'changeOfPlatform'
+  | 'lineCancellation'
+  | 'tripCancellation'
+  | 'boarding'
+  | 'goToGate'
+  | 'stopCancelled'
+  | 'stopMoved'
+  | 'stopOnDemand'
+  | 'additionalStop'
+  | 'substitutedStop'
   | 'diverted'
-  | 'disrupted'
-  | 'additionalService'
-  | 'normalService'
+  | 'disruption'
+  | 'limitedOperation'
+  | 'discontinuedOperation'
+  | 'irregularTraffic'
+  | 'wagonOrderChanged'
+  | 'trainShortened'
+  | 'additionalRide'
+  | 'replacementRide'
+  | 'temporarilyNonStopping'
+  | 'temporaryStopplace'
+  | 'undefinedStatus'
   | (string & {});

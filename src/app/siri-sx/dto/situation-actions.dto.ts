@@ -1,6 +1,8 @@
 import { AffectsScopeDto } from './situation-affects.dto';
 import {
   InfoLinkDto,
+  ClosedTimeIntervalDto,
+  DefaultedTextDto,
   NaturalLanguageStringDto,
   ScopeTypeDto,
   SeverityDto,
@@ -16,40 +18,41 @@ export interface PublishingActionsDto {
 }
 
 export interface PublishingActionDto {
-  publishAtScope?: PublishAtScopeDto;
-  passengerInformationAction?: PassengerInformationActionDto;
+  publishAtScope: PublishAtScopeDto;
+  passengerInformationActions: PassengerInformationActionDto[];
 }
 
 export interface PublishAtScopeDto {
   scopeType: ScopeTypeDto;
-  affects?: AffectsScopeDto;
+  affects: AffectsScopeDto;
 }
 
 export interface PassengerInformationActionDto {
   actionRef: SiriReferenceDto;
-  recordedAtTime?: SiriDateTimeDto;
+  recordedAtTime: SiriDateTimeDto;
+  sourceRef?: SiriReferenceDto;
   ownerRef?: SiriReferenceDto;
-  perspectives?: string[];
-  publicationWindows?: TimeIntervalDto[];
+  perspectives: string[];
+  publicationWindows?: ClosedTimeIntervalDto[];
   actionPriority?: number;
   version?: number;
-  textualContent?: TextualContentDto[];
+  textualContent: TextualContentDto[];
 }
 
 export interface TextualContentDto {
-  textualContentSize: TextualContentSizeDto;
+  textualContentSize?: TextualContentSizeDto;
   summaryContent: TextPropertyContentDto;
   reasonContent?: TextPropertyContentDto;
-  descriptionContent?: TextPropertyContentDto;
-  consequenceContent?: TextPropertyContentDto;
-  recommendationContent?: TextPropertyContentDto;
+  descriptionContents?: TextPropertyContentDto[];
+  consequenceContents?: TextPropertyContentDto[];
+  recommendationContents?: TextPropertyContentDto[];
   durationContent?: TextPropertyContentDto;
-  remarkContent?: TextPropertyContentDto;
+  remarkContents?: TextPropertyContentDto[];
   infoLinks?: InfoLinkDto[];
 }
 
 export interface TextPropertyContentDto {
-  values: NaturalLanguageStringDto[];
+  values: DefaultedTextDto[];
 }
 
 export interface PtConsequencesDto {
@@ -57,12 +60,14 @@ export interface PtConsequencesDto {
 }
 
 export interface PtConsequenceDto {
-  period?: {
-    startTime: SiriDateTimeDto;
-    endTime?: SiriDateTimeDto;
-  };
+  periods?: TimeIntervalDto[];
   conditions?: SituationConditionDto[];
   severity?: SeverityDto;
   affects?: AffectsScopeDto;
-  advice?: NaturalLanguageStringDto[];
+  advice?: PtAdviceDto;
+}
+
+export interface PtAdviceDto {
+  adviceRef?: SiriReferenceDto;
+  details?: NaturalLanguageStringDto[];
 }
