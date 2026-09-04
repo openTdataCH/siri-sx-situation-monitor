@@ -50,8 +50,6 @@ The full SIRI-SX explorer used to find and preview messages. It provides:
   details
 - a **Preview messages** link beside each action owner
 
-Preview links open `/` with the selected owner. Non-default stage, language and text-size selections are included in the URL.
-
 ## Embedding the message view
 
 Hosted example:
