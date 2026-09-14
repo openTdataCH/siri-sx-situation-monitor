@@ -78,13 +78,14 @@ HTML iframe example:
 | `stage` | No | `prod`, `int` (case-insensitive) | `prod` | Selects the SIRI-SX environment. Invalid values produce an error. |
 | `lang` | No | `de`, `en`, `fr`, `it` | `de` | Selects the localized passenger-information text. Missing or invalid values use German. |
 | `text_size` | No | `small`, `medium`, `large` | `large` | Selects the passenger-information content size. Missing or invalid values use large. |
+| `perspective` | No | A SIRI perspective, for example `general` or `stopPoint` | `general` | Displays actions containing the selected perspective. An action may contain additional perspectives. |
 
 Default parameters may be omitted. For example, the following URLs are
 equivalent:
 
 ```text
 /?owner=ch:1:sboid:100170
-/?owner=ch:1:sboid:100170&stage=prod&lang=de&text_size=large
+/?owner=ch:1:sboid:100170&stage=prod&lang=de&text_size=large&perspective=general
 ```
 
 ## Local development
