@@ -35,6 +35,24 @@ situations have an **Unplanned** badge. The data is refreshed every minute.
 
 An `owner` query parameter is required. Without it, the page displays an error.
 
+Messages on this page are ordered by the following criteria:
+
+1. unplanned before planned
+2. priority ascending (`P3` before `P4`)
+3. active publishing actions before inactive publishing actions when their
+   planned status and priority are the same
+
+For example:
+
+```text
+Unplanned P3 — active
+Unplanned P3 — inactive
+Unplanned P4 — active
+Unplanned P4 — inactive
+Planned P3 — active
+Planned P3 — inactive
+```
+
 ### Setup and explorer (`/setup`)
 
 The full SIRI-SX explorer used to find and preview messages. It provides:
