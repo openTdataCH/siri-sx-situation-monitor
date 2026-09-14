@@ -232,7 +232,7 @@ export class AppComponent implements OnInit {
 
     return [...counts.entries()]
       .map(([priority, situationCount]) => ({ priority, situationCount }))
-      .sort((left, right) => right.priority - left.priority);
+      .sort((left, right) => left.priority - right.priority);
   });
 
   protected readonly operatorOptions = computed(() => {
