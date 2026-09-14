@@ -30,6 +30,7 @@ export class HomePageComponent implements OnInit {
   protected readonly language = queryLanguage(this.route.snapshot.queryParamMap.get('lang'));
   protected readonly textSize = queryTextSize(this.route.snapshot.queryParamMap.get('text_size'));
   protected readonly stage = queryStage(this.route.snapshot.queryParamMap.get('stage'));
+  protected readonly perspective = queryPerspective(this.route.snapshot.queryParamMap.get('perspective'));
   protected readonly loadingMessagesText = LOADING_MESSAGES_TEXT[this.language];
   protected readonly noMessagesText = NO_MESSAGES_TEXT[this.language];
   protected readonly messages = signal<readonly EmbeddedMessage[]>([]);
@@ -99,7 +100,8 @@ export class HomePageComponent implements OnInit {
   private appendOwnedMessages(situation: PtSituation): void {
     const owned = situation.publishingActions
       .map((action, actionIndex) => ({ action, actionIndex }))
-      .filter(({ action }) => action.ownerRef === this.owner)
+      .filter(({ action }) =>
+        action.ownerRef === this.owner && action.perspectives.includes(this.perspective))
       .map(({ action, actionIndex }) => ({
         key: `${situation.id}|${situation.version}|${action.actionRef}|${actionIndex}`,
         situation,
@@ -136,6 +138,10 @@ function queryLanguage(value: string | null): SupportedLanguage {
 
 function queryTextSize(value: string | null): TextContentSize {
   return value === 'small' || value === 'medium' || value === 'large' ? value : 'large';
+}
+
+function queryPerspective(value: string | null): string {
+  return value?.trim() || 'general';
 }
 
 const NO_MESSAGES_TEXT: Readonly<Record<SupportedLanguage, string>> = {
