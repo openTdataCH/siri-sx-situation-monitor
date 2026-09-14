@@ -288,7 +288,7 @@
                         [class.priority-p3]="row.situation.priority === 3"
                         [class.priority-p4]="row.situation.priority === 4"
                       >
-                        P{{ row.situation.priority }}{{ priorityDescriptions[row.situation.priority] ?? '' }}
+                        P{{ row.situation.priority }}
                       </span>
                       @if (row.situation.affectedOperatorRefs.length) {
                         <span class="operator-badge badge text-bg-primary text-truncate" [title]="operatorCodes(row.situation)">
