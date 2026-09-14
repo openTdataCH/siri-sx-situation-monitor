@@ -253,6 +253,10 @@ export class AppComponent implements OnInit {
       .sort((left, right) => left.label.localeCompare(right.label, language));
   });
 
+  protected readonly operatorFacetSituationCount = computed(() =>
+    this.operatorFacetItems().filter((item) => item.affectedOperatorRefs.length > 0).length
+  );
+
   protected readonly ownerOptions = computed(() => {
     const counts = new Map<string, number>();
     const language = this.language();

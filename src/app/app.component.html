@@ -111,7 +111,7 @@
         [value]="operatorFilter()"
         (change)="updateOperator($event)"
       >
-        <option value="">All operators ({{ operatorFacetItems().length }})</option>
+        <option value="">All line operators ({{ operatorFacetSituationCount() }})</option>
         @for (operator of operatorOptions(); track operator.ref) {
           <option [value]="operator.ref">{{ operator.label }} ({{ operator.situationCount }})</option>
         }
