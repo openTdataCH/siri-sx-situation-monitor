@@ -146,7 +146,22 @@
 }
 
 .priority-badge {
-  width: 2.5rem;
+  min-width: 2.5rem;
+  color: #fff;
+  background-color: #6c757d;
+}
+
+.priority-p1 {
+  background-color: #b42318;
+}
+
+.priority-p3 {
+  color: #212529;
+  background-color: #facc15;
+}
+
+.priority-p4 {
+  background-color: #2563eb;
 }
 
 .priority-badge,

@@ -282,8 +282,13 @@
                     (click)="select(row.situation)"
                   >
                     <span class="result-badges d-flex flex-column align-items-start gap-1">
-                      <span class="priority-badge badge" [class.text-bg-danger]="row.situation.priority >= 4" [class.text-bg-secondary]="row.situation.priority < 4">
-                        P{{ row.situation.priority }}
+                      <span
+                        class="priority-badge badge"
+                        [class.priority-p1]="row.situation.priority === 1"
+                        [class.priority-p3]="row.situation.priority === 3"
+                        [class.priority-p4]="row.situation.priority === 4"
+                      >
+                        P{{ row.situation.priority }}{{ priorityDescription(row.situation.priority) }}
                       </span>
                       @if (row.situation.affectedOperatorRefs.length) {
                         <span class="operator-badge badge text-bg-primary text-truncate" [title]="operatorCodes(row.situation)">
