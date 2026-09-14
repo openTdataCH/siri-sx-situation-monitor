@@ -44,6 +44,27 @@ describe('HomePageComponent', () => {
     expect(cards[0].textContent).not.toContain('Other message');
   });
 
+  it('renders only actions containing the requested perspective', async () => {
+    const situation = {
+      id: 'situation-1',
+      version: 1,
+      publishingActions: [
+        action('wanted-owner', 'Stop message', ['general', 'stopPoint']),
+        action('wanted-owner', 'Vehicle message', ['general', 'vehicleJourney'])
+      ]
+    } as unknown as PtSituation;
+    const streamSituations = completedStream(situation);
+    await configure('wanted-owner', streamSituations, 'de', 'large', 'prod', 'stopPoint');
+
+    const fixture = TestBed.createComponent(HomePageComponent);
+    fixture.detectChanges();
+    const cards = (fixture.nativeElement as HTMLElement).querySelectorAll('.message-card');
+
+    expect(cards.length).toBe(1);
+    expect(cards[0].textContent).toContain('Stop message');
+    expect(cards[0].textContent).not.toContain('Vehicle message');
+  });
+
   it('shows an unplanned badge after the title', async () => {
     const situation = {
       id: 'unplanned-situation',
@@ -169,7 +190,8 @@ async function configure(
   streamSituations: jasmine.Spy,
   lang?: string,
   textSize?: string,
-  stage?: string
+  stage?: string,
+  perspective?: string
 ): Promise<void> {
   await TestBed.configureTestingModule({
     imports: [HomePageComponent],
@@ -182,7 +204,8 @@ async function configure(
               ...(owner === undefined ? {} : { owner }),
               ...(lang === undefined ? {} : { lang }),
               ...(textSize === undefined ? {} : { text_size: textSize }),
-              ...(stage === undefined ? {} : { stage })
+              ...(stage === undefined ? {} : { stage }),
+              ...(perspective === undefined ? {} : { perspective })
             })
           }
         }
@@ -231,14 +254,18 @@ function situationWithTextSizes(): PtSituation {
   } as unknown as PtSituation;
 }
 
-function action(ownerRef: string, summary: string | LocalizedText): PublishingAction {
+function action(
+  ownerRef: string,
+  summary: string | LocalizedText,
+  perspectives: readonly string[] = ['general']
+): PublishingAction {
   const localized: LocalizedText = typeof summary === 'string' ? { en: summary } : summary;
   return {
     actionRef: `${ownerRef}-action`,
     ownerRef,
     recordedAtTime: new Date(),
     scopeType: 'line',
-    perspectives: [],
+    perspectives,
     publicationWindows: [],
     content: {
       large: {
