@@ -106,11 +106,32 @@ export class HomePageComponent implements OnInit {
         key: `${situation.id}|${situation.version}|${action.actionRef}|${actionIndex}`,
         situation,
         action
-      }));
+    }));
     if (owned.length > 0) {
-      this.messages.update((messages) => [...messages, ...owned]);
+      const now = new Date();
+      this.messages.update((messages) =>
+        [...messages, ...owned].sort((left, right) => compareMessages(left, right, now))
+      );
     }
   }
+}
+
+function compareMessages(left: EmbeddedMessage, right: EmbeddedMessage, now: Date): number {
+  const plannedComparison = Number(left.situation.planned) - Number(right.situation.planned);
+  if (plannedComparison !== 0) {
+    return plannedComparison;
+  }
+
+  const priorityComparison = left.situation.priority - right.situation.priority;
+  if (priorityComparison !== 0) {
+    return priorityComparison;
+  }
+
+  return Number(isActionActive(right.action, now)) - Number(isActionActive(left.action, now));
+}
+
+function isActionActive(action: PublishingAction, now: Date): boolean {
+  return action.publicationWindows.some((window) => window.contains(now));
 }
 
 function queryStage(value: string | null): SiriSxStage | undefined {
