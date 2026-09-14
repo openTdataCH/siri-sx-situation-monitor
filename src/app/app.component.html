@@ -101,7 +101,7 @@
       >
         <option value="">All priorities ({{ priorityFacetItems().length }})</option>
         @for (option of priorityOptions(); track option.priority) {
-          <option [value]="option.priority">P{{ option.priority }} ({{ option.situationCount }})</option>
+          <option [value]="option.priority">P{{ option.priority }}{{ priorityDescription(option.priority) }} ({{ option.situationCount }})</option>
         }
       </select>
 
@@ -373,6 +373,8 @@
                     {{ formatPeriod(item.validityPeriods) }}
                   }
                 </dd>
+                <dt class="col-sm-3">Priority</dt>
+                <dd class="col-sm-9">P{{ item.priority }}{{ priorityDescription(item.priority) }}</dd>
                 <dt class="col-sm-3">Cause</dt>
                 <dd class="col-sm-9">{{ item.alertCause }}</dd>
                 <dt class="col-sm-3">Source</dt>

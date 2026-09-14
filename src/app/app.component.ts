@@ -508,6 +508,19 @@ export class AppComponent implements OnInit {
     this.reconcileFacetSelections();
   }
 
+  protected priorityDescription(priority: number): string {
+    switch (priority) {
+      case 1:
+        return ' — Emergency';
+      case 3:
+        return ' — Operational event';
+      case 4:
+        return ' — General information';
+      default:
+        return '';
+    }
+  }
+
   protected updateCause(event: Event): void {
     this.causeFilter.set((event.target as HTMLSelectElement).value);
     this.reconcileFacetSelections();
