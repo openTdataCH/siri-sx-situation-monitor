@@ -101,7 +101,7 @@
       >
         <option value="">All priorities ({{ priorityFacetItems().length }})</option>
         @for (option of priorityOptions(); track option.priority) {
-          <option [value]="option.priority">P{{ option.priority }}{{ priorityDescription(option.priority) }} ({{ option.situationCount }})</option>
+          <option [value]="option.priority">P{{ option.priority }}{{ priorityDescriptions[option.priority] ?? '' }} ({{ option.situationCount }})</option>
         }
       </select>
 
@@ -288,7 +288,7 @@
                         [class.priority-p3]="row.situation.priority === 3"
                         [class.priority-p4]="row.situation.priority === 4"
                       >
-                        P{{ row.situation.priority }}{{ priorityDescription(row.situation.priority) }}
+                        P{{ row.situation.priority }}{{ priorityDescriptions[row.situation.priority] ?? '' }}
                       </span>
                       @if (row.situation.affectedOperatorRefs.length) {
                         <span class="operator-badge badge text-bg-primary text-truncate" [title]="operatorCodes(row.situation)">
@@ -374,7 +374,7 @@
                   }
                 </dd>
                 <dt class="col-sm-3">Priority</dt>
-                <dd class="col-sm-9">P{{ item.priority }}{{ priorityDescription(item.priority) }}</dd>
+                <dd class="col-sm-9">P{{ item.priority }}{{ priorityDescriptions[item.priority] ?? '' }}</dd>
                 <dt class="col-sm-3">Cause</dt>
                 <dd class="col-sm-9">{{ item.alertCause }}</dd>
                 <dt class="col-sm-3">Source</dt>

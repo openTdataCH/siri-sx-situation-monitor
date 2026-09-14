@@ -19,6 +19,12 @@ import {
 } from './siri-sx/models';
 import { AffectedLineLinkService, PtSituationStore, SiriSxStage, SiriSxStreamService } from './siri-sx/services';
 
+const PRIORITY_DESCRIPTIONS: Readonly<Partial<Record<number, string>>> = {
+  1: ' — Emergency',
+  3: ' — Operational event',
+  4: ' — General information'
+};
+
 @Component({
   selector: 'app-siri-sx-browser',
   imports: [ScrollingModule],
@@ -63,6 +69,7 @@ export class AppComponent implements OnInit {
   protected readonly affectedLineLinkStates = signal<ReadonlyMap<string, AffectedLineLinkState>>(new Map());
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
   protected readonly contentSizes: readonly TextContentSize[] = ['large', 'medium', 'small'];
+  protected readonly priorityDescriptions = PRIORITY_DESCRIPTIONS;
   private streamSubscription?: Subscription;
 
   protected readonly textFilteredItems = computed(() => {
@@ -506,19 +513,6 @@ export class AppComponent implements OnInit {
     const value = (event.target as HTMLSelectElement).value;
     this.priorityFilter.set(value === '' ? null : Number(value));
     this.reconcileFacetSelections();
-  }
-
-  protected priorityDescription(priority: number): string {
-    switch (priority) {
-      case 1:
-        return ' — Emergency';
-      case 3:
-        return ' — Operational event';
-      case 4:
-        return ' — General information';
-      default:
-        return '';
-    }
   }
 
   protected updateCause(event: Event): void {
