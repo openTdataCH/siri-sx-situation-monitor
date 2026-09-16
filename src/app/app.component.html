@@ -1,6 +1,21 @@
 <div class="app-layout d-flex flex-column min-vh-100">
   <header class="app-header d-flex align-items-center gap-3 px-4 py-3">
-    <h1 class="h5 mb-0 me-auto">{{ title }}</h1>
+    <h1 class="h5 mb-0">{{ title }}</h1>
+
+    <nav class="btn-group btn-group-sm me-auto" aria-label="SIRI-SX views">
+      <a
+        href="setup"
+        class="btn"
+        [class.btn-light]="viewMode() === 'browser'"
+        [class.btn-outline-light]="viewMode() !== 'browser'"
+      >Setup</a>
+      <a
+        href="timeline"
+        class="btn"
+        [class.btn-light]="viewMode() === 'timeline'"
+        [class.btn-outline-light]="viewMode() !== 'timeline'"
+      >Timeline</a>
+    </nav>
 
     <fieldset class="d-flex align-items-center gap-3 mb-0">
       <legend class="visually-hidden">SIRI-SX stage</legend>
@@ -47,6 +62,7 @@
 
   <main class="app-content d-flex flex-column flex-grow-1 overflow-hidden">
     <div class="toolbar d-flex flex-wrap align-items-center gap-2 border-bottom bg-white px-3 py-2">
+      @if (viewMode() === 'browser') {
       <div class="btn-group btn-group-sm" role="group" aria-label="Data view">
         <button
           type="button"
@@ -67,6 +83,7 @@
           Invalid <span class="badge text-bg-light ms-1">{{ invalidSituations().length }}</span>
         </button>
       </div>
+      }
 
       <button
         type="button"
@@ -254,7 +271,84 @@
       </div>
     </div>
 
-    @if (activeView() === 'messages') {
+    @if (viewMode() === 'timeline') {
+      <div class="workspace timeline-workspace d-flex flex-grow-1 overflow-hidden">
+      <section class="timeline-pane d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Situation validity timeline">
+        <div class="small text-secondary border-bottom bg-white px-3 py-2">
+          {{ timeline().rows.length }} of {{ store.items().length }} messages in the visible window · 6 hours grid · each block is one ValidityPeriod
+        </div>
+
+        @if (timeline().rows.length === 0) {
+          <div class="empty-state d-flex flex-column flex-grow-1 align-items-center justify-content-center gap-3 p-4">
+            @if (parseState().status === 'loading') {
+              <span class="spinner-border text-primary" aria-hidden="true"></span>
+              <span class="text-secondary">Loading SIRI-SX messages…</span>
+            } @else {
+              <span class="text-secondary">No valid periods match the selected facets.</span>
+            }
+          </div>
+        } @else {
+          <div class="timeline-scroll flex-grow-1 overflow-auto">
+            <div
+              class="timeline-table"
+              [style.--timeline-width.px]="timeline().width"
+              [style.--timeline-cell-width.px]="timelineGridCellWidth"
+              [style.--timeline-grid-offset.px]="timeline().gridOffset"
+            >
+              <div class="timeline-corner border-end border-bottom bg-white">
+                Situation / ValidityPeriod
+              </div>
+              <div class="timeline-axis border-bottom bg-white" [style.width.px]="timeline().width">
+                @for (hour of timeline().hours; track hour.key) {
+                  <div class="timeline-hour" [style.left.px]="hour.left">
+                    @if (hour.date) { <strong>{{ hour.date }}</strong> }
+                    <span>{{ hour.time }}</span>
+                  </div>
+                }
+              </div>
+
+              @for (row of timeline().rows; track row.item.id) {
+                <button
+                  type="button"
+                  class="timeline-label border-0 border-end border-bottom bg-white text-start"
+                  [class.selected]="store.selectedId() === row.item.id"
+                  (click)="select(row.item)"
+                  [title]="summary(row.item)"
+                >
+                  <span class="badge priority-badge me-2"
+                    [class.priority-p1]="row.item.priority === 1"
+                    [class.priority-p3]="row.item.priority === 3"
+                    [class.priority-p4]="row.item.priority === 4"
+                  >P{{ row.item.priority }}</span>
+                  <strong>{{ summary(row.item) }}</strong>
+                  <small>{{ row.item.id }} · {{ row.blocks.length }} period(s)</small>
+                </button>
+                <div class="timeline-track border-bottom" [style.width.px]="timeline().width">
+                  @for (block of row.blocks; track block.key) {
+                    <button
+                      type="button"
+                      class="timeline-block"
+                      [class.timeline-block-past]="block.isPast"
+                      [style.left.px]="block.left"
+                      [style.width.px]="block.width"
+                      [title]="summary(row.item) + '\n' + block.label"
+                      (click)="select(row.item)"
+                    ><span>{{ summary(row.item) }}</span></button>
+                  }
+                  @if (timelineNowLeft(); as nowLeft) {
+                    <div class="timeline-now" [style.left.px]="nowLeft" title="Now"></div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+        <aside class="detail-pane timeline-detail-pane overflow-auto bg-white p-4" aria-label="Selected situation detail">
+          <ng-container [ngTemplateOutlet]="selectedSituationDetail" />
+        </aside>
+      </div>
+    } @else if (activeView() === 'messages') {
       @if (store.items().length === 0) {
         <section class="empty-state d-flex flex-column flex-grow-1 align-items-center justify-content-center gap-3 p-4">
           @if (parseState().status === 'loading') {
@@ -336,6 +430,29 @@
           </section>
 
           <aside class="detail-pane flex-grow-1 overflow-auto bg-white p-4" aria-label="Selected situation detail">
+            <ng-container [ngTemplateOutlet]="selectedSituationDetail" />
+          </aside>
+        </div>
+      }
+    } @else {
+      <section class="invalid-pane flex-grow-1 overflow-auto p-4">
+        @if (invalidSituations().length === 0) {
+          <div class="alert alert-success">No invalid situations have been captured.</div>
+        }
+        @for (invalid of invalidSituations(); track invalid.index) {
+          <details class="bg-white border rounded-3 mb-3">
+            <summary class="p-3">
+              <strong>{{ invalid.situationNumber || 'Unknown situation' }}</strong>
+              <span class="text-danger ms-2">{{ invalid.message }}</span>
+            </summary>
+            <pre class="invalid-xml border-top mb-0 p-3"><code>{{ invalid.xml }}</code></pre>
+          </details>
+        }
+      </section>
+    }
+
+
+  <ng-template #selectedSituationDetail>
             @if (store.selected(); as item) {
               <div class="detail-header d-flex flex-wrap align-items-start gap-3 mb-4">
                 <div class="min-w-0 flex-grow-1">
@@ -597,26 +714,8 @@
             } @else {
               <p class="text-secondary">Select a message to inspect it.</p>
             }
-          </aside>
-        </div>
-      }
-    } @else {
-      <section class="invalid-pane flex-grow-1 overflow-auto p-4">
-        @if (invalidSituations().length === 0) {
-          <div class="alert alert-success">No invalid situations have been captured.</div>
-        }
-        @for (invalid of invalidSituations(); track invalid.index) {
-          <details class="bg-white border rounded-3 mb-3">
-            <summary class="p-3">
-              <strong>{{ invalid.situationNumber || 'Unknown situation' }}</strong>
-              <span class="text-danger ms-2">{{ invalid.message }}</span>
-            </summary>
-            <pre class="invalid-xml border-top mb-0 p-3"><code>{{ invalid.xml }}</code></pre>
-          </details>
-        }
-      </section>
-    }
 
+  </ng-template>
   </main>
 
   <footer class="app-footer d-flex align-items-center px-4 py-2 small">

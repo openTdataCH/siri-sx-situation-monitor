@@ -1,5 +1,6 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, input, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { BusinessOrganisationService } from './business-organisations';
@@ -24,16 +25,22 @@ const PRIORITY_DESCRIPTIONS: Readonly<Partial<Record<number, string>>> = {
   3: ' — Operational event',
   4: ' — General information'
 };
+const TIMELINE_GRID_CELL_WIDTH = 200;
+const TIMELINE_GRID_HOURS = 6;
+const TIMELINE_MAX_HOURS = 24 * 30;
 const MAX_SITUATIONS = 10000;
 
 @Component({
   selector: 'app-siri-sx-browser',
-  imports: [ScrollingModule],
+  imports: [ScrollingModule, NgTemplateOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit {
+  public readonly viewMode = input<'browser' | 'timeline'>('browser');
+  protected readonly timelineGridCellWidth = TIMELINE_GRID_CELL_WIDTH;
+
   private readonly siriSxStream = inject(SiriSxStreamService);
   private readonly affectedLineLinks = inject(AffectedLineLinkService);
   private readonly destroyRef = inject(DestroyRef);
@@ -358,6 +365,88 @@ export class AppComponent implements OnInit {
     );
   });
 
+  protected readonly timeline = computed<TimelineView>(() => {
+    const hourMs = 60 * 60 * 1000;
+    const gridHours = TIMELINE_GRID_HOURS;
+    const gridMs = gridHours * hourMs;
+    const validItems = this.filteredItems()
+      .map((item) => ({
+        item,
+        periods: item.validityPeriods.filter((period) =>
+          period.isChronologicallyValid
+          && Number.isFinite(period.start.getTime())
+          && Number.isFinite(period.end.getTime()))
+      }))
+      .filter(({ periods }) => periods.length > 0);
+
+    if (validItems.length === 0) {
+      return { start: undefined, end: undefined, width: 0, gridOffset: 0, hours: [], rows: [] };
+    }
+
+    const nowMs = this.now().getTime();
+    const startMs = nowMs - gridMs;
+    const endMs = startMs + TIMELINE_MAX_HOURS * hourMs;
+    const width = (TIMELINE_MAX_HOURS / gridHours) * TIMELINE_GRID_CELL_WIDTH;
+    const firstGridBoundary = this.nextTimelineGridBoundary(new Date(startMs), gridHours);
+    const gridOffset = ((firstGridBoundary.getTime() - startMs) / gridMs)
+      * TIMELINE_GRID_CELL_WIDTH;
+    const hours: TimelineHour[] = [{
+      key: `start:${new Date(startMs).toISOString()}`,
+      left: 0,
+      time: this.formatTimelineHour(new Date(startMs)),
+      date: this.formatTimelineDate(new Date(startMs))
+    }];
+    for (let date = firstGridBoundary; date.getTime() < endMs;) {
+      hours.push({
+        key: date.toISOString(),
+        left: ((date.getTime() - startMs) / gridMs) * TIMELINE_GRID_CELL_WIDTH,
+        time: this.formatTimelineHour(date),
+        date: date.getHours() === 0 ? this.formatTimelineDate(date) : undefined
+      });
+      const next = new Date(date);
+      next.setHours(next.getHours() + gridHours);
+      date = next;
+    }
+    const rows = validItems.map(({ item, periods }) => ({
+      item,
+      blocks: periods
+        .map((period, index) => ({ period, index }))
+        .filter(({ period }) => period.end.getTime() > startMs && period.start.getTime() < endMs)
+        .map(({ period, index }) => {
+          const visibleStart = Math.max(period.start.getTime(), startMs);
+          const visibleEnd = Math.min(period.end.getTime(), endMs);
+          return {
+            key: `${item.id}:${index}:${period.start.toISOString()}`,
+            left: ((visibleStart - startMs) / gridMs) * TIMELINE_GRID_CELL_WIDTH,
+            width: Math.max(
+              ((visibleEnd - visibleStart) / gridMs) * TIMELINE_GRID_CELL_WIDTH,
+              3
+            ),
+            label: this.formatInterval(period),
+            isPast: period.end.getTime() < nowMs
+          };
+        })
+    })).filter(({ blocks }) => blocks.length > 0);
+
+    return {
+      start: new Date(startMs),
+      end: new Date(endMs),
+      width,
+      gridOffset,
+      hours,
+      rows
+    };
+  });
+
+  protected readonly timelineNowLeft = computed(() => {
+    const timeline = this.timeline();
+    if (!timeline.start || !timeline.end) return undefined;
+    const now = this.now();
+    if (now < timeline.start || now > timeline.end) return undefined;
+    return ((now.getTime() - timeline.start.getTime())
+      / (TIMELINE_GRID_HOURS * 60 * 60 * 1000)) * TIMELINE_GRID_CELL_WIDTH;
+  });
+
   protected readonly resultRows = computed<SituationResultRow[]>(() =>
     this.filteredItems().map((situation) => ({
       kind: 'situation' as const,
@@ -396,7 +485,9 @@ export class AppComponent implements OnInit {
   });
 
   private readonly synchronizeFilteredSelection = effect(() => {
-    const items = this.filteredItems();
+    const items = this.viewMode() === 'timeline'
+      ? this.timeline().rows.map((row) => row.item)
+      : this.filteredItems();
     const selectedId = this.store.selectedId();
     if (selectedId && items.some((item) => item.id === selectedId)) return;
 
@@ -413,12 +504,8 @@ export class AppComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    void this.loadInitialData();
-  }
-
-  private async loadInitialData(): Promise<void> {
-    await this.businessOrganisations.load();
     this.parseFeed();
+    void this.businessOrganisations.load();
   }
 
   protected parseFeed(): void {
@@ -813,6 +900,26 @@ export class AppComponent implements OnInit {
       + ` ${this.datePart(date.getHours())}:${this.datePart(date.getMinutes())}`;
   }
 
+  private formatTimelineHour(date: Date): string {
+    return `${this.datePart(date.getHours())}:${this.datePart(date.getMinutes())}`;
+  }
+
+  private formatTimelineDate(date: Date): string {
+    return new Intl.DateTimeFormat(this.language(), {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short'
+    }).format(date);
+  }
+
+  private nextTimelineGridBoundary(date: Date, gridHours: number): Date {
+    const boundary = new Date(date);
+    const remainder = boundary.getHours() % gridHours;
+    boundary.setMinutes(0, 0, 0);
+    boundary.setHours(boundary.getHours() + (remainder === 0 ? gridHours : gridHours - remainder));
+    return boundary;
+  }
+
   private formatDateKey(date: Date): string {
     return `${date.getFullYear()}-${this.datePart(date.getMonth() + 1)}-${this.datePart(date.getDate())}`;
   }
@@ -878,6 +985,35 @@ interface ParseState {
   invalidSituationCount?: number;
   validationIssueCount?: number;
   message?: string;
+}
+
+interface TimelineView {
+  start: Date | undefined;
+  end: Date | undefined;
+  width: number;
+  gridOffset: number;
+  hours: readonly TimelineHour[];
+  rows: readonly TimelineRow[];
+}
+
+interface TimelineHour {
+  key: string;
+  left: number;
+  time: string;
+  date: string | undefined;
+}
+
+interface TimelineRow {
+  item: PtSituationListItem;
+  blocks: readonly TimelineBlock[];
+}
+
+interface TimelineBlock {
+  key: string;
+  left: number;
+  width: number;
+  label: string;
+  isPast: boolean;
 }
 
 type AffectedLineLinkState =

@@ -13,6 +13,11 @@ export const routes: Routes = [
       .then((module) => module.SetupPageComponent)
   },
   {
+    path: 'timeline',
+    loadComponent: () => import('./pages/timeline/timeline-page.component')
+      .then((module) => module.TimelinePageComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }
