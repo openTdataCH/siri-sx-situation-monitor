@@ -1,0 +1,51 @@
+:host {
+  display: block;
+}
+
+.message-list {
+  min-width: 0;
+}
+
+.message-progress {
+  height: 0.25rem;
+  overflow: hidden;
+  background: var(--bs-secondary-bg);
+  border-radius: var(--bs-border-radius-pill);
+}
+
+.message-progress-bar {
+  width: 40%;
+  height: 100%;
+  background: var(--bs-primary);
+  border-radius: inherit;
+  animation: message-progress 1.2s ease-in-out infinite;
+}
+
+@keyframes message-progress {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(350%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message-progress-bar {
+    width: 100%;
+    animation: none;
+  }
+}
+
+.message-card {
+  overflow-wrap: anywhere;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+.card-text {
+  padding-left: 1.5rem;
+}
