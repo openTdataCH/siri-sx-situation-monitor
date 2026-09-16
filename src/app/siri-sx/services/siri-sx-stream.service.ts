@@ -28,7 +28,11 @@ export class SiriSxStreamService {
 
   public readonly invalidSituations = this.invalidPoolState.asReadonly();
 
-  public streamSituations(ownerRef?: string, stage: SiriSxStage = 'prod'): Observable<SiriSxStreamEvent> {
+  public streamSituations(
+    ownerRef?: string,
+    stage: SiriSxStage = 'prod',
+    maxSituations?: number
+  ): Observable<SiriSxStreamEvent> {
     return new Observable((subscriber) => {
       const endpoints = this.stageEndpoints[stage];
       this.invalidPoolState.set([]);
@@ -70,6 +74,17 @@ export class SiriSxStreamService {
                 situation,
                 index: processedCount
               });
+              if (maxSituations !== undefined && validCount >= maxSituations) {
+                subscriber.next({
+                  type: 'complete',
+                  count: processedCount,
+                  validCount,
+                  invalidCount: this.invalidPoolState().length
+                });
+                subscriber.complete();
+                worker?.terminate();
+                worker = undefined;
+              }
             } catch (error: unknown) {
               const invalid: InvalidPtSituation = {
                 index: processedCount,
