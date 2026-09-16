@@ -380,7 +380,7 @@ export class AppComponent implements OnInit {
       .filter(({ periods }) => periods.length > 0);
 
     if (validItems.length === 0) {
-      return { start: undefined, end: undefined, width: 0, gridOffset: 0, hours: [], rows: [] };
+      return { start: undefined, end: undefined, width: 0, hours: [], rows: [] };
     }
 
     const nowMs = this.now().getTime();
@@ -388,8 +388,6 @@ export class AppComponent implements OnInit {
     const endMs = startMs + TIMELINE_MAX_HOURS * hourMs;
     const width = (TIMELINE_MAX_HOURS / gridHours) * TIMELINE_GRID_CELL_WIDTH;
     const firstGridBoundary = this.nextTimelineGridBoundary(new Date(startMs), gridHours);
-    const gridOffset = ((firstGridBoundary.getTime() - startMs) / gridMs)
-      * TIMELINE_GRID_CELL_WIDTH;
     const hours: TimelineHour[] = [{
       key: `start:${new Date(startMs).toISOString()}`,
       left: 0,
@@ -432,7 +430,6 @@ export class AppComponent implements OnInit {
       start: new Date(startMs),
       end: new Date(endMs),
       width,
-      gridOffset,
       hours,
       rows
     };
@@ -991,7 +988,6 @@ interface TimelineView {
   start: Date | undefined;
   end: Date | undefined;
   width: number;
-  gridOffset: number;
   hours: readonly TimelineHour[];
   rows: readonly TimelineRow[];
 }

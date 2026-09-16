@@ -293,7 +293,6 @@
               class="timeline-table"
               [style.--timeline-width.px]="timeline().width"
               [style.--timeline-cell-width.px]="timelineGridCellWidth"
-              [style.--timeline-grid-offset.px]="timeline().gridOffset"
             >
               <div class="timeline-corner border-end border-bottom bg-white">
                 Situation / ValidityPeriod
@@ -304,6 +303,11 @@
                     @if (hour.date) { <strong>{{ hour.date }}</strong> }
                     <span>{{ hour.time }}</span>
                   </div>
+                }
+              </div>
+              <div class="timeline-grid-lines" [style.width.px]="timeline().width" aria-hidden="true">
+                @for (hour of timeline().hours; track hour.key) {
+                  <div class="timeline-grid-line" [style.left.px]="hour.left"></div>
                 }
               </div>
 
