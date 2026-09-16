@@ -24,6 +24,7 @@ const PRIORITY_DESCRIPTIONS: Readonly<Partial<Record<number, string>>> = {
   3: ' — Operational event',
   4: ' — General information'
 };
+const MAX_SITUATIONS = 10000;
 
 @Component({
   selector: 'app-siri-sx-browser',
@@ -431,7 +432,9 @@ export class AppComponent implements OnInit {
       validationIssueCount: 0
     });
 
-    this.streamSubscription = this.siriSxStream.streamSituations(undefined, this.stage()).subscribe({
+    this.streamSubscription = this.siriSxStream
+      .streamSituations(undefined, this.stage(), MAX_SITUATIONS)
+      .subscribe({
       next: (event) => {
         if (event.type === 'situation') {
           this.store.enqueue(event.situation);
@@ -466,7 +469,7 @@ export class AppComponent implements OnInit {
           message: error instanceof Error ? error.message : 'Unable to parse the SIRI-SX response.'
         });
       }
-    });
+      });
   }
 
   protected updateStage(stage: SiriSxStage): void {
