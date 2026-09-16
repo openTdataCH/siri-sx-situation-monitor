@@ -27,7 +27,7 @@ const PRIORITY_DESCRIPTIONS: Readonly<Partial<Record<number, string>>> = {
 };
 const TIMELINE_GRID_CELL_WIDTH = 200;
 const TIMELINE_GRID_HOURS = 6;
-const TIMELINE_MAX_HOURS = 24 * 30;
+const TIMELINE_MAX_HOURS = 24 * 30 * 3;
 const MAX_SITUATIONS = 10000;
 
 @Component({
