@@ -110,6 +110,7 @@ export class AppComponent implements OnInit {
       ),
       ...item.affectedLines.map((line) => line.ref),
       ...item.affectedLineNames,
+      ...item.affectedStops.map((stop) => stop.ref),
       ...item.affectedStopNames
     ].some((value) => value?.toLocaleLowerCase().includes(query)));
   });
