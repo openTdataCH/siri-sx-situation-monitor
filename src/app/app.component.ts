@@ -108,6 +108,7 @@ export class AppComponent implements OnInit {
       ...item.messages.map((action) =>
         this.businessOrganisations.displayName(action.ownerRef, language)
       ),
+      ...item.affectedLines.map((line) => line.ref),
       ...item.affectedLineNames,
       ...item.affectedStopNames
     ].some((value) => value?.toLocaleLowerCase().includes(query)));
