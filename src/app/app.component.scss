@@ -29,6 +29,14 @@
   background: #eef1f4;
 }
 
+.timeline-status > span {
+  min-width: 0;
+}
+
+.timeline-grid-control .form-select {
+  width: 6.5rem;
+}
+
 .timeline-detail-pane {
   flex: 0 0 min(64rem, 40vw);
   border-left: 1px solid #dee2e6;
