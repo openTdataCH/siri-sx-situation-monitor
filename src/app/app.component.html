@@ -274,8 +274,18 @@
     @if (viewMode() === 'timeline') {
       <div class="workspace timeline-workspace d-flex flex-grow-1 overflow-hidden">
       <section class="timeline-pane d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Situation validity timeline">
-        <div class="small text-secondary border-bottom bg-white px-3 py-2">
-          {{ timeline().rows.length }} of {{ store.items().length }} messages in the visible window · 6 hours grid · each block is one ValidityPeriod
+        <div class="timeline-status d-flex align-items-center gap-3 small text-secondary border-bottom bg-white px-3 py-2">
+          <span>
+            @if (timeline().start; as timelineStart) {
+              @if (timeline().end; as timelineEnd) {
+                <strong class="text-body">Timeline bounds:</strong>
+                {{ formatDate(timelineStart) }} – {{ formatDate(timelineEnd) }} ·
+              }
+            }
+            {{ timeline().rows.length }} messages visible ·
+            {{ timeline().excludedCount }} excluded outside these bounds ·
+            each block is one ValidityPeriod
+          </span>
           <label class="timeline-grid-control d-flex align-items-center gap-2 ms-auto text-nowrap">
             <span>Grid</span>
             <select

@@ -445,6 +445,7 @@ export class AppComponent implements OnInit {
       start: new Date(startMs),
       end: new Date(endMs),
       width,
+      excludedCount: validItems.length - rows.length,
       hours,
       rows
     };
@@ -919,6 +920,10 @@ export class AppComponent implements OnInit {
       + ` ${this.datePart(date.getHours())}:${this.datePart(date.getMinutes())}`;
   }
 
+  protected formatDate(date: Date): string {
+    return this.formatDateKey(date);
+  }
+
   private formatTimelineHour(date: Date): string {
     return `${this.datePart(date.getHours())}:${this.datePart(date.getMinutes())}`;
   }
@@ -1010,6 +1015,7 @@ interface TimelineView {
   start: Date | undefined;
   end: Date | undefined;
   width: number;
+  excludedCount: number;
   hours: readonly TimelineHour[];
   rows: readonly TimelineRow[];
 }
