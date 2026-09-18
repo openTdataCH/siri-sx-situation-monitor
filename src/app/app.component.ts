@@ -754,6 +754,32 @@ export class AppComponent implements OnInit {
     this.selectedAction.set(null);
   }
 
+  protected selectTimelineRow(item: PtSituationListItem, event: MouseEvent): void {
+    this.select(item);
+
+    const label = event.currentTarget as HTMLElement;
+    const track = label.nextElementSibling as HTMLElement | null;
+    const firstBlock = track?.querySelector<HTMLElement>('.timeline-block');
+    const scroller = label.closest<HTMLElement>('.timeline-scroll');
+    if (!firstBlock || !scroller) return;
+
+    const blockBounds = firstBlock.getBoundingClientRect();
+    const scrollerBounds = scroller.getBoundingClientRect();
+    const visibleLeft = scrollerBounds.left + label.offsetWidth;
+    if (blockBounds.left >= visibleLeft && blockBounds.right <= scrollerBounds.right) return;
+
+    const twoHourLead = (2 / this.timelineGridHours()) * TIMELINE_GRID_CELL_WIDTH;
+    const desiredLeft = Math.max(0, firstBlock.offsetLeft - twoHourLead);
+    const precedingGridLine = this.timeline().hours
+      .filter((hour) => hour.left <= desiredLeft)
+      .at(-1)?.left ?? 0;
+
+    scroller.scrollTo({
+      left: precedingGridLine,
+      behavior: 'smooth'
+    });
+  }
+
   protected selectAction(row: PublishingActionResultRow): void {
     this.store.select(row.parentId);
     this.selectedAction.set({

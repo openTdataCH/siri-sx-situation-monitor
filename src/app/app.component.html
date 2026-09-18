@@ -339,7 +339,7 @@
                   type="button"
                   class="timeline-label border-0 border-end border-bottom bg-white text-start"
                   [class.selected]="store.selectedId() === row.item.id"
-                  (click)="select(row.item)"
+                  (click)="selectTimelineRow(row.item, $event)"
                   [title]="summary(row.item)"
                 >
                   <span class="badge priority-badge me-2"
