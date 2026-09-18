@@ -590,8 +590,11 @@
                       <strong>Stops affected</strong>
                       <span class="badge text-bg-secondary ms-2">{{ item.affectedStops.length }}</span>
                       <div class="affected-object-list text-secondary mt-1">
-                        @for (stop of item.affectedStops; track stop.ref; let last = $last) {
-                          <a [href]="affectedStopBoardUrl(stop, item)" target="_blank" rel="noopener">{{ stop.name }}</a>@if (!last) {, }
+                        @for (stop of item.affectedStops; track stop.ref) {
+                          <div class="d-flex gap-2">
+                            <div>Stop: {{ stop.name }} – <code>{{ stop.ref }}</code></div>
+                            <div>- <a [href]="affectedStopBoardUrl(stop, item)" target="_blank" rel="noopener">Open stop in OJP</a></div>
+                          </div>
                         }
                       </div>
                     </div>
