@@ -276,6 +276,19 @@
       <section class="timeline-pane d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Situation validity timeline">
         <div class="small text-secondary border-bottom bg-white px-3 py-2">
           {{ timeline().rows.length }} of {{ store.items().length }} messages in the visible window · 6 hours grid · each block is one ValidityPeriod
+          <label class="timeline-grid-control d-flex align-items-center gap-2 ms-auto text-nowrap">
+            <span>Grid</span>
+            <select
+              class="form-select form-select-sm"
+              aria-label="Timeline grid duration"
+              [value]="timelineGridHours()"
+              (change)="updateTimelineGridHours($event)"
+            >
+              @for (option of timelineGridOptions; track option.hours) {
+                <option [value]="option.hours">{{ option.label }}</option>
+              }
+            </select>
+          </label>
         </div>
 
         @if (timeline().rows.length === 0) {

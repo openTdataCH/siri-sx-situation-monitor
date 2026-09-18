@@ -27,7 +27,13 @@ const PRIORITY_DESCRIPTIONS: Readonly<Partial<Record<number, string>>> = {
 };
 const TIMELINE_GRID_CELL_WIDTH = 200;
 const TIMELINE_GRID_HOURS = 6;
-const TIMELINE_MAX_HOURS = 24 * 30 * 3;
+const TIMELINE_GRID_OPTIONS = [
+  { hours: 6, label: '6 hrs' },
+  { hours: 24, label: '1 day' },
+  { hours: 24 * 7, label: '1 week' },
+  { hours: 24 * 30, label: '1 month' }
+] as const;
+const TIMELINE_MAX_HOURS = 24 * 30 * 12;
 const MAX_SITUATIONS = 10000;
 
 @Component({
@@ -40,6 +46,8 @@ const MAX_SITUATIONS = 10000;
 export class AppComponent implements OnInit {
   public readonly viewMode = input<'browser' | 'timeline'>('browser');
   protected readonly timelineGridCellWidth = TIMELINE_GRID_CELL_WIDTH;
+  protected readonly timelineGridHours = signal<number>(TIMELINE_GRID_HOURS);
+  protected readonly timelineGridOptions = TIMELINE_GRID_OPTIONS;
 
   private readonly siriSxStream = inject(SiriSxStreamService);
   private readonly affectedLineLinks = inject(AffectedLineLinkService);
@@ -367,7 +375,7 @@ export class AppComponent implements OnInit {
 
   protected readonly timeline = computed<TimelineView>(() => {
     const hourMs = 60 * 60 * 1000;
-    const gridHours = TIMELINE_GRID_HOURS;
+    const gridHours = this.timelineGridHours();
     const gridMs = gridHours * hourMs;
     const validItems = this.filteredItems()
       .map((item) => ({
@@ -380,7 +388,14 @@ export class AppComponent implements OnInit {
       .filter(({ periods }) => periods.length > 0);
 
     if (validItems.length === 0) {
-      return { start: undefined, end: undefined, width: 0, hours: [], rows: [] };
+      return {
+        start: undefined,
+        end: undefined,
+        width: 0,
+        excludedCount: 0,
+        hours: [],
+        rows: []
+      };
     }
 
     const nowMs = this.now().getTime();
@@ -441,7 +456,7 @@ export class AppComponent implements OnInit {
     const now = this.now();
     if (now < timeline.start || now > timeline.end) return undefined;
     return ((now.getTime() - timeline.start.getTime())
-      / (TIMELINE_GRID_HOURS * 60 * 60 * 1000)) * TIMELINE_GRID_CELL_WIDTH;
+      / (this.timelineGridHours() * 60 * 60 * 1000)) * TIMELINE_GRID_CELL_WIDTH;
   });
 
   protected readonly resultRows = computed<SituationResultRow[]>(() =>
@@ -579,6 +594,13 @@ export class AppComponent implements OnInit {
 
   protected updateMessageSize(event: Event): void {
     this.messageSize.set((event.target as HTMLSelectElement).value as TextContentSize);
+  }
+
+  protected updateTimelineGridHours(event: Event): void {
+    const hours = Number((event.target as HTMLSelectElement).value);
+    if (TIMELINE_GRID_OPTIONS.some((option) => option.hours === hours)) {
+      this.timelineGridHours.set(hours);
+    }
   }
 
   protected updateOperator(event: Event): void {
