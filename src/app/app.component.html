@@ -566,7 +566,7 @@
                       <div class="affected-object-list text-secondary mt-1">
                         @for (line of item.affectedLines; track line.key) {
                           <div>
-                            Line: {{ line.name }} – <code>{{ line.ref }}</code>
+                            Line: {{ line.name }} – <span>{{ line.ref }}</span>
                             @if (affectedLineLinkState(item, line); as linkState) {
                               @if (linkState.status === 'ready') {
                                 · <a [href]="linkState.url" target="_blank" rel="noopener">Open trip in OJP</a>
@@ -592,7 +592,7 @@
                       <div class="affected-object-list text-secondary mt-1">
                         @for (stop of item.affectedStops; track stop.ref) {
                           <div class="d-flex gap-2">
-                            <div>Stop: {{ stop.name }} – <code>{{ stop.ref }}</code></div>
+                            <div>Stop: {{ stop.name }} – <span>{{ stop.ref }}</span></div>
                             <div>- <a [href]="affectedStopBoardUrl(stop, item)" target="_blank" rel="noopener">Open stop in OJP</a></div>
                           </div>
                         }
@@ -617,7 +617,7 @@
                                     <td class="text-nowrap">{{ formatDateTime(journey.originAimedDepartureTime) }}</td>
                                     <td>
                                       <a [href]="affectedJourneyDetailsUrl(journey)" target="_blank" rel="noopener">
-                                        <code>{{ journey.journeyRef }}</code>
+                                        <span>{{ journey.journeyRef }}</span>
                                       </a>
                                     </td>
                                     <td>
@@ -650,7 +650,7 @@
                                       <td class="text-nowrap">{{ formatDateTime(journey.originAimedDepartureTime) }}</td>
                                       <td>
                                         <a [href]="affectedJourneyDetailsUrl(journey)" target="_blank" rel="noopener">
-                                          <code>{{ journey.journeyRef }}</code>
+                                          <span>{{ journey.journeyRef }}</span>
                                         </a>
                                       </td>
                                       <td>
