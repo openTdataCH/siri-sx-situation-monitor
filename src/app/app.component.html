@@ -61,7 +61,7 @@
   </header>
 
   <main class="app-content d-flex flex-column flex-grow-1 overflow-hidden">
-    <div class="toolbar d-flex flex-wrap align-items-center gap-2 border-bottom bg-white px-3 py-2">
+    <div class="toolbar d-flex flex-wrap align-items-end gap-2 border-bottom bg-white px-3 py-2">
       @if (viewMode() === 'browser') {
       <div class="btn-group btn-group-sm" role="group" aria-label="Data view">
         <button
@@ -110,116 +110,152 @@
         (input)="updateSearch($event)"
       >
 
-      <select
-        class="form-select form-select-sm priority-select"
-        aria-label="Filter by priority"
-        [value]="priorityFilter() ?? ''"
-        (change)="updatePriority($event)"
-      >
-        <option value="">All priorities ({{ priorityFacetItems().length }})</option>
-        @for (option of priorityOptions(); track option.priority) {
-          <option [value]="option.priority">P{{ option.priority }}{{ priorityDescriptions[option.priority] ?? '' }} ({{ option.situationCount }})</option>
-        }
-      </select>
+      <div class="filter-field priority-select">
+        <label class="filter-label" for="filter-priority">Priority</label>
+        <select
+          id="filter-priority"
+          class="form-select form-select-sm"
+          aria-label="Filter by priority"
+          [value]="priorityFilter() ?? ''"
+          (change)="updatePriority($event)"
+        >
+          <option value="">All priorities ({{ priorityFacetItems().length }})</option>
+          @for (option of priorityOptions(); track option.priority) {
+            <option [value]="option.priority">P{{ option.priority }}{{ priorityDescriptions[option.priority] ?? '' }} ({{ option.situationCount }})</option>
+          }
+        </select>
+      </div>
 
-      <select
-        class="form-select form-select-sm operator-select"
-        aria-label="Filter by operator"
-        [value]="operatorFilter()"
-        (change)="updateOperator($event)"
-      >
-        <option value="">All line operators ({{ operatorFacetSituationCount() }})</option>
-        @for (operator of operatorOptions(); track operator.ref) {
-          <option [value]="operator.ref">{{ operator.label }} ({{ operator.situationCount }})</option>
-        }
-      </select>
+      <div class="filter-field operator-select">
+        <label class="filter-label" for="filter-operator">Line operator</label>
+        <select
+          id="filter-operator"
+          class="form-select form-select-sm"
+          aria-label="Filter by operator"
+          [value]="operatorFilter()"
+          (change)="updateOperator($event)"
+        >
+          <option value="">All line operators ({{ operatorFacetSituationCount() }})</option>
+          @for (operator of operatorOptions(); track operator.ref) {
+            <option [value]="operator.ref">{{ operator.label }} ({{ operator.situationCount }})</option>
+          }
+        </select>
+      </div>
 
-      <select
-        class="form-select form-select-sm owner-select"
-        aria-label="Filter by action owner"
-        [value]="ownerFilter()"
-        (change)="updateOwner($event)"
-      >
-        <option value="">All action owners ({{ ownerFacetItems().length }})</option>
-        @for (owner of ownerOptions(); track owner.ref) {
-          <option [value]="owner.ref">{{ owner.label }} ({{ owner.situationCount }})</option>
-        }
-      </select>
+      <div class="filter-field owner-select">
+        <label class="filter-label" for="filter-owner">Action owner</label>
+        <select
+          id="filter-owner"
+          class="form-select form-select-sm"
+          aria-label="Filter by action owner"
+          [value]="ownerFilter()"
+          (change)="updateOwner($event)"
+        >
+          <option value="">All action owners ({{ ownerFacetItems().length }})</option>
+          @for (owner of ownerOptions(); track owner.ref) {
+            <option [value]="owner.ref">{{ owner.label }} ({{ owner.situationCount }})</option>
+          }
+        </select>
+      </div>
 
-      <select
-        class="form-select form-select-sm source-select"
-        aria-label="Filter by source"
-        [value]="sourceFilter()"
-        (change)="updateSource($event)"
-      >
-        <option value="">All sources ({{ sourceFacetItems().length }})</option>
-        @for (source of sourceOptions(); track source.name) {
-          <option [value]="source.name">{{ source.name }} ({{ source.situationCount }})</option>
-        }
-      </select>
+      <div class="filter-field source-select">
+        <label class="filter-label" for="filter-source">Source</label>
+        <select
+          id="filter-source"
+          class="form-select form-select-sm"
+          aria-label="Filter by source"
+          [value]="sourceFilter()"
+          (change)="updateSource($event)"
+        >
+          <option value="">All sources ({{ sourceFacetItems().length }})</option>
+          @for (source of sourceOptions(); track source.name) {
+            <option [value]="source.name">{{ source.name }} ({{ source.situationCount }})</option>
+          }
+        </select>
+      </div>
 
-      <select
-        class="form-select form-select-sm cause-select"
-        aria-label="Filter by alert cause"
-        [value]="causeFilter()"
-        (change)="updateCause($event)"
-      >
-        <option value="">All causes ({{ causeFacetItems().length }})</option>
-        @for (option of causeOptions(); track option.cause) {
-          <option [value]="option.cause">{{ option.cause }} ({{ option.situationCount }})</option>
-        }
-      </select>
+      <div class="filter-field cause-select">
+        <label class="filter-label" for="filter-cause">Cause</label>
+        <select
+          id="filter-cause"
+          class="form-select form-select-sm"
+          aria-label="Filter by alert cause"
+          [value]="causeFilter()"
+          (change)="updateCause($event)"
+        >
+          <option value="">All causes ({{ causeFacetItems().length }})</option>
+          @for (option of causeOptions(); track option.cause) {
+            <option [value]="option.cause">{{ option.cause }} ({{ option.situationCount }})</option>
+          }
+        </select>
+      </div>
 
-      <select
-        class="form-select form-select-sm scope-type-select"
-        aria-label="Filter by publishing action scope type"
-        [value]="scopeTypeFilter()"
-        (change)="updateScopeType($event)"
-      >
-        <option value="">All scopes ({{ scopeTypeFacetItems().length }})</option>
-        @for (option of scopeTypeOptions(); track option.scopeType) {
-          <option [value]="option.scopeType">
-            {{ option.scopeType }} ({{ option.situationCount }})
-          </option>
-        }
-      </select>
+      <div class="filter-field scope-type-select">
+        <label class="filter-label" for="filter-scope-type">Publishing scope</label>
+        <select
+          id="filter-scope-type"
+          class="form-select form-select-sm"
+          aria-label="Filter by publishing action scope type"
+          [value]="scopeTypeFilter()"
+          (change)="updateScopeType($event)"
+        >
+          <option value="">All scopes ({{ scopeTypeFacetItems().length }})</option>
+          @for (option of scopeTypeOptions(); track option.scopeType) {
+            <option [value]="option.scopeType">
+              {{ option.scopeType }} ({{ option.situationCount }})
+            </option>
+          }
+        </select>
+      </div>
 
-      <select
-        class="form-select form-select-sm perspective-select"
-        aria-label="Filter by perspective combination"
-        [value]="perspectiveCombinationFilter()"
-        (change)="updatePerspectiveCombination($event)"
-      >
-        <option value="">All perspectives ({{ perspectiveCombinationFacetItems().length }})</option>
-        @for (option of perspectiveCombinationOptions(); track option.combination) {
-          <option [value]="option.combination">
-            {{ option.label }} ({{ option.situationCount }})
-          </option>
-        }
-      </select>
+      <div class="filter-field perspective-select">
+        <label class="filter-label" for="filter-perspective">Perspective</label>
+        <select
+          id="filter-perspective"
+          class="form-select form-select-sm"
+          aria-label="Filter by perspective combination"
+          [value]="perspectiveCombinationFilter()"
+          (change)="updatePerspectiveCombination($event)"
+        >
+          <option value="">All perspectives ({{ perspectiveCombinationFacetItems().length }})</option>
+          @for (option of perspectiveCombinationOptions(); track option.combination) {
+            <option [value]="option.combination">
+              {{ option.label }} ({{ option.situationCount }})
+            </option>
+          }
+        </select>
+      </div>
 
-      <select
-        class="form-select form-select-sm language-select"
-        aria-label="Message language"
-        [value]="language()"
-        (change)="updateLanguage($event)"
-      >
-        <option value="de">Deutsch</option>
-        <option value="en">English</option>
-        <option value="fr">Français</option>
-        <option value="it">Italiano</option>
-      </select>
+      <div class="filter-field language-select">
+        <label class="filter-label" for="filter-language">Message language</label>
+        <select
+          id="filter-language"
+          class="form-select form-select-sm"
+          aria-label="Message language"
+          [value]="language()"
+          (change)="updateLanguage($event)"
+        >
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="it">Italiano</option>
+        </select>
+      </div>
 
-      <select
-        class="form-select form-select-sm message-size-select"
-        aria-label="Passenger message size"
-        [value]="messageSize()"
-        (change)="updateMessageSize($event)"
-      >
-        @for (size of contentSizes; track size) {
-          <option [value]="size">{{ size }}</option>
-        }
-      </select>
+      <div class="filter-field message-size-select">
+        <label class="filter-label" for="filter-message-size">Message size</label>
+        <select
+          id="filter-message-size"
+          class="form-select form-select-sm"
+          aria-label="Passenger message size"
+          [value]="messageSize()"
+          (change)="updateMessageSize($event)"
+        >
+          @for (size of contentSizes; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </div>
 
       <div class="form-check ms-1">
         <input

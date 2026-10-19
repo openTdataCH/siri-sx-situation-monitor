@@ -203,6 +203,22 @@
   display: contents;
 }
 
+.filter-field {
+  max-width: 100%;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.4rem;
+  background-color: #f8f9fa;
+}
+
+.filter-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: #495057;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
 .search-input {
   width: min(30rem, 45vw);
 }
@@ -428,7 +444,7 @@
     display: flex;
     width: 100%;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-end;
     gap: 0.5rem;
   }
 
