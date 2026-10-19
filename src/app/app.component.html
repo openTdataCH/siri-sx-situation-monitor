@@ -136,6 +136,7 @@
           (change)="updateOperator($event)"
         >
           <option value="">All line operators ({{ operatorFacetSituationCount() }})</option>
+          <option [value]="noLineOperatorValue">No line operator ({{ noLineOperatorSituationCount() }})</option>
           @for (operator of operatorOptions(); track operator.ref) {
             <option [value]="operator.ref">{{ operator.label }} ({{ operator.situationCount }})</option>
           }
