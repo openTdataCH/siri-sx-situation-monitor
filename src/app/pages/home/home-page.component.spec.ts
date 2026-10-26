@@ -7,6 +7,40 @@ import { SiriSxStreamService } from '../../siri-sx/services';
 import { HomePageComponent } from './home-page.component';
 
 describe('HomePageComponent', () => {
+  it('accepts legacy embed parameters forwarded by a redirect', async () => {
+    const owner = 'ch:1:sboid:100144';
+    const streamSituations = completedStream({
+      id: 'legacy-situation',
+      version: 1,
+      publishingActions: [action(owner, { de: 'Legacy message' })]
+    } as unknown as PtSituation);
+    await configure(undefined, streamSituations, 'de', 'large', undefined, undefined, {
+      text: owner,
+      app_stage: 'INT',
+      active: '0'
+    });
+
+    const fixture = TestBed.createComponent(HomePageComponent);
+    fixture.detectChanges();
+
+    expect(streamSituations).toHaveBeenCalledOnceWith(owner, 'int');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.message-card')?.textContent)
+      .toContain('Legacy message');
+  });
+
+  it('prefers current parameters over legacy aliases', async () => {
+    const streamSituations = jasmine.createSpy('streamSituations').and.returnValue(of());
+    await configure('wanted-owner', streamSituations, 'de', 'large', 'prod', undefined, {
+      text: 'legacy-owner',
+      app_stage: 'INT'
+    });
+
+    const fixture = TestBed.createComponent(HomePageComponent);
+    fixture.detectChanges();
+
+    expect(streamSituations).toHaveBeenCalledOnceWith('wanted-owner', 'prod');
+  });
+
   it('shows an error and does not stream without an owner parameter', async () => {
     const streamSituations = jasmine.createSpy('streamSituations');
     await configure(undefined, streamSituations);
@@ -191,7 +225,8 @@ async function configure(
   lang?: string,
   textSize?: string,
   stage?: string,
-  perspective?: string
+  perspective?: string,
+  legacyParams: Record<string, string> = {}
 ): Promise<void> {
   await TestBed.configureTestingModule({
     imports: [HomePageComponent],
@@ -201,6 +236,7 @@ async function configure(
         useValue: {
           snapshot: {
             queryParamMap: convertToParamMap({
+              ...legacyParams,
               ...(owner === undefined ? {} : { owner }),
               ...(lang === undefined ? {} : { lang }),
               ...(textSize === undefined ? {} : { text_size: textSize }),

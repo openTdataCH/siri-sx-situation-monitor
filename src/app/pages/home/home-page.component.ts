@@ -26,10 +26,17 @@ export class HomePageComponent implements OnInit {
   private readonly stream = inject(SiriSxStreamService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly owner = this.route.snapshot.queryParamMap.get('owner')?.trim() ?? '';
+  // Keep existing embed URLs working when their query string is forwarded by a redirect.
+  protected readonly owner = (
+    this.route.snapshot.queryParamMap.get('owner')
+    ?? this.route.snapshot.queryParamMap.get('text')
+  )?.trim() ?? '';
   protected readonly language = queryLanguage(this.route.snapshot.queryParamMap.get('lang'));
   protected readonly textSize = queryTextSize(this.route.snapshot.queryParamMap.get('text_size'));
-  protected readonly stage = queryStage(this.route.snapshot.queryParamMap.get('stage'));
+  protected readonly stage = queryStage(
+    this.route.snapshot.queryParamMap.get('stage')
+    ?? this.route.snapshot.queryParamMap.get('app_stage')
+  );
   protected readonly perspective = queryPerspective(this.route.snapshot.queryParamMap.get('perspective'));
   protected readonly loadingMessagesText = LOADING_MESSAGES_TEXT[this.language];
   protected readonly noMessagesText = NO_MESSAGES_TEXT[this.language];
