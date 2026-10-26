@@ -1,6 +1,6 @@
-import { ScrollingModule } from '@angular/cdk/scrolling';
+import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, input, OnInit, signal } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, Injector, input, OnInit, signal, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { BusinessOrganisationService } from './business-organisations';
@@ -52,6 +52,8 @@ export class AppComponent implements OnInit {
   private readonly siriSxStream = inject(SiriSxStreamService);
   private readonly affectedLineLinks = inject(AffectedLineLinkService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly messageViewport = viewChild(CdkVirtualScrollViewport);
   protected readonly businessOrganisations = inject(BusinessOrganisationService);
   protected readonly store = inject(PtSituationStore);
 
@@ -68,7 +70,7 @@ export class AppComponent implements OnInit {
   protected readonly language = signal<SupportedLanguage>('de');
   protected readonly messageSize = signal<TextContentSize>('large');
   protected readonly stage = signal<SiriSxStage>('prod');
-  protected readonly filtersExpanded = signal(false);
+  protected readonly filtersExpanded = signal(true);
   protected readonly priorityFilter = signal<number | null>(null);
   protected readonly operatorFilter = signal('');
   protected readonly noLineOperatorValue = '__no_line_operator__';
@@ -589,6 +591,7 @@ export class AppComponent implements OnInit {
 
   protected toggleFilters(): void {
     this.filtersExpanded.update((expanded) => !expanded);
+    afterNextRender(() => this.messageViewport()?.checkViewportSize(), { injector: this.injector });
   }
 
   protected updateSearch(event: Event): void {

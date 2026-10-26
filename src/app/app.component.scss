@@ -12,6 +12,10 @@
   background-color: #343a40;
 }
 
+.toolbar[hidden] {
+  display: none !important;
+}
+
 .app-content,
 .empty-state,
 .invalid-pane {
@@ -446,14 +450,6 @@
     flex-wrap: wrap;
     align-items: flex-end;
     gap: 0.5rem;
-  }
-
-  .filter-controls.mobile-collapsed {
-    display: none;
-  }
-
-  .filter-toggle {
-    width: 2.25rem;
   }
 
   .passenger-text-row {

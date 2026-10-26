@@ -58,10 +58,20 @@
     >
       Reload
     </button>
+    <button
+      type="button"
+      class="btn btn-outline-light btn-sm text-nowrap"
+      [attr.aria-expanded]="filtersExpanded()"
+      aria-controls="browser-toolbar"
+      (click)="toggleFilters()"
+    >
+      <span aria-hidden="true">{{ filtersExpanded() ? '▲' : '▼' }}</span>
+      {{ filtersExpanded() ? 'Hide filters' : 'Show filters' }}
+    </button>
   </header>
 
   <main class="app-content d-flex flex-column flex-grow-1 overflow-hidden">
-    <div class="toolbar d-flex flex-wrap align-items-end gap-2 border-bottom bg-white px-3 py-2">
+    <div id="browser-toolbar" class="toolbar d-flex flex-wrap align-items-end gap-2 border-bottom bg-white px-3 py-2" [hidden]="!filtersExpanded()">
       @if (viewMode() === 'browser') {
       <div class="btn-group btn-group-sm" role="group" aria-label="Data view">
         <button
@@ -85,21 +95,9 @@
       </div>
       }
 
-      <button
-        type="button"
-        class="btn btn-outline-secondary btn-sm d-md-none ms-auto filter-toggle"
-        [attr.aria-expanded]="filtersExpanded()"
-        aria-controls="message-filters"
-        [attr.aria-label]="filtersExpanded() ? 'Collapse filters' : 'Expand filters'"
-        (click)="toggleFilters()"
-      >
-        <span aria-hidden="true">{{ filtersExpanded() ? '▲' : '▼' }}</span>
-      </button>
-
       <div
         id="message-filters"
         class="filter-controls"
-        [class.mobile-collapsed]="!filtersExpanded()"
       >
       <input
         type="search"
