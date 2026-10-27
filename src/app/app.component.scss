@@ -277,6 +277,27 @@
   background-color: #fff;
 }
 
+.xml-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 36%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.xml-visible .list-pane {
+  flex-basis: 28%;
+  min-width: 0;
+}
+
+.xml-visible .detail-pane {
+  flex: 1 1 36%;
+}
+
+.xml-visible .timeline-pane {
+  flex: 1 1 28%;
+}
+
 .message-viewport {
   height: 100%;
 }
@@ -513,13 +534,16 @@ details > summary {
     flex-direction: column;
   }
 
-  .list-pane {
+  .list-pane,
+  .xml-visible .list-pane {
     flex-basis: 55vh;
     width: 100%;
     min-width: 0;
   }
 
-  .detail-pane {
+  .detail-pane,
+  .xml-visible .detail-pane,
+  .xml-pane {
     flex: 0 0 auto;
     width: 100%;
     overflow-x: hidden !important;
@@ -530,6 +554,10 @@ details > summary {
     flex-basis: auto;
     border-top: 1px solid #dee2e6;
     border-left: 0;
+  }
+
+  .xml-pane {
+    height: 70vh;
   }
 
   .search-input {

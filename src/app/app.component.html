@@ -58,6 +58,11 @@
     >
       Reload
     </button>
+    <label class="form-check small mb-0 text-nowrap">
+      <input class="form-check-input" type="checkbox" [checked]="showXml()"
+        (change)="toggleXml()" aria-controls="situation-xml-panel" />
+      <span class="form-check-label">Show XML</span>
+    </label>
     <button
       type="button"
       class="btn btn-outline-light btn-sm text-nowrap"
@@ -307,7 +312,7 @@
     </div>
 
     @if (viewMode() === 'timeline') {
-      <div class="workspace timeline-workspace d-flex flex-grow-1 overflow-hidden">
+      <div class="workspace timeline-workspace d-flex flex-grow-1 overflow-hidden" [class.xml-visible]="showXml() && !!store.selected()">
       <section class="timeline-pane d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Situation validity timeline">
         <div class="timeline-status d-flex align-items-center gap-3 small text-secondary border-bottom bg-white px-3 py-2">
           <span>
@@ -369,11 +374,11 @@
                 }
               </div>
 
-              @for (row of timeline().rows; track row.item.id) {
+              @for (row of timeline().rows; track store.key(row.item)) {
                 <button
                   type="button"
                   class="timeline-label border-0 border-end border-bottom bg-white text-start"
-                  [class.selected]="store.selectedId() === row.item.id"
+                  [class.selected]="store.selected() === row.item"
                   (click)="selectTimelineRow(row.item, $event)"
                   [title]="summary(row.item)"
                 >
@@ -409,6 +414,7 @@
         <aside class="detail-pane timeline-detail-pane overflow-auto bg-white p-4" aria-label="Selected situation detail">
           <ng-container [ngTemplateOutlet]="selectedSituationDetail" />
         </aside>
+        <ng-container [ngTemplateOutlet]="selectedSituationXml" />
       </div>
     } @else if (activeView() === 'messages') {
       @if (store.items().length === 0) {
@@ -421,7 +427,7 @@
           }
         </section>
       } @else {
-        <div class="workspace d-flex flex-grow-1 overflow-hidden">
+        <div class="workspace d-flex flex-grow-1 overflow-hidden" [class.xml-visible]="showXml() && !!store.selected()">
           <section class="list-pane d-flex flex-column border-end" aria-label="Situation messages">
             <div class="small text-secondary border-bottom bg-white px-3 py-2">
               {{ filteredItems().length }} of {{ store.items().length }} messages
@@ -433,7 +439,7 @@
                   <button
                     type="button"
                     class="message-row situation-row d-flex align-items-center w-100 gap-2 border-0 border-bottom px-3 py-2 text-start"
-                    [class.selected]="store.selectedId() === row.situation.id && !selectedAction()"
+                    [class.selected]="store.selected() === row.situation && !selectedAction()"
                     [class.has-validation-issues]="row.situation.validationIssues.length > 0"
                     (click)="select(row.situation)"
                   >
@@ -494,6 +500,7 @@
           <aside class="detail-pane flex-grow-1 overflow-auto bg-white p-4" aria-label="Selected situation detail">
             <ng-container [ngTemplateOutlet]="selectedSituationDetail" />
           </aside>
+          <ng-container [ngTemplateOutlet]="selectedSituationXml" />
         </div>
       }
     } @else {
@@ -522,7 +529,7 @@
                     <div class="small text-uppercase text-primary fw-semibold mb-1">Publishing action</div>
                     <h2 class="detail-heading h4 mb-2">{{ actionSummary(selected.action) }}</h2>
                     <div class="text-secondary text-break">
-                      {{ selected.action.actionRef }} · parent {{ item.id }}
+                      {{ selected.action.actionRef }} · parent {{ item.id }} · version {{ item.version }}
                     </div>
                   } @else {
                     <h2 class="detail-heading h4 mb-2">{{ summary(item) }}</h2>
@@ -780,6 +787,15 @@
               <p class="text-secondary">Select a message to inspect it.</p>
             }
 
+  </ng-template>
+  <ng-template #selectedSituationXml>
+    @if (showXml()) {
+      @if (store.selected(); as item) {
+        <aside id="situation-xml-panel" class="xml-pane border-start overflow-auto bg-white p-4" aria-label="Selected situation XML">
+          <app-situation-xml [xml]="store.xmlFor(item)" [situationId]="item.id" [version]="item.version" />
+        </aside>
+      }
+    }
   </ng-template>
   </main>
 
