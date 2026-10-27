@@ -5,7 +5,7 @@ import { PtSituation } from '../models';
 import { SIRI_SX_STAGE_ENDPOINTS, SiriSxStage } from './siri-sx-http.service';
 
 export type SiriSxStreamEvent =
-  | { type: 'situation'; situation: PtSituation; index: number }
+  | { type: 'situation'; situation: PtSituation; xml: string; index: number }
   | { type: 'invalid-situation'; invalid: InvalidPtSituation }
   | { type: 'complete'; count: number; validCount: number; invalidCount: number };
 
@@ -72,6 +72,7 @@ export class SiriSxStreamService {
               subscriber.next({
                 type: 'situation',
                 situation,
+                xml: data.xml,
                 index: processedCount
               });
               if (maxSituations !== undefined && validCount >= maxSituations) {

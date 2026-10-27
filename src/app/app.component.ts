@@ -3,6 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, Injector, input, OnInit, signal, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 
+import { SituationXmlComponent } from './siri-sx/components/situation-xml.component';
 import { BusinessOrganisationService } from './business-organisations';
 import {
   AffectedJourneyView,
@@ -38,7 +39,7 @@ const MAX_SITUATIONS = 10000;
 
 @Component({
   selector: 'app-siri-sx-browser',
-  imports: [ScrollingModule, NgTemplateOutlet],
+  imports: [ScrollingModule, NgTemplateOutlet, SituationXmlComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -84,6 +85,7 @@ export class AppComponent implements OnInit {
   protected readonly unplannedOnly = signal(false);
   protected readonly now = signal(new Date());
   protected readonly activeView = signal<'messages' | 'invalid'>('messages');
+  protected readonly showXml = signal(false);
   protected readonly selectedAction = signal<ActionSelection | null>(null);
   protected readonly affectedLineLinkStates = signal<ReadonlyMap<string, AffectedLineLinkState>>(new Map());
   protected readonly invalidSituations = this.siriSxStream.invalidSituations;
@@ -472,7 +474,7 @@ export class AppComponent implements OnInit {
   protected readonly resultRows = computed<SituationResultRow[]>(() =>
     this.filteredItems().map((situation) => ({
       kind: 'situation' as const,
-      key: `situation:${situation.id}`,
+      key: `situation:${this.store.key(situation)}`,
       situation
     }))
   );
@@ -480,7 +482,7 @@ export class AppComponent implements OnInit {
   protected readonly selectedActionView = computed(() => {
     const selection = this.selectedAction();
     if (!selection) return undefined;
-    const situation = this.store.items().find((item) => item.id === selection.parentId);
+    const situation = this.store.items().find((item) => item.id === selection.parentId && item.version === selection.parentVersion);
     const action = situation?.messages[selection.actionIndex];
     return situation && action?.actionRef === selection.actionRef
       ? { situation, action }
@@ -511,9 +513,10 @@ export class AppComponent implements OnInit {
       ? this.timeline().rows.map((row) => row.item)
       : this.filteredItems();
     const selectedId = this.store.selectedId();
-    if (selectedId && items.some((item) => item.id === selectedId)) return;
+    if (selectedId && items.some((item) => item.id === selectedId
+      && item.version === this.store.selectedVersion())) return;
 
-    this.store.select(items[0]?.id ?? null);
+    this.store.select(items[0]?.id ?? null, items[0]?.version);
     this.selectedAction.set(null);
   });
 
@@ -534,6 +537,7 @@ export class AppComponent implements OnInit {
     this.streamSubscription?.unsubscribe();
     this.store.reset();
     this.activeView.set('messages');
+    this.selectedAction.set(null);
     this.parseState.set({
       status: 'loading',
       situationCount: 0,
@@ -546,7 +550,7 @@ export class AppComponent implements OnInit {
       .subscribe({
       next: (event) => {
         if (event.type === 'situation') {
-          this.store.enqueue(event.situation);
+          this.store.enqueue(event.situation, event.xml);
           this.parseState.update((state) => ({
             status: 'loading',
             situationCount: event.index,
@@ -591,6 +595,11 @@ export class AppComponent implements OnInit {
 
   protected toggleFilters(): void {
     this.filtersExpanded.update((expanded) => !expanded);
+    afterNextRender(() => this.messageViewport()?.checkViewportSize(), { injector: this.injector });
+  }
+
+  protected toggleXml(): void {
+    this.showXml.update((visible) => !visible);
     afterNextRender(() => this.messageViewport()?.checkViewportSize(), { injector: this.injector });
   }
 
@@ -769,7 +778,7 @@ export class AppComponent implements OnInit {
   }
 
   protected select(item: PtSituationListItem): void {
-    this.store.select(item.id);
+    this.store.select(item.id, item.version);
     this.selectedAction.set(null);
   }
 
@@ -800,9 +809,10 @@ export class AppComponent implements OnInit {
   }
 
   protected selectAction(row: PublishingActionResultRow): void {
-    this.store.select(row.parentId);
+    this.store.select(row.parentId, row.situation.version);
     this.selectedAction.set({
       parentId: row.parentId,
+      parentVersion: row.situation.version,
       actionRef: row.action.actionRef,
       actionIndex: row.actionIndex
     });
@@ -855,6 +865,7 @@ export class AppComponent implements OnInit {
   protected isActionSelected(row: PublishingActionResultRow): boolean {
     const selected = this.selectedAction();
     return selected?.parentId === row.parentId
+      && selected.parentVersion === row.situation.version
       && selected.actionRef === row.action.actionRef
       && selected.actionIndex === row.actionIndex;
   }
@@ -1021,7 +1032,7 @@ export class AppComponent implements OnInit {
       : undefined;
   }
 
-  protected readonly trackItem = (_index: number, item: PtSituationListItem): string => item.id;
+  protected readonly trackItem = (_index: number, item: PtSituationListItem): string => this.store.key(item);
   protected readonly trackResultRow = (_index: number, row: SituationResultRow): string => row.key;
 }
 
@@ -1044,6 +1055,7 @@ type SituationResultRow = SituationParentResultRow | PublishingActionResultRow;
 
 interface ActionSelection {
   parentId: string;
+  parentVersion: number;
   actionRef: string;
   actionIndex: number;
 }
