@@ -217,16 +217,25 @@
         <select
           id="filter-perspective"
           class="form-select form-select-sm"
-          aria-label="Filter by perspective combination"
+          aria-label="Filter by perspective or exact combination"
           [value]="perspectiveCombinationFilter()"
           (change)="updatePerspectiveCombination($event)"
         >
           <option value="">All perspectives ({{ perspectiveCombinationFacetItems().length }})</option>
-          @for (option of perspectiveCombinationOptions(); track option.combination) {
-            <option [value]="option.combination">
-              {{ option.label }} ({{ option.situationCount }})
-            </option>
-          }
+          <optgroup label="Contains perspective (alone or combined)">
+            @for (option of perspectiveOptions(); track option.perspective) {
+              <option [value]="'contains:' + option.perspective">
+                {{ option.perspective }} ({{ option.situationCount }})
+              </option>
+            }
+          </optgroup>
+          <optgroup label="Exact perspective combination">
+            @for (option of perspectiveCombinationOptions(); track option.combination) {
+              <option [value]="option.combination">
+                {{ option.label }} ({{ option.situationCount }})
+              </option>
+            }
+          </optgroup>
         </select>
       </div>
 

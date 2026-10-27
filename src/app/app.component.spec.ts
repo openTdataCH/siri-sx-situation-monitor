@@ -46,6 +46,61 @@ describe('AppComponent', () => {
     expect(element.querySelector('.app-header h1')?.textContent).toContain('SIRI-SX Browser');
   });
 
+  it('filters individual perspectives across combinations and retains exact matches', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const store = TestBed.inject(PtSituationStore);
+    for (const [id, perspectives] of [
+      ['stop-only', ['stopPoint']],
+      ['combined', ['general', 'stopPoint', 'vehicleJourney']],
+      ['general-only', ['general']],
+      ['line-only', ['line']],
+      ['no-perspective', []]
+    ] as const) {
+      const xml = situationXml(id).replace('<OwnerRef>',
+        perspectives.map((perspective) => `<Perspective>${perspective}</Perspective>`).join('') + '<OwnerRef>');
+      const document = new DOMParser().parseFromString(xml, 'application/xml');
+      // Two matching actions must still contribute only one situation to counts.
+      if (id === 'combined') {
+        const action = document.querySelector('PublishingAction')!;
+        action.parentNode!.appendChild(action.cloneNode(true));
+      }
+      store.enqueue(PtSituation.initFromXml(new XMLSerializer().serializeToString(document)));
+    }
+    store.flush();
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const select = element.querySelector<HTMLSelectElement>('#filter-perspective')!;
+    const choose = (value: string): string[] => {
+      select.value = value;
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+      return fixture.componentInstance['filteredItems']().map((item) => item.id);
+    };
+    expect(select.querySelector('option[value="contains:stopPoint"]')?.textContent)
+      .toContain('Contains stopPoint (2)');
+    expect(select.querySelector('option[value="contains:general"]')?.textContent)
+      .toContain('Contains general (2)');
+    expect(choose('contains:stopPoint')).toEqual(['stop-only', 'combined']);
+    expect(select.value).toBe('contains:stopPoint');
+    expect(choose('stopPoint')).toEqual(['stop-only']);
+    expect(choose('general|stopPoint|vehicleJourney')).toEqual(['combined']);
+    expect(choose('contains:vehicleJourney')).toEqual(['combined']);
+    expect(choose('contains:general')).toEqual(['combined', 'general-only']);
+    expect(choose('contains:line')).toEqual(['line-only']);
+    expect(choose('')).toHaveSize(5);
+
+    choose('contains:stopPoint');
+    const search = element.querySelector<HTMLInputElement>('input[type="search"]')!;
+    search.value = 'general-only';
+    search.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(select.value).toBe('');
+    expect(fixture.componentInstance['filteredItems']().map((item) => item.id)).toEqual(['general-only']);
+    expect(select.querySelector('option[value="contains:general"]')?.textContent)
+      .toContain('Contains general (1)');
+  });
+
   for (const viewMode of ['browser', 'timeline'] as const) {
     it(`shows the selected ID and version XML in ${viewMode}`, () => {
       const fixture = TestBed.createComponent(AppComponent);

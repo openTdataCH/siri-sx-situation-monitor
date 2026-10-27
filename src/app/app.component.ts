@@ -142,8 +142,7 @@ export class AppComponent implements OnInit {
       && (!source || item.source.name === source)
       && (!cause || item.alertCause === cause)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
-      && (!perspectiveCombination || item.messages.some((action) =>
-        this.perspectiveCombinationKey(action) === perspectiveCombination))
+      && this.matchesPerspective(item, perspectiveCombination)
     );
   });
 
@@ -160,8 +159,7 @@ export class AppComponent implements OnInit {
       && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (!source || item.source.name === source)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
-      && (!perspectiveCombination || item.messages.some((action) =>
-        this.perspectiveCombinationKey(action) === perspectiveCombination))
+      && this.matchesPerspective(item, perspectiveCombination)
     );
   });
 
@@ -178,8 +176,7 @@ export class AppComponent implements OnInit {
       && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (!source || item.source.name === source)
       && (!cause || item.alertCause === cause)
-      && (!perspectiveCombination || item.messages.some((action) =>
-        this.perspectiveCombinationKey(action) === perspectiveCombination))
+      && this.matchesPerspective(item, perspectiveCombination)
     );
   });
 
@@ -213,8 +210,7 @@ export class AppComponent implements OnInit {
       && (!source || item.source.name === source)
       && (!cause || item.alertCause === cause)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
-      && (!perspectiveCombination || item.messages.some((action) =>
-        this.perspectiveCombinationKey(action) === perspectiveCombination))
+      && this.matchesPerspective(item, perspectiveCombination)
     );
   });
 
@@ -231,8 +227,7 @@ export class AppComponent implements OnInit {
       && (!source || item.source.name === source)
       && (!cause || item.alertCause === cause)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
-      && (!perspectiveCombination || item.messages.some((action) =>
-        this.perspectiveCombinationKey(action) === perspectiveCombination))
+      && this.matchesPerspective(item, perspectiveCombination)
     );
   });
 
@@ -249,8 +244,7 @@ export class AppComponent implements OnInit {
       && (!owner || item.messages.some((action) => action.ownerRef === owner))
       && (!cause || item.alertCause === cause)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
-      && (!perspectiveCombination || item.messages.some((action) =>
-        this.perspectiveCombinationKey(action) === perspectiveCombination))
+      && this.matchesPerspective(item, perspectiveCombination)
     );
   });
 
@@ -344,6 +338,19 @@ export class AppComponent implements OnInit {
       .sort((left, right) => left.scopeType.localeCompare(right.scopeType));
   });
 
+  protected readonly perspectiveOptions = computed(() => {
+    const counts = new Map<string, number>();
+    for (const item of this.perspectiveCombinationFacetItems()) {
+      // Count each situation once, even if several actions use the perspective.
+      for (const perspective of new Set(item.messages.flatMap((action) => action.perspectives))) {
+        counts.set(perspective, (counts.get(perspective) ?? 0) + 1);
+      }
+    }
+    return [...counts.entries()]
+      .map(([perspective, situationCount]) => ({ perspective, situationCount }))
+      .sort((left, right) => left.perspective.localeCompare(right.perspective));
+  });
+
   protected readonly perspectiveCombinationOptions = computed(() => {
     const counts = new Map<string, number>();
     for (const item of this.perspectiveCombinationFacetItems()) {
@@ -379,8 +386,7 @@ export class AppComponent implements OnInit {
       && (!source || item.source.name === source)
       && (!cause || item.alertCause === cause)
       && (!scopeType || item.messages.some((action) => action.scopeType === scopeType))
-      && (!perspectiveCombination || item.messages.some((action) =>
-        this.perspectiveCombinationKey(action) === perspectiveCombination))
+      && this.matchesPerspective(item, perspectiveCombination)
     );
   });
 
@@ -727,7 +733,9 @@ export class AppComponent implements OnInit {
       const perspectiveCombination = this.perspectiveCombinationFilter();
       if (perspectiveCombination
         && !this.perspectiveCombinationOptions().some((option) =>
-          option.combination === perspectiveCombination)) {
+          option.combination === perspectiveCombination)
+        && !this.perspectiveOptions().some((option) =>
+          `contains:${option.perspective}` === perspectiveCombination)) {
         this.perspectiveCombinationFilter.set('');
         changed = true;
       }
@@ -848,6 +856,15 @@ export class AppComponent implements OnInit {
       if (value) return value;
     }
     return action.actionRef;
+  }
+
+  private matchesPerspective(item: PtSituationListItem, filter: string): boolean {
+    if (!filter) return true;
+    if (filter.startsWith('contains:')) {
+      const perspective = filter.slice('contains:'.length);
+      return item.messages.some((action) => action.perspectives.includes(perspective));
+    }
+    return item.messages.some((action) => this.perspectiveCombinationKey(action) === filter);
   }
 
   protected perspectiveCombinationKey(action: PassengerMessageView): string {
