@@ -1,7 +1,16 @@
 <main class="message-list p-3" [attr.aria-busy]="state().status === 'loading'">
   @if (state(); as viewState) {
   @if (viewState.status === 'error') {
-    <div class="alert alert-danger mb-0" role="alert">{{ viewState.message }}</div>
+    <div class="alert alert-danger mb-0" role="alert">
+      {{ viewState.message }}
+      @if (!owner) {
+        <p class="mt-2 mb-0">
+          Add <code>?owner=YOUR_OWNER_REF</code> to the URL to display your operator’s messages.
+          See the <a class="alert-link" href="https://github.com/openTdataCH/siri-sx-situation-monitor#embedding-the-message-view" target="_blank" rel="noopener noreferrer">repository documentation</a>
+          for setup instructions and examples.
+        </p>
+      }
+    </div>
   } @else {
     @for (message of messages(); track message.key) {
       <article class="card message-card mb-3">
